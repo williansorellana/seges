@@ -335,18 +335,7 @@
 
             <div class="p-6 bg-gray-900 text-gray-100">
 
-                @if(session('error'))
-                    <div class="mb-4 bg-red-900 border border-red-500 text-red-200 px-4 py-3 rounded relative" role="alert">
-                        <strong class="font-bold">¡Error!</strong>
-                        <span class="block sm:inline">{{ session('error') }}</span>
-                    </div>
-                @endif
-
-                @if(session('success'))
-                    <div class="mb-4 bg-green-900 border border-green-500 text-green-200 px-4 py-3 rounded relative">
-                        {{ session('success') }}
-                    </div>
-                @endif
+                
 
                 @if(isset($pendingReservations) && $pendingReservations->isEmpty())
                     <div class="text-center py-10">

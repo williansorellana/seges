@@ -10,21 +10,21 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        if (!Schema::hasColumn('conductores', 'deleted_at')) {
-        	Schema::table('conductores', function (Blueprint $table) {
-            		$table->softDeletes();
-        	});
-    	}
+{
+    if (!Schema::hasColumn('vehicles', 'fuel_type')) {
+        Schema::table('vehicles', function (Blueprint $table) {
+            $table->string('fuel_type')->nullable()->after('mileage');
+        });
     }
+}
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('conductores', function (Blueprint $table) {
-            $table->dropSoftDeletes(); // Esto la quita si te arrepientes
+        Schema::table('vehicles', function (Blueprint $table) {
+            //
         });
     }
 };

@@ -15,15 +15,12 @@
     </style>
 
     <div class="py-12" x-data="{ 
-        // Estado Modal Sala
         openRoomModal: false, 
         selectedRoom: { name: '', location: '', capacity: '', description: '', image: null },
 
-        // Estado Modal Cancelar
         openCancelModal: false,
         cancelUrl: '',
 
-        // Funciones Helper
         confirmCancel(url) {
             this.cancelUrl = url;
             this.openCancelModal = true;
@@ -31,12 +28,6 @@
     }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            @if(session('success'))
-                <div class="mb-4 bg-green-900 border border-green-500 text-green-200 px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
-
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
@@ -106,26 +97,41 @@
 
                                             <td class="px-5 py-4 text-center">
                                                 @php
+                                                    // Calculamos si ya pasó
+                                                    $isPast = \Carbon\Carbon::parse($res->end_time)->isPast();
+                                                    
                                                     $colors = [
                                                         'pending' => 'bg-yellow-900 text-yellow-200 border-yellow-700',
                                                         'approved' => 'bg-green-900 text-green-200 border-green-700',
                                                         'rejected' => 'bg-red-900 text-red-200 border-red-700',
                                                         'cancelled' => 'bg-gray-700 text-gray-400 border-gray-600',
                                                     ];
+                                                    
                                                     $labels = [
                                                         'pending' => 'PENDIENTE',
                                                         'approved' => 'APROBADA',
                                                         'rejected' => 'RECHAZADA',
                                                         'cancelled' => 'CANCELADA',
                                                     ];
+                                                    
+                                                    // Lógica para elegir el color final
+                                                    $badgeColor = $colors[$res->status] ?? 'bg-gray-700';
+                                                    $badgeLabel = $labels[$res->status] ?? strtoupper($res->status);
+                                                    
+                                                    // SOBRESCRIBIR SI ES PASADO Y ESTABA APROBADA
+                                                    if ($isPast && $res->status === 'approved') {
+                                                        $badgeColor = 'bg-blue-900 text-blue-200 border-blue-700';
+                                                        $badgeLabel = 'FINALIZADA';
+                                                    }
                                                 @endphp
-                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border {{ $colors[$res->status] ?? 'bg-gray-700 text-gray-400' }}">
-                                                    {{ $labels[$res->status] ?? strtoupper($res->status) }}
+                                                
+                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border {{ $badgeColor }}">
+                                                    {{ $badgeLabel }}
                                                 </span>
                                             </td>
 
                                             <td class="px-5 py-4 text-right">
-                                                @if($res->status === 'pending' || $res->status === 'approved')
+                                                @if($res->status === 'pending' || ($res->status === 'approved' && !$isPast))
                                                     <button type="button" 
                                                             @click="confirmCancel('{{ route('reservations.cancel', $res->id) }}')"
                                                             class="text-red-400 hover:text-red-300 text-sm font-medium hover:underline transition flex items-center justify-end ml-auto">
@@ -216,7 +222,7 @@
                             </p>
                         </div>
 
-                        <div class="bg-gray-50 dark:bg-gray-700/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <div class="bg-gray-5 dark:bg-gray-700/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                             <form :action="cancelUrl" method="POST">
                                 @csrf
                                 @method('PUT')

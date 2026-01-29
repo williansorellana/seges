@@ -142,7 +142,7 @@ class RoomReservationController extends Controller
     {
         $reservations = RoomReservation::where('user_id', Auth::id())
             ->with('meetingRoom') 
-            ->orderBy('created_at', 'desc') 
+            ->orderBy('start_time', 'desc') 
             ->get();
 
         return view('reservations.my_reservations', compact('reservations'));

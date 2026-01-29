@@ -16,11 +16,6 @@
         
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            @if(session('success'))
-                <div class="mb-6 bg-green-900 border border-green-500 text-green-200 px-4 py-3 rounded relative">
-                    {{ session('success') }}
-                </div>
-            @endif
 
             @if($errors->any())
                 <div class="mb-6 bg-red-900 border border-red-500 text-red-200 px-4 py-3 rounded relative">
