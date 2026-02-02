@@ -10,6 +10,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AssetAssignment;
 use App\Models\User;
 use App\Models\Worker;
+use App\Notifications\AssetConditionNotification;
+use Illuminate\Support\Facades\Notification;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 
 class AssetController extends Controller
@@ -101,8 +103,10 @@ class AssetController extends Controller
         $query = Asset::with(['category', 'assignments.user', 'assignments.worker', 'maintenances', 'writeOff']);
 
         // Filtro de Búsqueda
+        $searchFilter = null;
         if ($request->filled('search')) {
             $search = $request->input('search');
+            $searchFilter = $search;
             $query->where(function ($q) use ($search) {
                 $q->where('codigo_interno', 'like', "%{$search}%")
                     ->orWhere('nombre', 'like', "%{$search}%")
@@ -113,20 +117,70 @@ class AssetController extends Controller
         }
 
         // Filtro de Estado
-        if ($request->filled('estado')) {
+        // El parámetro 'export_filter' tiene prioridad sobre 'estado' del sidebar
+        $estadoFilter = null;
+        if ($request->filled('export_filter') && $request->export_filter !== 'all') {
+            $estadoFilter = $request->export_filter;
+            $query->where('estado', $request->export_filter);
+        } elseif ($request->filled('estado')) {
+            $estadoFilter = $request->estado;
             $query->where('estado', $request->input('estado'));
         }
 
         // Filtro de Categoría
+        $categoriaFilter = null;
         if ($request->filled('categoria')) {
+            $categoriaFilter = $request->input('categoria');
             $query->where('categoria_id', $request->input('categoria'));
         }
 
         // Obtener TODOS los registros (sin paginación)
         $assets = $query->orderBy('created_at', 'desc')->get();
+
+        // Calcular estadísticas
+        $totalActivos = $assets->count();
+        $totalDisponibles = $assets->where('estado', 'available')->count();
+        $totalAsignados = $assets->where('estado', 'assigned')->count();
+        $totalMantenimiento = $assets->where('estado', 'maintenance')->count();
+        $totalBaja = $assets->where('estado', 'written_off')->count();
+
+        // Calcular valor total referencial
+        $valorTotal = $assets->sum('valor_referencial');
+
+        // Determinar filtros aplicados para mostrar en PDF
+        $filtrosAplicados = [];
+        if ($searchFilter) {
+            $filtrosAplicados[] = "Búsqueda: {$searchFilter}";
+        }
+        if ($estadoFilter) {
+            $estadoLabels = [
+                'available' => 'Disponible',
+                'assigned' => 'Asignado',
+                'maintenance' => 'En Mantenimiento',
+                'written_off' => 'Dado de Baja',
+            ];
+            $filtrosAplicados[] = "Estado: " . ($estadoLabels[$estadoFilter] ?? $estadoFilter);
+        }
+        if ($categoriaFilter) {
+            $categoria = AssetCategory::find($categoriaFilter);
+            if ($categoria) {
+                $filtrosAplicados[] = "Categoría: {$categoria->nombre}";
+            }
+        }
+
         $generatedDate = now()->format('d/m/Y H:i');
 
-        $pdf = Pdf::loadView('assets.pdf.inventory', compact('assets', 'generatedDate'));
+        $pdf = Pdf::loadView('assets.pdf.inventory', compact(
+            'assets',
+            'generatedDate',
+            'totalActivos',
+            'totalDisponibles',
+            'totalAsignados',
+            'totalMantenimiento',
+            'totalBaja',
+            'valorTotal',
+            'filtrosAplicados'
+        ));
 
         // Orientación horizontal para que quepan más columnas
         $pdf->setPaper('a4', 'landscape');
@@ -141,8 +195,9 @@ class AssetController extends Controller
     {
         // Limpiar formato de moneda
         if ($request->has('valor_referencial')) {
+            $val = $request->input('valor_referencial');
             $request->merge([
-                'valor_referencial' => str_replace('.', '', $request->input('valor_referencial')),
+                'valor_referencial' => $val ? str_replace('.', '', $val) : null,
             ]);
         }
 
@@ -151,12 +206,12 @@ class AssetController extends Controller
             'categoria_id' => 'required|exists:asset_categories,id',
             'marca' => 'nullable|string|max:255',
             'modelo' => 'nullable|string|max:255',
-            'numero_serie' => 'nullable|string|max:255',
+            'numero_serie' => 'required|string|max:255',
             'estado' => 'required|in:available,assigned,maintenance,written_off',
             'ubicacion' => 'nullable|string|max:255',
             'fecha_adquisicion' => 'nullable|date',
             'valor_referencial' => 'nullable|integer|min:0',
-            'foto' => 'nullable|image|max:2048',
+            'foto' => 'nullable|image|max:10240',
             'observaciones' => 'nullable|string',
         ]);
 
@@ -180,8 +235,9 @@ class AssetController extends Controller
     {
         // Limpiar formato de moneda
         if ($request->has('valor_referencial')) {
+            $val = $request->input('valor_referencial');
             $request->merge([
-                'valor_referencial' => str_replace('.', '', $request->input('valor_referencial')),
+                'valor_referencial' => $val ? str_replace('.', '', $val) : null,
             ]);
         }
 
@@ -190,12 +246,12 @@ class AssetController extends Controller
             'categoria_id' => 'required|exists:asset_categories,id',
             'marca' => 'nullable|string|max:255',
             'modelo' => 'nullable|string|max:255',
-            'numero_serie' => 'nullable|string|max:255',
+            'numero_serie' => 'required|string|max:255',
             'estado' => 'required|in:available,assigned,maintenance,written_off',
             'ubicacion' => 'nullable|string|max:255',
             'fecha_adquisicion' => 'nullable|date',
             'valor_referencial' => 'nullable|integer|min:0',
-            'foto' => 'nullable|image|max:2048',
+            'foto' => 'nullable|image|max:10240',
             'observaciones' => 'nullable|string',
         ]);
 
@@ -318,6 +374,7 @@ class AssetController extends Controller
         AssetAssignment::create([
             'activo_id' => $asset->id,
             'usuario_id' => $request->tipo_asignacion === 'user' ? $request->usuario_id : null,
+            'created_by' => auth()->id(),
             'worker_id' => $workerId,
             'trabajador_nombre' => $workerData ? $workerData->nombre : null,
             'trabajador_rut' => $workerData ? $workerData->rut : null,
@@ -365,22 +422,91 @@ class AssetController extends Controller
     /**
      * Download barcode PDF.
      */
-    public function downloadBarcode($id)
+    public function downloadBarcode(Request $request, $id)
     {
         $asset = Asset::withTrashed()->findOrFail($id);
 
+        // Obtener tamaño de etiqueta (default: medium)
+        $size = $request->query('size', 'medium');
+
+        // Validar tamaño
+        if (!in_array($size, ['small', 'medium', 'large'])) {
+            $size = 'medium';
+        }
+
         $generator = new BarcodeGeneratorPNG();
-        $barcode = base64_encode($generator->getBarcode($asset->codigo_barra, $generator::TYPE_CODE_128));
 
-        $pdf = Pdf::loadView('assets.barcode', compact('asset', 'barcode'));
+        // Dimensiones del código de barras según tamaño de etiqueta
+        $barcodeDimensions = [
+            'small' => ['widthFactor' => 2, 'height' => 30],
+            'medium' => ['widthFactor' => 2, 'height' => 40],
+            'large' => ['widthFactor' => 3, 'height' => 50],
+        ];
 
-        // Configurar tamaño de papel para impresora de etiquetas (e.g. 50mm x 30mm)
-        // O A4 con una sola etiqueta si se prefiere. 
-        // Vamos a usar un tamaño personalizado pequeño para etiqueta individual
-        $pdf->setPaper([0, 0, 200, 120], 'landscape'); // aprox 70mm x 42mm
+        $dims = $barcodeDimensions[$size];
+        $barcode = base64_encode($generator->getBarcode($asset->codigo_barra, $generator::TYPE_CODE_128, $dims['widthFactor'], $dims['height']));
+
+
+        // Dimensiones del papel según tamaño de etiqueta
+        $paperSizes = [
+            'small' => [0, 0, 142, 71],    // 50mm x 25mm
+            'medium' => [0, 0, 200, 120],   // 70mm x 42mm
+            'large' => [0, 0, 283, 142],    // 100mm x 50mm
+        ];
+
+        $pdf = Pdf::loadView('assets.barcode', compact('asset', 'barcode', 'size'));
+        $pdf->setPaper($paperSizes[$size], 'landscape');
 
         return $pdf->download(\Illuminate\Support\Str::slug($asset->nombre . ' ' . ($asset->marca ?? '') . ' ' . $asset->codigo_interno) . '.pdf');
     }
+
+    /**
+     * Download multiple barcodes PDF (batch printing).
+     */
+    public function downloadBarcodes(Request $request)
+    {
+        // Validar request
+        $request->validate([
+            'asset_ids' => 'required|array|min:1|max:50',
+            'asset_ids.*' => 'required|exists:assets,id',
+            'size' => 'nullable|in:small,medium,large',
+        ]);
+
+        $assetIds = $request->input('asset_ids');
+        $size = $request->input('size', 'medium');
+
+        // Obtener activos
+        $assets = Asset::withTrashed()->whereIn('id', $assetIds)->get();
+
+        if ($assets->isEmpty()) {
+            return back()->with('error', 'No se encontraron activos.');
+        }
+
+        // Generar códigos de barras para todos los activos
+        $generator = new BarcodeGeneratorPNG();
+
+        $barcodeDimensions = [
+            'small' => ['widthFactor' => 2, 'height' => 25],
+            'medium' => ['widthFactor' => 2, 'height' => 40],
+            'large' => ['widthFactor' => 3, 'height' => 50],
+        ];
+
+        $dims = $barcodeDimensions[$size];
+
+        $assetsWithBarcodes = $assets->map(function ($asset) use ($generator, $dims) {
+            return [
+                'asset' => $asset,
+                'barcode' => base64_encode($generator->getBarcode($asset->codigo_barra, $generator::TYPE_CODE_128, $dims['widthFactor'], $dims['height']))
+            ];
+        });
+
+        // Generar PDF con layout de grid
+        $pdf = Pdf::loadView('assets.barcode-batch', compact('assetsWithBarcodes', 'size'));
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->download('etiquetas-activos-' . now()->format('dmY-His') . '.pdf');
+    }
+
     public function cancelAssignment(Request $request, $id)
     {
         $asset = Asset::findOrFail($id);
@@ -390,6 +516,8 @@ class AssetController extends Controller
             $request->validate([
                 'estado_devolucion' => 'required|string',
                 'comentarios_devolucion' => 'nullable|string',
+                'photos' => 'nullable|array|max:5',
+                'photos.*' => 'image|mimes:jpg,jpeg,png|max:10240',
             ]);
 
             $assignment->update([
@@ -397,11 +525,36 @@ class AssetController extends Controller
                 'estado_devolucion' => $request->estado_devolucion,
                 'comentarios_devolucion' => $request->comentarios_devolucion,
             ]);
+
+            // Guardar fotos si existen
+            if ($request->hasFile('photos')) {
+                foreach ($request->file('photos') as $photo) {
+                    $path = $photo->store('assignment_photos', 'public');
+
+                    \App\Models\AssetAssignmentPhoto::create([
+                        'assignment_id' => $assignment->id,
+                        'photo_path' => $path,
+                    ]);
+                }
+            }
+
+            // Notificar si el estado es malo
+            if (in_array($request->estado_devolucion, ['poor', 'damaged'])) {
+                $admins = User::all(); // Enviar a todos los usuarios del sistema
+                foreach ($admins as $admin) {
+                    $admin->notify(new AssetConditionNotification($asset, $request->estado_devolucion, $request->comentarios_devolucion));
+                }
+            }
         }
 
         $asset->update(['estado' => 'available']);
 
-        return back()->with('success', 'Asignación terminada correctamente.');
+        $photoCount = $request->hasFile('photos') ? count($request->file('photos')) : 0;
+        $message = $photoCount > 0
+            ? "Asignación terminada correctamente. Se subieron {$photoCount} foto(s)."
+            : 'Asignación terminada correctamente.';
+
+        return back()->with('success', $message);
     }
 
     public function history(Request $request, $id)
@@ -410,12 +563,14 @@ class AssetController extends Controller
 
         // Query Assignments
         $assignmentsQuery = $asset->assignments()
-            ->with(['user', 'worker'])
+            ->with(['user', 'worker', 'creator'])
             ->orderBy('created_at', 'desc');
 
         // Query Maintenances
         $maintenancesQuery = $asset->maintenances()
-            ->orderBy('fecha', 'desc');
+            ->with(['creator'])
+            ->orderBy('fecha', 'desc')
+            ->orderBy('created_at', 'desc');
 
         if ($request->filled('start_date')) {
             $assignmentsQuery->whereDate('fecha_entrega', '>=', $request->start_date);
@@ -436,10 +591,28 @@ class AssetController extends Controller
     public function downloadHistoryPdf(Request $request, $id)
     {
         $asset = Asset::withTrashed()->findOrFail($id);
+        $generatedDate = now()->format('d/m/Y H:i');
+
+        // Determinar filtros aplicados
+        $filtrosAplicados = [];
+        $startDate = null;
+        $endDate = null;
+
+        if ($request->filled('start_date')) {
+            $startDate = $request->start_date;
+            $filtrosAplicados[] = "Desde: " . \Carbon\Carbon::parse($startDate)->format('d/m/Y');
+        }
+
+        if ($request->filled('end_date')) {
+            $endDate = $request->end_date;
+            $filtrosAplicados[] = "Hasta: " . \Carbon\Carbon::parse($endDate)->format('d/m/Y');
+        }
 
         if ($request->query('type') === 'maintenances') {
             // Logica para PDF de Mantenciones
-            $query = $asset->maintenances()->orderBy('fecha', 'desc');
+            $query = $asset->maintenances()->with('creator')
+                ->orderBy('fecha', 'desc')
+                ->orderBy('created_at', 'desc');
 
             if ($request->filled('start_date')) {
                 $query->whereDate('fecha', '>=', $request->start_date);
@@ -450,13 +623,35 @@ class AssetController extends Controller
             }
 
             $maintenances = $query->get();
-            $pdf = Pdf::loadView('assets.history-maintenance-pdf', compact('asset', 'maintenances'));
+
+            // Calcular estadísticas de mantenciones
+            $totalMantenciones = $maintenances->count();
+            $totalPreventivas = $maintenances->where('tipo', 'preventiva')->count();
+            $totalCorrectivas = $maintenances->where('tipo', 'correctiva')->count();
+            $totalCompletadas = $maintenances->where('fecha_termino', '!=', null)->count();
+            $totalEnProceso = $maintenances->where('fecha_termino', null)->count();
+            $costoTotal = $maintenances->sum('costo');
+
+            $pdf = Pdf::loadView('assets.history-maintenance-pdf', compact(
+                'asset',
+                'maintenances',
+                'generatedDate',
+                'filtrosAplicados',
+                'totalMantenciones',
+                'totalPreventivas',
+                'totalCorrectivas',
+                'totalCompletadas',
+                'totalEnProceso',
+                'costoTotal',
+                'startDate',
+                'endDate'
+            ));
             $filename = 'historial-mantenciones-' . $asset->codigo_interno . '-' . now()->format('dmY-His') . '.pdf';
 
         } else {
             // Lógica por defecto (Asignaciones)
             $query = $asset->assignments()
-                ->with(['user', 'worker'])
+                ->with(['user', 'worker', 'creator'])
                 ->orderBy('created_at', 'desc');
 
             if ($request->filled('start_date')) {
@@ -468,7 +663,31 @@ class AssetController extends Controller
             }
 
             $assignments = $query->get();
-            $pdf = Pdf::loadView('assets.history-pdf', compact('asset', 'assignments'));
+
+            // Calcular estadísticas de asignaciones
+            $totalAsignaciones = $assignments->count();
+            $totalActivas = $assignments->where('fecha_devolucion', null)->count();
+            $totalDevueltas = $assignments->where('fecha_devolucion', '!=', null)->count();
+            $totalBueno = $assignments->where('estado_devolucion', 'good')->count();
+            $totalRegular = $assignments->where('estado_devolucion', 'regular')->count();
+            $totalMalo = $assignments->where('estado_devolucion', 'bad')->count();
+            $totalDanado = $assignments->where('estado_devolucion', 'damaged')->count();
+
+            $pdf = Pdf::loadView('assets.history-pdf', compact(
+                'asset',
+                'assignments',
+                'generatedDate',
+                'filtrosAplicados',
+                'totalAsignaciones',
+                'totalActivas',
+                'totalDevueltas',
+                'totalBueno',
+                'totalRegular',
+                'totalMalo',
+                'totalDanado',
+                'startDate',
+                'endDate'
+            ));
             $filename = 'historial-asignaciones-' . $asset->codigo_interno . '-' . now()->format('dmY-His') . '.pdf';
         }
 
@@ -490,6 +709,7 @@ class AssetController extends Controller
         // Crear registro de mantención
         \App\Models\AssetMaintenance::create([
             'activo_id' => $asset->id,
+            'created_by' => auth()->id(),
             'tipo' => 'correctiva', // Asumimos correctiva por defecto al venir de un daño
             'descripcion' => $request->motivo_mantencion,
             'fecha' => $request->fecha_mantencion,
@@ -542,6 +762,8 @@ class AssetController extends Controller
             'fecha_termino' => 'required|date',
             'detalles_solucion' => 'required|string',
             'costo' => 'nullable|integer|min:0',
+            'photos' => 'nullable|array|max:5',
+            'photos.*' => 'image|mimes:jpg,jpeg,png|max:10240',
         ]);
 
         // Buscar el último registro de mantenimiento abierto (sin fecha de término)
@@ -571,9 +793,29 @@ class AssetController extends Controller
             }
         }
 
+        // Guardar fotos si se subieron
+        $photoCount = 0;
+        if ($request->hasFile('photos') && $maintenance) {
+            foreach ($request->file('photos') as $photo) {
+                $path = $photo->store('maintenance_photos', 'public');
+
+                \App\Models\MaintenancePhoto::create([
+                    'maintenance_id' => $maintenance->id,
+                    'photo_path' => $path,
+                ]);
+
+                $photoCount++;
+            }
+        }
+
         // Actualizar estado del activo a disponible
         $asset->update(['estado' => 'available']);
 
-        return back()->with('success', 'Mantención finalizada. Activo disponible nuevamente.');
+        $message = 'Mantención finalizada. Activo disponible nuevamente.';
+        if ($photoCount > 0) {
+            $message .= " Se subieron {$photoCount} foto(s).";
+        }
+
+        return back()->with('success', $message);
     }
 }

@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->boolean('body_damage_reported')->default(false);
             $table->text('comments')->nullable();
             $table->json('photos_paths')->nullable(); // Store array of file paths
+            $table->softDeletes();
             $table->timestamps();
         });
     }

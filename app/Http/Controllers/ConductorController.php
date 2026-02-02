@@ -30,7 +30,7 @@ class ConductorController extends Controller
             'cargo' => 'required|string|max:255',
             'departamento' => 'required|string|max:255',
             'fecha_licencia' => 'required|date',
-            'fotografia' => 'nullable|image|mimes:jpg,png,jpeg|max:2048', // Máximo 2MB
+            'fotografia' => 'nullable|image|mimes:jpg,png,jpeg|max:10240', // Máximo 10MB
         ]);
         $conductor = new Conductor($request->except('fotografia'));
 
@@ -60,6 +60,7 @@ class ConductorController extends Controller
             'cargo' => 'required|string|max:255',
             'departamento' => 'required|string|max:255',
             'fecha_licencia' => 'required|date',
+            'fotografia' => 'nullable|image|mimes:jpg,png,jpeg|max:10240',
         ]);
 
         $data = $request->all();

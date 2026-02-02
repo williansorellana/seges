@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Historial de Mantenciones</title>
+    <title>Reporte: Top Usuarios y Trabajadores</title>
     <style>
         @page {
             margin: 100px 50px 80px 50px;
@@ -15,14 +15,14 @@
             color: #333;
         }
 
-        /* Header fijo en todas las páginas */
+        /* Header fijo */
         header {
             position: fixed;
             top: -100px;
             left: 0;
             right: 0;
             height: 90px;
-            border-bottom: 3px solid #ea580c;
+            border-bottom: 3px solid #14b8a6;
             padding-bottom: 10px;
         }
 
@@ -51,22 +51,26 @@
             font-weight: bold;
         }
 
+        h2 {
+            font-size: 11pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #0f766e;
+            background-color: #ccfbf1;
+            padding: 8px 12px;
+            border-left: 4px solid #14b8a6;
+        }
+
         .meta-date {
             color: #64748b;
             font-size: 8pt;
             margin: 0;
         }
 
-        .asset-info {
-            color: #475569;
-            font-size: 9pt;
-            margin-top: 3px;
-        }
-
-        /* Sección de estadísticas */
+        /* Estadísticas */
         .stats-section {
-            background-color: #fef3c7;
-            border: 1px solid #fbbf24;
+            background-color: #ccfbf1;
+            border: 1px solid #5eead4;
             border-radius: 6px;
             padding: 10px 15px;
             margin: 15px 0;
@@ -80,8 +84,8 @@
         .stat-item {
             display: table-cell;
             text-align: center;
-            padding: 5px 10px;
-            border-right: 1px solid #fbbf24;
+            padding: 5px 8px;
+            border-right: 1px solid #5eead4;
         }
 
         .stat-item:last-child {
@@ -90,7 +94,7 @@
 
         .stat-label {
             font-size: 7pt;
-            color: #92400e;
+            color: #0f766e;
             text-transform: uppercase;
             font-weight: bold;
             margin-bottom: 3px;
@@ -103,30 +107,25 @@
         }
 
         .stat-value.total {
-            color: #ea580c;
+            color: #14b8a6;
         }
 
-        .stat-value.preventivas {
-            color: #2563eb;
+        .stat-value.internos {
+            color: #0891b2;
         }
 
-        .stat-value.correctivas {
-            color: #dc2626;
+        .stat-value.externos {
+            color: #06b6d4;
         }
 
-        .stat-value.completadas {
-            color: #10b981;
+        .top-name {
+            font-size: 8pt;
+            color: #134e4a;
+            margin-top: 3px;
+            font-weight: normal;
         }
 
-        .stat-value.enproceso {
-            color: #f59e0b;
-        }
-
-        .stat-value.costo {
-            color: #7c3aed;
-        }
-
-        /* Filtros aplicados */
+        /* Filtros */
         .filters-section {
             background-color: #dbeafe;
             border-left: 4px solid #3b82f6;
@@ -152,6 +151,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            margin-bottom: 20px;
         }
 
         th,
@@ -172,49 +172,32 @@
         }
 
         tbody tr:nth-child(even) {
-            background-color: #fef3c7;
+            background-color: #f0fdfa;
         }
 
         tbody tr:nth-child(odd) {
-            background-color: #fffbeb;
+            background-color: #ccfbf1;
         }
 
-        /* Badges */
-        .badge {
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 7pt;
+        .rank-cell {
+            text-align: center;
             font-weight: bold;
-            display: inline-block;
+            color: #14b8a6;
         }
 
-        .badge-preventiva {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge-correctiva {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        .status-ongoing {
-            color: #d97706;
+        .total-cell {
+            text-align: center;
             font-weight: bold;
-        }
-
-        .status-completed {
-            color: #059669;
-            font-weight: bold;
+            color: #14b8a6;
+            font-size: 10pt;
         }
 
         .meta-info {
             font-size: 7pt;
             color: #64748b;
-            line-height: 1.3;
         }
 
-        /* Footer fijo en todas las páginas */
+        /* Footer fijo */
         footer {
             position: fixed;
             bottom: -60px;
@@ -254,14 +237,9 @@
 
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 20px;
             color: #94a3b8;
             font-style: italic;
-        }
-
-        .cost-highlight {
-            color: #7c3aed;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -281,10 +259,7 @@
                 @endif
             </div>
             <div class="title-section">
-                <h1>Historial de Mantenciones</h1>
-                <div class="asset-info">
-                    <strong>{{ $asset->nombre }}</strong> ({{ $asset->codigo_interno }})
-                </div>
+                <h1>Reporte: Top Usuarios y Trabajadores</h1>
                 <p class="meta-date">Generado el {{ $generatedDate }}</p>
             </div>
         </div>
@@ -294,7 +269,7 @@
     <footer>
         <div class="footer-content">
             <div class="footer-left">
-                Sistema de Gestión de Activos - Historial de Mantenciones
+                Sistema de Gestión de Activos - Reporte de Usuarios
             </div>
             <div class="footer-right">
                 <span class="page-number"></span>
@@ -308,28 +283,24 @@
         <div class="stats-section">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Total</div>
-                    <div class="stat-value total">{{ $totalMantenciones }}</div>
+                    <div class="stat-label">Usuarios Int.</div>
+                    <div class="stat-value internos">{{ $totalUsuarios }}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Preventivas</div>
-                    <div class="stat-value preventivas">{{ $totalPreventivas }}</div>
+                    <div class="stat-label">Trabajadores Ext.</div>
+                    <div class="stat-value externos">{{ $totalTrabajadores }}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Correctivas</div>
-                    <div class="stat-value correctivas">{{ $totalCorrectivas }}</div>
+                    <div class="stat-label">Asig. Internos</div>
+                    <div class="stat-value internos">{{ $totalAsignacionesUsuarios }}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Completadas</div>
-                    <div class="stat-value completadas">{{ $totalCompletadas }}</div>
+                    <div class="stat-label">Asig. Externos</div>
+                    <div class="stat-value externos">{{ $totalAsignacionesTrabajadores }}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">En Proceso</div>
-                    <div class="stat-value enproceso">{{ $totalEnProceso }}</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Costo Total</div>
-                    <div class="stat-value costo">${{ number_format($costoTotal, 0, ',', '.') }}</div>
+                    <div class="stat-label">Total Global</div>
+                    <div class="stat-value total">{{ $totalAsignaciones }}</div>
                 </div>
             </div>
         </div>
@@ -346,65 +317,58 @@
             </div>
         @endif
 
-        <!-- Tabla -->
+        <!-- Usuarios Internos -->
+        <h2>Usuarios Internos</h2>
         <table>
             <thead>
                 <tr>
-                    <th style="width: 10%">Tipo</th>
-                    <th style="width: 11%">Inicio</th>
-                    <th style="width: 11%">Término</th>
-                    <th style="width: 24%">Descripción / Motivo</th>
-                    <th style="width: 24%">Solución / Resultado</th>
-                    <th style="width: 10%">Costo</th>
-                    <th style="width: 10%">Responsable</th>
+                    <th style="width: 6%">#</th>
+                    <th style="width: 44%">Nombre</th>
+                    <th style="width: 30%">RUT</th>
+                    <th style="width: 20%">Asignaciones</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($maintenances as $maintenance)
+                @forelse($users as $index => $user)
                     <tr>
-                        <td>
-                            <span
-                                class="badge {{ $maintenance->tipo === 'preventiva' ? 'badge-preventiva' : 'badge-correctiva' }}">
-                                {{ ucfirst($maintenance->tipo) }}
-                            </span>
-                        </td>
-                        <td>{{ $maintenance->fecha ? $maintenance->fecha->format('d/m/Y') : '-' }}</td>
-                        <td>
-                            @if($maintenance->fecha_termino)
-                                <span class="status-completed">{{ $maintenance->fecha_termino->format('d/m/Y') }}</span>
-                            @else
-                                <span class="status-ongoing">En Proceso</span>
-                            @endif
-                        </td>
-                        <td>{{ $maintenance->descripcion }}</td>
-                        <td>
-                            @if($maintenance->detalles_solucion)
-                                {{ $maintenance->detalles_solucion }}
-                                @if($maintenance->photos && $maintenance->photos->count() > 0)
-                                    <div style="margin-top:4px; font-size:8pt; color:#10b981;">
-                                        <strong>📷 Fotos:</strong> {{ $maintenance->photos->count() }} adjunta(s)
-                                    </div>
-                                @endif
-                            @else
-                                <span style="color: #94a3b8; font-style: italic;">Sin detalles aún</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($maintenance->costo)
-                                <span class="cost-highlight">${{ number_format($maintenance->costo, 0, ',', '.') }}</span>
-                            @else
-                                <span style="color: #94a3b8;">-</span>
-                            @endif
-                        </td>
-                        <td>
-                            <strong>{{ $maintenance->creator->name ?? 'N/A' }}</strong><br>
-                            <span class="meta-info">{{ $maintenance->creator->rut ?? '' }}</span>
-                        </td>
+                        <td class="rank-cell">{{ $index + 1 }}</td>
+                        <td><strong>{{ $user->user->name ?? 'Usuario Eliminado' }}</strong></td>
+                        <td class="meta-info">{{ $user->user->rut ?? '-' }}</td>
+                        <td class="total-cell">{{ $user->total }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="empty-state">
-                            No hay registros de mantención para este activo.
+                        <td colspan="4" class="empty-state">
+                            No hay datos de usuarios internos.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <!-- Trabajadores Externos -->
+        <h2>Trabajadores Externos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 6%">#</th>
+                    <th style="width: 44%">Nombre</th>
+                    <th style="width: 30%">RUT</th>
+                    <th style="width: 20%">Asignaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($workers as $index => $worker)
+                    <tr>
+                        <td class="rank-cell">{{ $index + 1 }}</td>
+                        <td><strong>{{ $worker->worker->nombre ?? 'Trabajador Eliminado' }}</strong></td>
+                        <td class="meta-info">{{ $worker->worker->rut ?? '-' }}</td>
+                        <td class="total-cell">{{ $worker->total }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            No hay datos de trabajadores externos.
                         </td>
                     </tr>
                 @endforelse

@@ -10,8 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('asset_assignments', function (Blueprint $table) {
-            $table->boolean('alerted_overdue')->default(false)->after('observaciones');
+        Schema::create('asset_assignment_photos', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 
@@ -20,8 +21,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('asset_assignments', function (Blueprint $table) {
-            $table->dropColumn('alerted_overdue');
-        });
+        Schema::dropIfExists('asset_assignment_photos');
     }
 };

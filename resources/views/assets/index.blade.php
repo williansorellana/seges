@@ -14,15 +14,123 @@
                     </svg>
                     {{ __('Papelera') }}
                 </a>
-                <a href="{{ route('assets.export-pdf', request()->all()) }}" target="_blank"
-                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                        </path>
-                    </svg>
-                    {{ __('Exportar PDF') }}
-                </a>
+                <!-- Dropdown Exportar PDF -->
+                <div x-data="{ exportOpen: false }" class="relative">
+                    <button @click="exportOpen = !exportOpen" @click.away="exportOpen = false"
+                        class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        {{ __('Exportar PDF') }}
+                        <svg class="w-4 h-4 ml-2 -mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="exportOpen" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                        style="display: none;">
+                        <div class="py-1">
+                            <!-- Header del dropdown -->
+                            <div
+                                class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                                Filtrar Exportación
+                            </div>
+
+                            <!-- Todo el Inventario -->
+                            @php
+                                $exportAllParams = array_merge(request()->except('export_filter'), ['export_filter' => 'all']);
+                            @endphp
+                            <a href="{{ route('assets.export-pdf', $exportAllParams) }}" target="_blank"
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <span
+                                    class="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mr-3"></span>
+                                <span class="flex-1">Todo el Inventario</span>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+
+                            <!-- Solo Disponibles -->
+                            @php
+                                $exportAvailableParams = array_merge(request()->except(['export_filter', 'estado']), ['export_filter' => 'available']);
+                            @endphp
+                            <a href="{{ route('assets.export-pdf', $exportAvailableParams) }}" target="_blank"
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <span
+                                    class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] mr-3"></span>
+                                <span class="flex-1">Solo Disponibles</span>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+
+                            <!-- Solo Asignados -->
+                            @php
+                                $exportAssignedParams = array_merge(request()->except(['export_filter', 'estado']), ['export_filter' => 'assigned']);
+                            @endphp
+                            <a href="{{ route('assets.export-pdf', $exportAssignedParams) }}" target="_blank"
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <span
+                                    class="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] mr-3"></span>
+                                <span class="flex-1">Solo Asignados</span>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+
+                            <!-- Solo en Mantenimiento -->
+                            @php
+                                $exportMaintenanceParams = array_merge(request()->except(['export_filter', 'estado']), ['export_filter' => 'maintenance']);
+                            @endphp
+                            <a href="{{ route('assets.export-pdf', $exportMaintenanceParams) }}" target="_blank"
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <span
+                                    class="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)] mr-3"></span>
+                                <span class="flex-1">Solo en Mantenimiento</span>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+
+                            <!-- Solo Dados de Baja -->
+                            @php
+                                $exportWrittenOffParams = array_merge(request()->except(['export_filter', 'estado']), ['export_filter' => 'written_off']);
+                            @endphp
+                            <a href="{{ route('assets.export-pdf', $exportWrittenOffParams) }}" target="_blank"
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <span
+                                    class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] mr-3"></span>
+                                <span class="flex-1">Solo Dados de Baja</span>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <button x-data="" @click="$dispatch('open-modal', 'create-asset-modal')"
                     class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,7 +156,32 @@
             updateAssignmentAction: '',
             searchQuery: '{{ request('search', '') }}',
             showFilters: false,
-            selectedWriteOffAsset: null
+            selectedWriteOffAsset: null,
+            // Batch Selection State
+            selectedAssets: [],
+            barcodeModalOpen: false,
+            barcodeSize: 'medium',
+            
+            toggleAll() {
+                // Obtener todos los IDs de la página actual
+                let allIds = [{{ $assets->pluck('id')->implode(',') }}];
+                
+                // Si están todos seleccionados, deseleccionar
+                // Verificamos si todos los IDs de la página están en selectedAssets
+                let allSelected = allIds.every(id => this.selectedAssets.includes(id));
+                
+                if (allSelected) {
+                    // Remover los IDs de esta página de la selección (manteniendo otros si hubiera)
+                    this.selectedAssets = this.selectedAssets.filter(id => !allIds.includes(id));
+                } else {
+                    // Agregar los IDs que faltan
+                    allIds.forEach(id => {
+                        if (!this.selectedAssets.includes(id)) {
+                            this.selectedAssets.push(id);
+                        }
+                    });
+                }
+            }
         }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -94,6 +227,21 @@
                             </svg>
                         </a>
                     </template>
+
+                    <!-- Botón Generar Códigos -->
+                    <div x-show="selectedAssets.length > 0" x-transition class="ml-2">
+                        <button @click="$dispatch('open-modal', 'batch-barcode-modal')"
+                            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold text-sm transition-colors flex items-center gap-2 shadow-sm border border-purple-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v1m6 11h2m-6 0h-2v4h-4v-4H8m13-4V7a1 1 0 00-1-1H4a1 1 0 00-1 1v3M4 12h16m-7 6h6M5 18v2m14-2v2">
+                                </path>
+                            </svg>
+                            Generar
+                            <span class="bg-white text-purple-600 text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                                x-text="selectedAssets.length"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -105,6 +253,11 @@
                         <table class="min-w-full leading-normal">
                             <thead class="bg-gray-800 text-gray-300">
                                 <tr>
+                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider w-10">
+                                        <input type="checkbox" @click="toggleAll()"
+                                            :checked="selectedAssets.length > 0 && [{{ $assets->pluck('id')->implode(',') }}].every(id => selectedAssets.includes(id))"
+                                            class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 cursor-pointer">
+                                    </th>
                                     <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                                         Foto
                                     </th>
@@ -133,6 +286,12 @@
                                     <tr class="hover:bg-gray-800 transition duration-150"
                                         data-search="{{ strtolower($asset->codigo_interno . ' ' . $asset->nombre . ' ' . $asset->marca . ' ' . $asset->modelo . ' ' . $asset->codigo_barra) }}"
                                         x-show="!searchQuery || $el.dataset.search.split(' ').some(word => word.startsWith(searchQuery.toLowerCase()))">
+                                        <!-- Checkbox -->
+                                        <td class="px-5 py-4 text-sm">
+                                            <input type="checkbox" :value="{{ $asset->id }}" x-model="selectedAssets"
+                                                class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 cursor-pointer w-4 h-4">
+                                        </td>
+
                                         <!-- Foto -->
                                         <td class="px-5 py-4 text-sm">
                                             @if($asset->foto_path)
@@ -239,6 +398,31 @@
                                                     {{ $statusLabel[$asset->estado] ?? strtoupper($asset->estado) }}
                                                 </span>
 
+                                                @php
+                                                    $isOverdue = false;
+                                                    if ($asset->estado === 'assigned' && $asset->activeAssignment && $asset->activeAssignment->fecha_estimada_devolucion) {
+                                                        $now = now();
+                                                        $deadline = \Carbon\Carbon::parse($asset->activeAssignment->fecha_estimada_devolucion);
+                                                        // Solo si ya pasó la fecha
+                                                        if ($now->gt($deadline)) {
+                                                            $isOverdue = true;
+                                                        }
+                                                    }
+                                                @endphp
+
+                                                @if($isOverdue)
+                                                    <span
+                                                        class="px-2 py-0.5 inline-flex text-[10px] font-bold rounded border text-red-400 bg-red-900/20 border-red-800 animate-pulse">
+                                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        ATRASADO
+                                                    </span>
+                                                @endif
+
                                                 @if($showWarning)
                                                     <span
                                                         class="px-2 py-0.5 inline-flex text-[10px] font-bold rounded border {{ $warningClass }} animate-pulse">
@@ -331,9 +515,9 @@
                                                 @if($showWarning)
                                                     <button
                                                         @click="
-                                                                                                                                                                                    editingAsset = {{ $jsonAsset }};
-                                                                                                                                                                                    $dispatch('open-modal', 'resolve-issue-modal');
-                                                                                                                                                                                "
+                                                                                                                                                                                                                                                                                                                                                                    editingAsset = {{ $jsonAsset }};
+                                                                                                                                                                                                                                                                                                                                                                    $dispatch('open-modal', 'resolve-issue-modal');
+                                                                                                                                                                                                                                                                                                                                                                "
                                                         class="text-orange-500 hover:text-orange-400 transition duration-150 animate-pulse"
                                                         title="Gestionar Alerta">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -350,9 +534,9 @@
                                                 @if($asset->estado === 'maintenance')
                                                     <button
                                                         @click="
-                                                                                                                                                                                    editingAsset = {{ $jsonAsset }};
-                                                                                                                                                                                    $dispatch('open-modal', 'finish-maintenance-modal');
-                                                                                                                                                                                "
+                                                                                                                                                                                                                                                                                                                                                                    editingAsset = {{ $jsonAsset }};
+                                                                                                                                                                                                                                                                                                                                                                    $dispatch('open-modal', 'finish-maintenance-modal');
+                                                                                                                                                                                                                                                                                                                                                                "
                                                         class="text-green-500 hover:text-green-400 transition duration-150"
                                                         title="Finalizar Mantención">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -367,10 +551,10 @@
                                                 @if($asset->estado === 'available')
                                                     <button
                                                         @click="
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        assignmentAsset = {{ $jsonAsset }};
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        assignAction = '{{ route('assets.assign', $asset->id) }}';
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        $dispatch('open-modal', 'assign-asset-modal');
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    "
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        assignmentAsset = {{ $jsonAsset }};
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        assignAction = '{{ route('assets.assign', $asset->id) }}';
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        $dispatch('open-modal', 'assign-asset-modal');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    "
                                                         class="text-blue-500 hover:text-blue-400 transition duration-150"
                                                         title="Asignar Activo">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -399,9 +583,9 @@
                                                 @if($asset->estado === 'assigned')
                                                     <button
                                                         @click="
-                                                                                                                                                                                                                                                                                                                                                                                                assignmentAsset = {{ $jsonAsset }};
-                                                                                                                                                                                                                                                                                                                                                                                                $dispatch('open-modal', 'view-assignment-modal');
-                                                                                                                                                                                                                                                                                                                                                                                            "
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                assignmentAsset = {{ $jsonAsset }};
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $dispatch('open-modal', 'view-assignment-modal');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "
                                                         class="text-indigo-400 hover:text-indigo-300 transition duration-150"
                                                         title="Ver Detalles de Asignación">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -440,9 +624,9 @@
                                                 <!-- Ver Detalle -->
                                                 <button
                                                     @click="
-                                                                                                                                                                                                                                                            editingAsset = {{ $jsonAsset }};
-                                                                                                                                                                                                                                                            $dispatch('open-modal', 'view-asset-modal');
-                                                                                                                                                                                                                                                        "
+                                                                                                                                                                                                                                                                                                                                                    editingAsset = {{ $jsonAsset }};
+                                                                                                                                                                                                                                                                                                                                                    $dispatch('open-modal', 'view-asset-modal');
+                                                                                                                                                                                                                                                                                                                                                "
                                                     class="text-green-500 hover:text-green-400 transition duration-150"
                                                     title="Ver Detalle">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -458,10 +642,10 @@
                                                 <!-- Editar -->
                                                 <button
                                                     @click="
-                                                                                                                                                                                                                                                            editingAsset = {{ $jsonAsset }};
-                                                                                                                                                                                                                                                            editAction = '{{ route('assets.update', $asset->id) }}';
-                                                                                                                                                                                                                                                            $dispatch('open-modal', 'edit-asset-modal');
-                                                                                                                                                                                                                                                        "
+                                                                                                                                                                                                                                                                                                                                                    editingAsset = {{ $jsonAsset }};
+                                                                                                                                                                                                                                                                                                                                                    editAction = '{{ route('assets.update', $asset->id) }}';
+                                                                                                                                                                                                                                                                                                                                                    $dispatch('open-modal', 'edit-asset-modal');
+                                                                                                                                                                                                                                                                                                                                                "
                                                     class="text-blue-400 hover:text-blue-300 transition duration-150"
                                                     title="Editar">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -474,19 +658,7 @@
                                                 </button>
 
                                                 <!-- Eliminar -->
-                                                @if ($asset->estado !== 'written_off')
-                                                    <!-- Botón Dar de Baja -->
-                                                    <button @click="openResolutionModal(asset, 'write_off')"
-                                                        class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors flex items-center gap-2">
-                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                                        </svg>
-                                                        Dar de Baja
-                                                    </button>
-                                                @endif
+
 
                                                 @if ($asset->estado === 'written_off')
                                                     <!-- Ver Detalle Baja -->
@@ -659,7 +831,45 @@
         <!-- Modal Crear Activo -->
         <x-modal name="create-asset-modal" :show="$errors->any()" focusable>
             <form method="POST" action="{{ route('assets.store') }}" class="p-6 bg-gray-800 text-gray-100"
-                enctype="multipart/form-data">
+                enctype="multipart/form-data" x-data="{
+                    photoPreview: null,
+                    isCompressing: false,
+                    async compressImage(file) {
+                        this.isCompressing = true;
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (event) => {
+                                const img = new Image();
+                                img.src = event.target.result;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    const MAX_WIDTH = 1920;
+                                    let width = img.width;
+                                    let height = img.height;
+
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    canvas.toBlob((blob) => {
+                                        const compressedFile = new File([blob], file.name, {
+                                            type: 'image/jpeg',
+                                            lastModified: Date.now(),
+                                        });
+                                        resolve(compressedFile);
+                                    }, 'image/jpeg', 0.8);
+                                };
+                            };
+                        });
+                    }
+                }">
                 @csrf
 
                 <h2 class="text-lg font-medium text-gray-100 mb-4">
@@ -669,13 +879,39 @@
                 <!-- Foto -->
                 <div class="mb-4">
                     <x-input-label for="foto" :value="__('Foto del Activo')" class="text-gray-300" />
-                    <input id="foto" type="file" name="foto" class="mt-1 block w-full text-sm text-gray-400
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-600 file:text-white
-                        hover:file:bg-blue-700
-                        cursor-pointer focus:outline-none" accept="image/*" />
+
+                    <!-- Preview -->
+                    <div class="mb-3" x-show="photoPreview" style="display: none;">
+                        <span
+                            class="block rounded-md w-full h-40 bg-cover bg-no-repeat bg-center mx-auto border border-gray-600"
+                            x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button type="button" x-on:click.prevent="$refs.photo.click()" :disabled="isCompressing"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 transition-colors shadow-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!isCompressing">Seleccionar Imagen</span>
+                            <span x-show="isCompressing">Procesando...</span>
+                        </button>
+                        <span x-show="!photoPreview" class="text-xs text-gray-500">Ningún archivo seleccionado</span>
+                    </div>
+
+                    <input id="foto" type="file" name="foto" class="hidden" x-ref="photo" accept="image/*" x-on:change="
+                            const file = $refs.photo.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => { photoPreview = e.target.result; };
+                                reader.readAsDataURL(file);
+                                
+                                compressImage(file).then(compressedFile => {
+                                    this.isCompressing = false;
+                                    const dataTransfer = new DataTransfer();
+                                    dataTransfer.items.add(compressedFile);
+                                    $refs.photo.files = dataTransfer.files;
+                                });
+                            }
+                        " />
                     <x-input-error :messages="$errors->get('foto')" class="mt-2" />
                 </div>
 
@@ -737,12 +973,11 @@
 
                     <!-- Número de Serie -->
                     <div class="md:col-span-2">
-                        <x-input-label for="numero_serie" :value="__('Número de Serie (Opcional)')"
-                            class="text-gray-300" />
+                        <x-input-label for="numero_serie" :value="__('Número de Serie')" class="text-gray-300" />
                         <x-text-input id="numero_serie"
                             class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
                             type="text" name="numero_serie" :value="old('numero_serie')"
-                            placeholder="Número de serie del fabricante" />
+                            placeholder="Número de serie del fabricante" required />
                         <x-input-error :messages="$errors->get('numero_serie')" class="mt-2" />
                     </div>
 
@@ -801,8 +1036,46 @@
 
         <!-- Modal Editar Activo -->
         <x-modal name="edit-asset-modal" :show="false" focusable>
-            <form method="POST" :action="editAction" enctype="multipart/form-data"
-                class="p-6 bg-gray-800 text-gray-100">
+            <form method="POST" :action="editAction" enctype="multipart/form-data" class="p-6 bg-gray-800 text-gray-100"
+                x-data="{
+                    photoPreview: null,
+                    isCompressing: false,
+                    async compressImage(file) {
+                        this.isCompressing = true;
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (event) => {
+                                const img = new Image();
+                                img.src = event.target.result;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    const MAX_WIDTH = 1920;
+                                    let width = img.width;
+                                    let height = img.height;
+
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    canvas.toBlob((blob) => {
+                                        const compressedFile = new File([blob], file.name, {
+                                            type: 'image/jpeg',
+                                            lastModified: Date.now(),
+                                        });
+                                        resolve(compressedFile);
+                                    }, 'image/jpeg', 0.8);
+                                };
+                            };
+                        });
+                    }
+                }">
                 @csrf
                 @method('PUT')
 
@@ -812,16 +1085,47 @@
 
                 <!-- Foto -->
                 <div class="mb-4">
-                    <x-input-label for="edit_foto" :value="__('Actualizar Foto (Opcional)')" class="text-gray-300" />
-                    <input id="edit_foto" type="file" name="foto" accept="image/*" class="mt-1 block w-full text-sm text-gray-400
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-600 file:text-white
-                        hover:file:bg-blue-700
-                        cursor-pointer focus:outline-none" />
-                </div>
+                    <x-input-label for="edit_foto" :value="__('Cambiar Foto (Opcional)')" class="text-gray-300" />
 
+                    <!-- Preview Box -->
+                    <div class="mb-3" x-show="photoPreview || editingAsset.foto_url" style="display: none;">
+                        <span
+                            class="block rounded-md w-full h-40 bg-cover bg-no-repeat bg-center mx-auto border border-gray-600"
+                            x-bind:style="'background-image: url(\'' + (photoPreview || editingAsset.foto_url) + '\');'">
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button type="button" x-on:click.prevent="$refs.photoEdit.click()" :disabled="isCompressing"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 transition-colors shadow-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!isCompressing">Seleccionar Imagen</span>
+                            <span x-show="isCompressing">Procesando...</span>
+                        </button>
+
+                        <div x-show="!photoPreview && !editingAsset.foto_url" class="text-xs text-gray-500">Ningún
+                            archivo seleccionado</div>
+                        <div x-show="editingAsset.foto_url && !photoPreview" class="text-xs text-gray-400 italic">Se
+                            mantendrá la foto actual si no seleccionas otra</div>
+                    </div>
+
+                    <input id="edit_foto" type="file" name="foto" class="hidden" x-ref="photoEdit" accept="image/*"
+                        x-on:change="
+                            const file = $refs.photoEdit.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => { photoPreview = e.target.result; };
+                                reader.readAsDataURL(file);
+
+                                compressImage(file).then(compressedFile => {
+                                    this.isCompressing = false;
+                                    const dataTransfer = new DataTransfer();
+                                    dataTransfer.items.add(compressedFile);
+                                    $refs.photoEdit.files = dataTransfer.files;
+                                });
+                            }
+                         " />
+                    <x-input-error :messages="$errors->get('foto')" class="mt-2" />
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Código Interno (Solo lectura) -->
                     <div>
@@ -892,7 +1196,7 @@
                         <x-input-label for="edit_numero_serie" :value="__('Número de Serie')" class="text-gray-300" />
                         <x-text-input id="edit_numero_serie"
                             class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="numero_serie" x-model="editingAsset.numero_serie" />
+                            type="text" name="numero_serie" x-model="editingAsset.numero_serie" required />
                     </div>
 
                     <!-- Ubicación -->
@@ -1522,7 +1826,85 @@
                 {{ __('¿Estás seguro de que deseas terminar esta asignación? El activo volverá a estar disponible para ser asignado nuevamente.') }}
             </p>
 
-            <form method="POST" :action="cancelAssignmentAction" class="w-full">
+            <form method="POST" :action="cancelAssignmentAction" class="w-full" enctype="multipart/form-data" x-data="{
+                    photos: [],
+                    photoPreviews: [],
+                    isCompressing: false,
+                    maxPhotos: 5,
+                    
+                    async compressImage(file) {
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (event) => {
+                                const img = new Image();
+                                img.src = event.target.result;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    const MAX_WIDTH = 1920;
+                                    let width = img.width;
+                                    let height = img.height;
+
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    canvas.toBlob((blob) => {
+                                        const compressedFile = new File([blob], file.name, {
+                                            type: 'image/jpeg',
+                                            lastModified: Date.now(),
+                                        });
+                                        resolve(compressedFile);
+                                    }, 'image/jpeg', 0.8);
+                                };
+                            };
+                        });
+                    },
+                    
+                    async handlePhotoSelection(event) {
+                        const files = Array.from(event.target.files);
+                        
+                        if (this.photos.length + files.length > this.maxPhotos) {
+                            alert(`Máximo ${this.maxPhotos} fotos permitidas`);
+                            this.$refs.photoInput.value = '';
+                            return;
+                        }
+                        
+                        this.isCompressing = true;
+                        
+                        for (const file of files) {
+                            const compressed = await this.compressImage(file);
+                            this.photos.push(compressed);
+                            
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                this.photoPreviews.push(e.target.result);
+                            };
+                            reader.readAsDataURL(compressed);
+                        }
+                        
+                        this.isCompressing = false;
+                        this.updateFileInput();
+                    },
+                    
+                    removePhoto(index) {
+                        this.photos.splice(index, 1);
+                        this.photoPreviews.splice(index, 1);
+                        this.updateFileInput();
+                    },
+                    
+                    updateFileInput() {
+                        const dataTransfer = new DataTransfer();
+                        this.photos.forEach(photo => dataTransfer.items.add(photo));
+                        this.$refs.photoInput.files = dataTransfer.files;
+                    }
+                }">
                 @csrf
                 @method('PUT')
 
@@ -1538,12 +1920,62 @@
                     </select>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <x-input-label for="comentarios_devolucion" :value="__('Comentarios / Incidentes')"
                         class="text-gray-300" />
                     <textarea id="comentarios_devolucion" name="comentarios_devolucion" rows="3"
                         class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         placeholder="Describa el estado o cualquier incidente..."></textarea>
+                </div>
+
+                <!-- Sección de Fotos -->
+                <div class="mb-6 border-t border-gray-700 pt-4">
+                    <x-input-label :value="__('Fotos de Devolución (Opcional)')" class="text-gray-300 mb-3" />
+
+                    <!-- Botón de selección y contador -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <button type="button" x-on:click="$refs.photoInput.click()"
+                            :disabled="isCompressing || photos.length >= maxPhotos"
+                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span x-show="!isCompressing">Agregar Fotos</span>
+                            <span x-show="isCompressing">Procesando...</span>
+                        </button>
+
+                        <span class="text-sm" :class="photos.length >= maxPhotos ? 'text-yellow-500' : 'text-gray-400'"
+                            x-text="`${photos.length} / ${maxPhotos} fotos`">
+                        </span>
+                    </div>
+
+                    <!-- Input oculto -->
+                    <input type="file" name="photos[]" multiple accept="image/*" class="hidden" x-ref="photoInput"
+                        x-on:change="handlePhotoSelection($event)" />
+
+                    <!-- Grid de previsualizaciones -->
+                    <div x-show="photoPreviews.length > 0" class="grid grid-cols-3 gap-3">
+                        <template x-for="(preview, index) in photoPreviews" :key="index">
+                            <div class="relative group">
+                                <img :src="preview" alt="Preview"
+                                    class="w-full h-24 object-cover rounded-lg border border-gray-600">
+
+                                <!-- Botón eliminar -->
+                                <button type="button" x-on:click="removePhoto(index)"
+                                    class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-lg transition-all opacity-0 group-hover:opacity-100">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+
+                    <p class="text-xs text-gray-500 mt-2">
+                        Puedes subir hasta 5 fotos (JPG, PNG). Las imágenes se optimizarán automáticamente.
+                    </p>
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6">
@@ -1789,7 +2221,77 @@
                 Al finalizar, el activo volverá a estar <strong>DISPONIBLE</strong>.
             </p>
 
-            <form method="POST" :action="`{{ url('/assets') }}/${editingAsset.id}/maintenance/finish`">
+            <form method="POST" :action="`{{ url('/assets') }}/${editingAsset.id}/maintenance/finish`"
+                enctype="multipart/form-data" x-data="{
+                    photos: [],
+                    photoPreviews: [],
+                    isCompressing: false,
+                    maxPhotos: 5,
+                    
+                    async compressImage(file) {
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    let width = img.width;
+                                    let height = img.height;
+                                    const maxWidth = 1920;
+                                    if (width > maxWidth) {
+                                        height = (height * maxWidth) / width;
+                                        width = maxWidth;
+                                    }
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    canvas.toBlob((blob) => {
+                                        resolve(new File([blob], file.name, {
+                                            type: 'image/jpeg',
+                                            lastModified: Date.now()
+                                        }));
+                                    }, 'image/jpeg', 0.8);
+                                };
+                                img.src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    },
+
+                    async handlePhotoSelection(event) {
+                        const files = Array.from(event.target.files);
+                        if (this.photos.length + files.length > this.maxPhotos) {
+                            alert(`Solo puedes subir un máximo de ${this.maxPhotos} fotos`);
+                            return;
+                        }
+                        
+                        this.isCompressing = true;
+                        
+                        for (const file of files) {
+                            const compressed = await this.compressImage(file);
+                            this.photos.push(compressed);
+                            
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                this.photoPreviews.push(e.target.result);
+                            };
+                            reader.readAsDataURL(compressed);
+                        }
+                        
+                        this.isCompressing = false;
+                        event.target.value = '';
+                    },
+
+                    removePhoto(index) {
+                        this.photos.splice(index, 1);
+                        this.photoPreviews.splice(index, 1);
+                    }
+                }" @submit="
+                    const dataTransfer = new DataTransfer();
+                    photos.forEach(photo => dataTransfer.items.add(photo));
+                    $refs.photoInput.files = dataTransfer.files;
+                ">
                 @csrf
 
                 <div class="mb-4">
@@ -1815,6 +2317,42 @@
                         </div>
                         <input id="costo" type="number" name="costo" min="0" placeholder="0"
                             class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-300 pl-7 rounded-md shadow-sm focus:border-green-500 focus:ring-green-500" />
+                    </div>
+                </div>
+
+                {{-- Sección de Fotos --}}
+                <div class="mb-4">
+                    <x-input-label :value="__('Fotos del Activo (Opcional)')" class="text-gray-300" />
+                    <p class="text-xs text-gray-500 mb-2">Hasta 5 fotos del activo en buen estado.</p>
+
+                    <input type="file" name="photos[]" multiple accept="image/*" class="hidden" x-ref="photoInput"
+                        @change="handlePhotoSelection">
+
+                    <button type="button" @click="$refs.photoInput.click()" :disabled="photos.length >= maxPhotos"
+                        class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        📷 Agregar Fotos
+                    </button>
+
+                    <div x-show="isCompressing" class="mt-2 text-sm text-yellow-400">
+                        ⏳ Procesando imágenes...
+                    </div>
+
+                    <div x-show="photos.length > 0" class="mt-3">
+                        <p class="text-sm text-gray-400 mb-2" x-text="`${photos.length} / ${maxPhotos} fotos`"></p>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <template x-for="(preview, index) in photoPreviews" :key="index">
+                                <div class="relative group">
+                                    <img :src="preview" class="w-full h-24 object-cover rounded border border-gray-600">
+                                    <button type="button" @click="removePhoto(index)"
+                                        class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
@@ -1899,6 +2437,84 @@
             </div>
         </form>
     </x-modal>
+
+    <!-- Modal Generación Batch -->
+    <x-modal name="batch-barcode-modal" focusable>
+        <div class="p-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4v1m6 11h2m-6 0h-2v4h-4v-4H8m13-4V7a1 1 0 00-1-1H4a1 1 0 00-1 1v3M4 12h16m-7 6h6M5 18v2m14-2v2">
+                    </path>
+                </svg>
+                Generar Códigos de Barra
+            </h2>
+
+            <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                Se generarán etiquetas para <span class="font-bold text-purple-600"
+                    x-text="selectedAssets.length"></span> activos seleccionados.
+                Elige el tamaño de la etiqueta:
+            </p>
+
+            <div class="mt-6 space-y-3">
+                <!-- Opciones de Tamaño -->
+                <label
+                    class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    :class="barcodeSize === 'small' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700'">
+                    <input type="radio" name="size" value="small" x-model="barcodeSize"
+                        class="text-purple-600 focus:ring-purple-500">
+                    <div class="ml-3">
+                        <span class="block text-sm font-medium text-gray-900 dark:text-gray-100">Pequeño
+                            (50x25mm)</span>
+                        <span class="block text-xs text-gray-500">Info esencial: Nombre corto, códigos.</span>
+                    </div>
+                </label>
+
+                <label
+                    class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    :class="barcodeSize === 'medium' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700'">
+                    <input type="radio" name="size" value="medium" x-model="barcodeSize"
+                        class="text-purple-600 focus:ring-purple-500">
+                    <div class="ml-3">
+                        <span class="block text-sm font-medium text-gray-900 dark:text-gray-100">Mediano (70x42mm) -
+                            Recomendado</span>
+                        <span class="block text-xs text-gray-500">Incluye categoría y ubicación.</span>
+                    </div>
+                </label>
+
+                <label
+                    class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    :class="barcodeSize === 'large' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700'">
+                    <input type="radio" name="size" value="large" x-model="barcodeSize"
+                        class="text-purple-600 focus:ring-purple-500">
+                    <div class="ml-3">
+                        <span class="block text-sm font-medium text-gray-900 dark:text-gray-100">Grande
+                            (100x50mm)</span>
+                        <span class="block text-xs text-gray-500">Info completa + Número de Serie.</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <x-secondary-button x-on:click="$dispatch('close')">
+                    {{ __('Cancelar') }}
+                </x-secondary-button>
+
+                <form method="POST" action="{{ route('assets.barcodes.batch') }}" target="_blank"
+                    @submit="$dispatch('close')">
+                    @csrf
+                    <template x-for="id in selectedAssets" :key="id">
+                        <input type="hidden" name="asset_ids[]" :value="id">
+                    </template>
+                    <input type="hidden" name="size" :value="barcodeSize">
+
+                    <x-primary-button class="bg-purple-600 hover:bg-purple-700">
+                        {{ __('Descargar PDF') }}
+                    </x-primary-button>
+                </form>
+            </div>
+        </div>
+    </x-modal>
     </div>
 </x-app-layout>
 
@@ -1969,11 +2585,10 @@
                         document.getElementById('trabajador_departamento').value = data.data.departamento || '';
                         document.getElementById('trabajador_cargo').value = data.data.cargo || '';
 
-                        // Notificar visualmente
+                        // Notificar visualme                   nte
                         // alert('Conductor encontrado. Datos cargados automáticamente.');
                     }
-                })
-                .catch(error => console.error('Error validando RUT:', error));
+                }).catch(error => console.error('Error validando RUT:', error));
 
         }
     });

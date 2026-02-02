@@ -10,8 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('asset_assignments', function (Blueprint $table) {
-            $table->boolean('alerted_overdue')->default(false)->after('observaciones');
+        Schema::create('maintenance_photos', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('maintenance_id')->constrained('asset_maintenances')->onDelete('cascade');
+            $table->string('photo_path');
+            $table->timestamps();
         });
     }
 
@@ -20,8 +23,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('asset_assignments', function (Blueprint $table) {
-            $table->dropColumn('alerted_overdue');
-        });
+        Schema::dropIfExists('maintenance_photos');
     }
 };

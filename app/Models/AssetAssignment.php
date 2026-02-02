@@ -21,6 +21,7 @@ class AssetAssignment extends Model
         'estado_devolucion',
         'observaciones',
         'comentarios_devolucion',
+        'created_by',
     ];
 
     protected $casts = [
@@ -38,11 +39,19 @@ class AssetAssignment extends Model
     }
 
     /**
-     * Relación con usuario
+     * Relación con usuario (asignado)
      */
     public function user()
     {
         return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    /**
+     * Relación con creador del registro (responsable)
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -51,5 +60,29 @@ class AssetAssignment extends Model
     public function worker()
     {
         return $this->belongsTo(Worker::class, 'worker_id');
+    }
+
+    /**
+     * Relación con fotos de devolución
+     */
+    public function photos()
+    {
+        return $this->hasMany(AssetAssignmentPhoto::class, 'assignment_id');
+    }
+
+    /**
+     * Accessor para obtener el nombre del asignado (usuario o trabajador)
+     */
+    public function getAssignedToNameAttribute()
+    {
+        if ($this->user) {
+            return $this->user->name . ' ' . ($this->user->last_name ?? '');
+        } elseif ($this->worker) {
+            return $this->worker->nombre;
+        } elseif ($this->trabajador_nombre) {
+            return $this->trabajador_nombre;
+        }
+
+        return 'Desconocido';
     }
 }

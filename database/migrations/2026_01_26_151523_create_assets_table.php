@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->integer('valor_referencial')->nullable()->comment('Valor en pesos');
             $table->string('foto_path')->nullable();
             $table->text('observaciones')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

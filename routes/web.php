@@ -67,7 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
     //filtrado solo admin y supervisor
     Route::middleware(['role:admin,supervisor'])->group(function () {
-        
+
         Route::get('rooms/trash', [MeetingRoomController::class, 'trash'])->name('rooms.trash');
         Route::put('rooms/{id}/restore', [MeetingRoomController::class, 'restore'])->name('rooms.restore');
         Route::delete('rooms/{id}/force-delete', [MeetingRoomController::class, 'forceDelete'])->name('rooms.force-delete');
@@ -76,9 +76,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/room-reservations/{id}/approve', [RoomReservationController::class, 'approve'])->name('room-reservations.approve');
         Route::put('/room-reservations/{id}/reject', [RoomReservationController::class, 'reject'])->name('room-reservations.reject');
         Route::put('/room-reservations/{id}/cancel-admin', [RoomReservationController::class, 'cancelByAdmin'])->name('room-reservations.cancel_admin');
-    
+
         Route::get('/admin/rooms/agenda', [RoomReservationController::class, 'agenda'])->name('rooms.agenda');
-        
+
         Route::get('/admin/rooms/history', [RoomReservationController::class, 'history'])->name('rooms.history');
         Route::get('/admin/rooms/report', [RoomReservationController::class, 'downloadMonthlyReport'])->name('rooms.report');
     });
@@ -126,10 +126,13 @@ Route::middleware('auth')->group(function () {
 
     // Gestión de Activos
     Route::get('/assets/dashboard', [\App\Http\Controllers\AssetController::class, 'dashboard'])->name('assets.dashboard');
+    Route::get('/assets/reports', [\App\Http\Controllers\AssetReportController::class, 'index'])->name('assets.reports.index');
+    Route::get('/assets/reports/export', [\App\Http\Controllers\AssetReportController::class, 'export'])->name('assets.reports.export');
     Route::get('/assets/trash', [\App\Http\Controllers\AssetController::class, 'trash'])->name('assets.trash');
     Route::put('/assets/{id}/restore', [\App\Http\Controllers\AssetController::class, 'restore'])->name('assets.restore');
     Route::delete('/assets/{id}/force-delete', [\App\Http\Controllers\AssetController::class, 'forceDelete'])->name('assets.force-delete');
     Route::get('/assets/{id}/barcode', [\App\Http\Controllers\AssetController::class, 'downloadBarcode'])->name('assets.barcode');
+    Route::post('/assets/barcodes/batch', [\App\Http\Controllers\AssetController::class, 'downloadBarcodes'])->name('assets.barcodes.batch');
     Route::post('/assets/{id}/assign', [\App\Http\Controllers\AssetController::class, 'assign'])->name('assets.assign');
     Route::put('/assets/{id}/cancel-assignment', [\App\Http\Controllers\AssetController::class, 'cancelAssignment'])->name('assets.cancel-assignment');
     Route::put('/assets/{id}/assignment/update', [\App\Http\Controllers\AssetController::class, 'updateAssignment'])->name('assets.update-assignment');

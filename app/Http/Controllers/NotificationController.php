@@ -21,6 +21,10 @@ class NotificationController extends Controller
             return redirect()->route('vehicles.index')->with('success', 'Redirigiendo a vehículo...');
         }
 
+        if (isset($notification->data['asset_code'])) {
+            return redirect()->route('assets.index', ['search' => $notification->data['asset_code']]);
+        }
+
         if (isset($notification->data['action_url'])) {
             return redirect($notification->data['action_url']);
         }

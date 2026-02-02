@@ -10,9 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('asset_assignments', function (Blueprint $table) {
-            $table->boolean('alerted_overdue')->default(false)->after('observaciones');
-        });
+        //
     }
 
     /**
@@ -20,8 +18,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('asset_assignments', function (Blueprint $table) {
-            $table->dropColumn('alerted_overdue');
-        });
+        //
     }
 };

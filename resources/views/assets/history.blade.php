@@ -8,7 +8,41 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100" x-data="{ activeTab: 'assignments' }">
+                <div class="p-6 text-gray-900 dark:text-gray-100" x-data="{ 
+                    activeTab: 'assignments',
+                    lightboxOpen: false,
+                    currentPhoto: '',
+                    allPhotos: [],
+                    currentIndex: 0,
+                    
+                    openLightbox(photoUrl, photos, index) {
+                        this.currentPhoto = photoUrl;
+                        this.allPhotos = photos;
+                        this.currentIndex = index;
+                        this.lightboxOpen = true;
+                        document.body.style.overflow = 'hidden';
+                    },
+                    
+                    closeLightbox() {
+                        this.lightboxOpen = false;
+                        document.body.style.overflow = 'auto';
+                    },
+                    
+                    nextPhoto() {
+                        if (this.currentIndex < this.allPhotos.length - 1) {
+                            this.currentIndex++;
+                            this.currentPhoto = this.allPhotos[this.currentIndex];
+                        }
+                    },
+                    
+                    prevPhoto() {
+                        if (this.currentIndex > 0) {
+                            this.currentIndex--;
+                            this.currentPhoto = this.allPhotos[this.currentIndex];
+                        }
+                    }
+                }" @keydown.escape.window="closeLightbox()" @keydown.arrow-right.window="lightboxOpen && nextPhoto()"
+                    @keydown.arrow-left.window="lightboxOpen && prevPhoto()">
 
                     <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                         <div class="mb-2 sm:mb-0">
@@ -16,6 +50,7 @@
                                 &larr; {{ __('Volver a Activos') }}
                             </a>
                         </div>
+
 
                         <form method="GET" action="{{ route('assets.history', $asset->id) }}"
                             class="flex flex-wrap gap-4 items-end">
@@ -106,6 +141,10 @@
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             {{ __('Comentarios / Incidentes') }}
                                         </th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            {{ __('Responsable') }}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -137,11 +176,11 @@
                                                 @if($assignment->fecha_devolucion)
                                                                                         <span
                                                                                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                                                                                                                                                                        @if($assignment->estado_devolucion == 'good') bg-green-100 text-green-800 
-                                                                                                                                                                                                        @elseif($assignment->estado_devolucion == 'regular') bg-yellow-100 text-yellow-800 
-                                                                                                                                                                                                        @elseif($assignment->estado_devolucion == 'bad') bg-orange-100 text-orange-800 
-                                                                                                                                                                                                        @elseif($assignment->estado_devolucion == 'damaged') bg-red-100 text-red-800 
-                                                                                                                                                                                                        @else bg-gray-100 text-gray-800 @endif">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @if($assignment->estado_devolucion == 'good') bg-green-100 text-green-800 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @elseif($assignment->estado_devolucion == 'regular') bg-yellow-100 text-yellow-800 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @elseif($assignment->estado_devolucion == 'bad') bg-orange-100 text-orange-800 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @elseif($assignment->estado_devolucion == 'damaged') bg-red-100 text-red-800 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @else bg-gray-100 text-gray-800 @endif">
                                                                                             {{ match ($assignment->estado_devolucion) {
                                                         'good' => 'Bueno',
                                                         'regular' => 'Regular',
@@ -169,6 +208,33 @@
                                                             {{ $assignment->observaciones }}
                                                         </div>
                                                     @endif
+
+                                                    {{-- Fotos de Devolución --}}
+                                                    @if($assignment->photos && $assignment->photos->count() > 0)
+                                                        <div class="mt-2"
+                                                            x-data="{ photosData: {{ json_encode($assignment->photos->pluck('url')->values()->toArray()) }} }">
+                                                            <button type="button"
+                                                                @click="openLightbox(photosData[0], photosData, 0)"
+                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                                                    </path>
+                                                                </svg>
+                                                                <span>Ver fotos ({{ $assignment->photos->count() }})</span>
+                                                            </button>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                    {{ $assignment->creator->name ?? 'N/A' }}
+                                                </div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                    {{ $assignment->creator->rut ?? '' }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -215,6 +281,10 @@
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             {{ __('Costo') }}
                                         </th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            {{ __('Responsable') }}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -223,7 +293,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span
                                                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                            {{ $maintenance->tipo === 'preventiva' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' }}">
+                                                                                                                {{ $maintenance->tipo === 'preventiva' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800' }}">
                                                     {{ ucfirst($maintenance->tipo) }}
                                                 </span>
                                             </td>
@@ -256,6 +326,25 @@
                                                 @if($maintenance->detalles_solucion)
                                                     <span class="text-green-400 block mb-1 font-medium">Resuelto:</span>
                                                     {{ $maintenance->detalles_solucion }}
+
+                                                    {{-- Botón de Fotos --}}
+                                                    @if($maintenance->photos && $maintenance->photos->count() > 0)
+                                                        <div class="mt-2"
+                                                            x-data="{ photosData: {{ json_encode($maintenance->photos->pluck('url')->values()->toArray()) }} }">
+                                                            <button type="button"
+                                                                @click="openLightbox(photosData[0], photosData, 0)"
+                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                                                    </path>
+                                                                </svg>
+                                                                <span>Ver fotos ({{ $maintenance->photos->count() }})</span>
+                                                            </button>
+                                                        </div>
+                                                    @endif
                                                 @else
                                                     <span class="text-gray-500 italic">Sin detalles aún</span>
                                                 @endif
@@ -268,6 +357,14 @@
                                                     -
                                                 @endif
                                             </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                    {{ $maintenance->creator->name ?? 'N/A' }}
+                                                </div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                    {{ $maintenance->creator->rut ?? '' }}
+                                                </div>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
@@ -278,6 +375,71 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- Lightbox Modal -->
+                    <div x-show="lightboxOpen" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0" @click="closeLightbox()"
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+                        style="display: none;">
+
+                        <!-- Close Button -->
+                        <button @click="closeLightbox()"
+                            class="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+
+                        <!-- Photo Counter -->
+                        <div
+                            class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm">
+                            <span x-text="(currentIndex + 1) + ' / ' + allPhotos.length"></span>
+                        </div>
+
+                        <!-- Previous Button -->
+                        <button @click.stop="prevPhoto()" x-show="lightboxOpen && currentIndex > 0"
+                            class="absolute left-4 text-white hover:text-gray-300 transition-colors p-2 bg-black bg-opacity-50 rounded-full">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+
+                        <!-- Image Container -->
+                        <div @click.stop class="max-w-6xl max-h-full flex items-center justify-center">
+                            <img :src="currentPhoto" alt="Foto ampliada"
+                                class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 transform scale-95"
+                                x-transition:enter-end="opacity-100 transform scale-100">
+                        </div>
+
+                        <!-- Next Button -->
+                        <button @click.stop="nextPhoto()" x-show="lightboxOpen && currentIndex < allPhotos.length - 1"
+                            class="absolute right-4 text-white hover:text-gray-300 transition-colors p-2 bg-black bg-opacity-50 rounded-full">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                                </path>
+                            </svg>
+                        </button>
+
+                        <!-- Keyboard Instructions -->
+                        <div
+                            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-xs flex items-center gap-4">
+                            <span class="flex items-center gap-1">
+                                <kbd class="px-2 py-1 bg-gray-700 rounded">←</kbd>
+                                <kbd class="px-2 py-1 bg-gray-700 rounded">→</kbd>
+                                Navegar
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <kbd class="px-2 py-1 bg-gray-700 rounded">ESC</kbd>
+                                Cerrar
+                            </span>
                         </div>
                     </div>
                 </div>

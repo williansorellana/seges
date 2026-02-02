@@ -130,7 +130,7 @@ class VehicleController extends Controller
             'model' => 'required|max:255',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
             'mileage' => 'required|integer|min:0',
-            'image' => 'nullable|image|max:2048', // Máx 2MB
+            'image' => 'nullable|image|max:10240', // Máx 10MB
             'fuel_type' => 'required|in:gasoline,diesel',
 
             // Documentos
@@ -212,7 +212,7 @@ class VehicleController extends Controller
             'model' => 'required|max:255',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
             'mileage' => 'required|integer|min:0',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'fuel_type' => 'required|in:gasoline,diesel',
 
             // Docs validation

@@ -512,23 +512,92 @@
         <!-- Modal Agregar Vehículo -->
         <x-modal name="create-vehicle-modal" :show="$errors->any()" focusable>
             <form method="POST" action="{{ route('vehicles.store') }}" class="p-6 bg-gray-800 text-gray-100"
-                enctype="multipart/form-data">
+                enctype="multipart/form-data"
+                x-data="{
+                    photoName: null,
+                    photoPreview: null,
+                    isCompressing: false,
+                    async compressImage(file) {
+                        this.isCompressing = true;
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (event) => {
+                                const img = new Image();
+                                img.src = event.target.result;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    const MAX_WIDTH = 1920;
+                                    let width = img.width;
+                                    let height = img.height;
+
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    canvas.toBlob((blob) => {
+                                        const compressedFile = new File([blob], file.name, {
+                                            type: 'image/jpeg',
+                                            lastModified: Date.now(),
+                                        });
+                                        this.isCompressing = false;
+                                        resolve(compressedFile);
+                                    }, 'image/jpeg', 0.8);
+                                };
+                            };
+                        });
+                    }
+                }">
                 @csrf
 
                 <h2 class="text-lg font-medium text-gray-100 mb-4">
                     {{ __('Nuevo Vehículo') }}
                 </h2>
 
-                <!-- Foto -->
-                <div class="mb-4">
-                    <x-input-label for="image" :value="__('Foto del Vehículo')" class="text-gray-300" />
-                    <input id="image" type="file" name="image" class="mt-1 block w-full text-sm text-gray-400
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-600 file:text-white
-                        hover:file:bg-blue-700
-                        cursor-pointer focus:outline-none" accept="image/*" />
+                <!-- Foto con Compresión -->
+                <div class="mb-4 bg-gray-900 border border-gray-700 rounded-lg p-4">
+                    <x-input-label for="image" :value="__('Foto del Vehículo')" class="text-gray-300 mb-2" />
+                    
+                    <!-- Preview -->
+                    <div class="mt-2 mb-4" x-show="photoPreview" style="display: none;">
+                        <span class="block rounded-md w-full h-40 bg-cover bg-no-repeat bg-center mx-auto border border-gray-600"
+                            x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                         <div x-show="!photoPreview" class="text-xs text-gray-500 italic">
+                            Sin foto seleccionada
+                        </div>
+                        
+                        <button type="button" x-on:click.prevent="$refs.photo.click()" :disabled="isCompressing"
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 active:bg-blue-600 disabled:opacity-25 transition">
+                            <span x-show="!isCompressing">{{ __('Seleccionar Foto') }}</span>
+                            <span x-show="isCompressing">{{ __('Procesando...') }}</span>
+                        </button>
+                    </div>
+
+                    <input id="image" type="file" name="image" class="hidden" x-ref="photo" accept="image/*" 
+                        x-on:change="
+                                const file = $refs.photo.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => { photoPreview = e.target.result; };
+                                    reader.readAsDataURL(file);
+
+                                    compressImage(file).then(compressedFile => {
+                                        const dataTransfer = new DataTransfer();
+                                        dataTransfer.items.add(compressedFile);
+                                        $refs.photo.files = dataTransfer.files;
+                                    });
+                                }
+                            " />
                     <x-input-error :messages="$errors->get('image')" class="mt-2" />
                 </div>
 

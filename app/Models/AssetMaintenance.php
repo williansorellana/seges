@@ -15,6 +15,7 @@ class AssetMaintenance extends Model
         'evidencia_path',
         'detalles_solucion',
         'fecha_termino',
+        'created_by',
     ];
 
     protected $casts = [
@@ -28,5 +29,21 @@ class AssetMaintenance extends Model
     public function asset()
     {
         return $this->belongsTo(Asset::class, 'activo_id');
+    }
+
+    /**
+     * Relación con creador (responsable)
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Relación con fotos de finalización de mantención
+     */
+    public function photos()
+    {
+        return $this->hasMany(MaintenancePhoto::class, 'maintenance_id');
     }
 }

@@ -68,14 +68,14 @@
                                     <div class="flex justify-end items-center gap-4">
                                         <button
                                             @click="viewingConductor = { 
-                                                                                                                nombre: '{{ $conductor->nombre }}',
-                                                                                                                rut: '{{ $conductor->rut ?? '' }}',
-                                                                                                                cargo: '{{ $conductor->cargo }}', 
-                                                                                                                depto: '{{ $conductor->departamento }}', 
-                                                                                                                vencimiento: '{{ $conductor->fecha_licencia->format('d/m/Y') }}', 
-                                                                                                                foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
-                                                                                                                is_expired: {{ $conductor->fecha_licencia->isPast() ? 'true' : 'false' }}
-                                                                                                            }; openViewModal = true"
+                                                                                                                        nombre: '{{ $conductor->nombre }}',
+                                                                                                                        rut: '{{ $conductor->rut ?? '' }}',
+                                                                                                                        cargo: '{{ $conductor->cargo }}', 
+                                                                                                                        depto: '{{ $conductor->departamento }}', 
+                                                                                                                        vencimiento: '{{ $conductor->fecha_licencia->format('d/m/Y') }}', 
+                                                                                                                        foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
+                                                                                                                        is_expired: {{ $conductor->fecha_licencia->isPast() ? 'true' : 'false' }}
+                                                                                                                    }; openViewModal = true"
                                             class="text-green-400 hover:text-green-300">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -85,16 +85,17 @@
                                                 </path>
                                             </svg>
                                         </button>
-                                        <button @click="editingConductor = {
-                                                                                                    id: {{ $conductor->id }},
-                                                                                                    nombre: '{{ $conductor->nombre }}',
-                                                                                                    rut: '{{ $conductor->rut ?? '' }}',
-                                                                                                    cargo: '{{ $conductor->cargo }}',
-                                                                                                    depto: '{{ $conductor->departamento }}',
-                                                                                                    vencimiento: '{{ $conductor->fecha_licencia->format('Y-m-d') }}',
-                                                                                                    foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
-                                                                                                    has_foto: {{ $conductor->fotografia ? 'true' : 'false' }}
-                                                                                                }; openEditModal = true"
+                                        <button
+                                            @click="editingConductor = {
+                                                                                                            id: {{ $conductor->id }},
+                                                                                                            nombre: '{{ $conductor->nombre }}',
+                                                                                                            rut: '{{ $conductor->rut ?? '' }}',
+                                                                                                            cargo: '{{ $conductor->cargo }}',
+                                                                                                            depto: '{{ $conductor->departamento }}',
+                                                                                                            vencimiento: '{{ $conductor->fecha_licencia->format('Y-m-d') }}',
+                                                                                                            foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
+                                                                                                            has_foto: {{ $conductor->fotografia ? 'true' : 'false' }}
+                                                                                                        }; openEditModal = true"
                                             class="text-blue-400 hover:text-blue-300">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -260,7 +261,45 @@
                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                     class="relative z-10 inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl w-full border border-gray-700">
 
-                    <form action="{{ route('conductores.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('conductores.store') }}" method="POST" enctype="multipart/form-data" x-data="{
+                            photoPreview: null,
+                            isCompressing: false,
+                            async compressImage(file) {
+                                this.isCompressing = true;
+                                return new Promise((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.readAsDataURL(file);
+                                    reader.onload = (event) => {
+                                        const img = new Image();
+                                        img.src = event.target.result;
+                                        img.onload = () => {
+                                            const canvas = document.createElement('canvas');
+                                            const ctx = canvas.getContext('2d');
+                                            const MAX_WIDTH = 1920;
+                                            let width = img.width;
+                                            let height = img.height;
+
+                                            if (width > MAX_WIDTH) {
+                                                height *= MAX_WIDTH / width;
+                                                width = MAX_WIDTH;
+                                            }
+
+                                            canvas.width = width;
+                                            canvas.height = height;
+                                            ctx.drawImage(img, 0, 0, width, height);
+
+                                            canvas.toBlob((blob) => {
+                                                const compressedFile = new File([blob], file.name, {
+                                                    type: 'image/jpeg',
+                                                    lastModified: Date.now(),
+                                                });
+                                                resolve(compressedFile);
+                                            }, 'image/jpeg', 0.8);
+                                        };
+                                    };
+                                });
+                            }
+                        }">
                         @csrf
 
                         <div class="p-6 text-gray-100">
@@ -325,11 +364,44 @@
 
                                 <!-- Fotografía -->
                                 <div class="md:col-span-2">
-                                    <label for="create-fotografia"
-                                        class="block text-sm font-semibold text-white mb-2">Fotografía
+                                    <label class="block text-sm font-semibold text-white mb-2">Fotografía
                                         (Opcional)</label>
+
+                                    <!-- Preview -->
+                                    <div class="mb-3" x-show="photoPreview" style="display: none;">
+                                        <span
+                                            class="block rounded-md w-full h-40 bg-cover bg-no-repeat bg-center mx-auto border border-gray-600"
+                                            x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
+                                        </span>
+                                    </div>
+
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" x-on:click.prevent="$refs.photo.click()"
+                                            :disabled="isCompressing"
+                                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 transition-colors shadow-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span x-show="!isCompressing">Seleccionar Imagen</span>
+                                            <span x-show="isCompressing">Procesando...</span>
+                                        </button>
+                                        <span x-show="!photoPreview" class="text-xs text-gray-500">Ningún archivo
+                                            seleccionado</span>
+                                    </div>
+
                                     <input id="create-fotografia" name="fotografia" type="file" accept="image/*"
-                                        class="w-full outline-none text-gray-400 border border-gray-600 bg-gray-900 text-sm py-[7px] px-3 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm file:mr-4 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-700 file:text-gray-300 hover:file:bg-gray-600 cursor-pointer" />
+                                        class="hidden" x-ref="photo" x-on:change="
+                                            const file = $refs.photo.files[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => { photoPreview = e.target.result; };
+                                                reader.readAsDataURL(file);
+                                                
+                                                compressImage(file).then(compressedFile => {
+                                                    this.isCompressing = false;
+                                                    const dataTransfer = new DataTransfer();
+                                                    dataTransfer.items.add(compressedFile);
+                                                    $refs.photo.files = dataTransfer.files;
+                                                });
+                                            }
+                                        " />
                                 </div>
                             </div>
 
@@ -369,7 +441,46 @@
                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                     class="relative z-10 inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl w-full border border-gray-700">
 
-                    <form :action="'/conductores/' + editingConductor.id" method="POST" enctype="multipart/form-data">
+                    <form :action="'/conductores/' + editingConductor.id" method="POST" enctype="multipart/form-data"
+                        x-data="{
+                            photoPreview: null,
+                            isCompressing: false,
+                            async compressImage(file) {
+                                this.isCompressing = true;
+                                return new Promise((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.readAsDataURL(file);
+                                    reader.onload = (event) => {
+                                        const img = new Image();
+                                        img.src = event.target.result;
+                                        img.onload = () => {
+                                            const canvas = document.createElement('canvas');
+                                            const ctx = canvas.getContext('2d');
+                                            const MAX_WIDTH = 1920;
+                                            let width = img.width;
+                                            let height = img.height;
+
+                                            if (width > MAX_WIDTH) {
+                                                height *= MAX_WIDTH / width;
+                                                width = MAX_WIDTH;
+                                            }
+
+                                            canvas.width = width;
+                                            canvas.height = height;
+                                            ctx.drawImage(img, 0, 0, width, height);
+
+                                            canvas.toBlob((blob) => {
+                                                const compressedFile = new File([blob], file.name, {
+                                                    type: 'image/jpeg',
+                                                    lastModified: Date.now(),
+                                                });
+                                                resolve(compressedFile);
+                                            }, 'image/jpeg', 0.8);
+                                        };
+                                    };
+                                });
+                            }
+                        }">
                         @csrf
                         @method('PUT')
 
@@ -437,13 +548,49 @@
 
                                 <!-- Fotografía -->
                                 <div class="md:col-span-2">
-                                    <label for="edit-fotografia"
-                                        class="block text-sm font-semibold text-white mb-2">Cambiar Fotografía
+                                    <label class="block text-sm font-semibold text-white mb-2">Cambiar Fotografía
                                         (Opcional)</label>
+
+                                    <!-- Preview Box -->
+                                    <div class="mb-3" x-show="photoPreview || editingConductor.has_foto"
+                                        style="display: none;">
+                                        <span
+                                            class="block rounded-md w-full h-40 bg-cover bg-no-repeat bg-center mx-auto border border-gray-600"
+                                            x-bind:style="'background-image: url(\'' + (photoPreview || editingConductor.foto) + '\');'">
+                                        </span>
+                                    </div>
+
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" x-on:click.prevent="$refs.photoEdit.click()"
+                                            :disabled="isCompressing"
+                                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 transition-colors shadow-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span x-show="!isCompressing">Seleccionar Imagen</span>
+                                            <span x-show="isCompressing">Procesando...</span>
+                                        </button>
+
+                                        <div x-show="!photoPreview && !editingConductor.has_foto"
+                                            class="text-xs text-gray-500">Ningún archivo seleccionado</div>
+                                        <div x-show="editingConductor.has_foto && !photoPreview"
+                                            class="text-xs text-gray-400 italic">Se mantendrá la foto actual si no
+                                            seleccionas otra</div>
+                                    </div>
+
                                     <input id="edit-fotografia" name="fotografia" type="file" accept="image/*"
-                                        class="w-full outline-none text-gray-400 border border-gray-600 bg-gray-900 text-sm py-[7px] px-3 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm file:mr-4 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-700 file:text-gray-300 hover:file:bg-gray-600 cursor-pointer" />
-                                    <p x-show="editingConductor.has_foto" class="text-xs text-gray-400 mt-1 italic">Ya
-                                        existe una foto cargada. Sube una nueva para reemplazarla.</p>
+                                        class="hidden" x-ref="photoEdit" x-on:change="
+                                            const file = $refs.photoEdit.files[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => { photoPreview = e.target.result; };
+                                                reader.readAsDataURL(file);
+
+                                                compressImage(file).then(compressedFile => {
+                                                    this.isCompressing = false;
+                                                    const dataTransfer = new DataTransfer();
+                                                    dataTransfer.items.add(compressedFile);
+                                                    $refs.photoEdit.files = dataTransfer.files;
+                                                });
+                                            }
+                                         " />
                                 </div>
                             </div>
 
