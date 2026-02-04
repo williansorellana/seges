@@ -90,7 +90,7 @@ class RoomReservationController extends Controller
             'status' => 'pending' 
         ]);
 
-        $admins = User::where('role', 'admin')->get(); 
+        $admins = User::where('role', ['admin', 'supervisor'])->get(); 
         Notification::send($admins, new NewReservationRequest($reservation));
 
         return redirect()->route('reservations.my_reservations')->with('success', 'Solicitud enviada correctamente.');
