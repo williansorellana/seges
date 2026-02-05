@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->string('estado_entrega')->comment('good, fair, poor, damaged');
             $table->string('estado_devolucion')->nullable()->comment('good, fair, poor, damaged');
             $table->text('observaciones')->nullable();
+            $table->boolean('alerted_overdue')->default(false);
             $table->timestamps();
         });
     }

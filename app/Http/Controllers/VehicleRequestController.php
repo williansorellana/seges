@@ -80,7 +80,7 @@ class VehicleRequestController extends Controller
             return back()->withErrors(['vehicle_id' => 'El vehículo no está disponible en las fechas seleccionadas.'])->withInput();
         }
 
-        VehicleRequest::create([
+        $vehicleRequest = VehicleRequest::create([
             'user_id' => Auth::id(),
             'vehicle_id' => $vehicle->id,
             'start_date' => $request->start_date,
@@ -89,6 +89,19 @@ class VehicleRequestController extends Controller
             'destination_type' => $request->destination_type,
             'conductor_id' => ($user->role === 'admin' && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
         ]);
+
+        // Manejo de nuevo conductor si se solicita
+        if ($user->role === 'admin' && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
+            $conductor = \App\Models\Conductor::create([
+                'nombre' => $request->input('new_conductor_name'),
+                'rut' => $request->input('new_conductor_rut'), // Puede ser nulo
+                'cargo' => 'Externo', // Valor por defecto
+                'departamento' => 'Externo',
+                'fecha_licencia' => now()->addYear(), // Valor por defecto para evitar error SQL
+            ]);
+
+            $vehicleRequest->update(['conductor_id' => $conductor->id]);
+        }
 
         return redirect()->route('requests.create')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
     }
@@ -196,6 +209,65 @@ class VehicleRequestController extends Controller
         ]);
 
         return back()->with('success', 'Devolución registrada correctamente. Historial actualizado.');
+    }
+
+    /**
+     * Termina una asignación anticipadamente (sin necesariamente devolución completa todavía, o asumiendo liberación inmediata).
+     * Según requerimiento: "terminar la asignación... poner la razon... mostrarse en historial".
+     * Esto libera el vehículo y completa la solicitud.
+     */
+    public function finishEarly(Request $request, $id)
+    {
+        $vehicleRequest = VehicleRequest::with('vehicle')->findOrFail($id);
+
+        // Validar que sea el usuario correcto o admin (asumimos lógica similar a complete o approve)
+        // Por seguridad, si no es admin, debería ser el dueño de la request
+        if (Auth::user()->role !== 'admin' && $vehicleRequest->user_id !== Auth::id()) {
+            abort(403, 'No autorizado para finalizar esta asignación.');
+        }
+
+        $now = now();
+        $rules = [];
+
+        // Si termina antes de tiempo, la razón es obligatoria
+        if ($now < $vehicleRequest->end_date) {
+            $rules['early_termination_reason'] = 'required|string|max:255';
+        }
+
+        $request->validate($rules);
+
+        // Actualizar datos
+        $updateData = [
+            'status' => 'completed',
+            'original_end_date' => $vehicleRequest->end_date, // Guardar fecha original
+            'end_date' => $now, // Cortar fecha a ahora
+        ];
+
+        if ($request->has('early_termination_reason')) {
+            $updateData['early_termination_reason'] = $request->early_termination_reason;
+        }
+
+        $updateData['completed_by_user_id'] = Auth::id();
+
+        $vehicleRequest->update($updateData);
+
+        // Crear registro de devolución (Entrega) automáticamente
+        // Usamos valores por defecto ya que es un término rápido sin formulario de inspección
+        \App\Models\VehicleReturn::create([
+            'vehicle_request_id' => $vehicleRequest->id,
+            'return_mileage' => $vehicleRequest->vehicle->mileage, // Asumimos kilometraje actual del vehículo
+            'fuel_level' => 'full', // Valor por defecto
+            'tire_status_front' => 'good', // Valor por defecto
+            'tire_status_rear' => 'good', // Valor por defecto
+            'cleanliness' => 'clean', // Valor por defecto
+            'body_damage_reported' => false,
+            'comments' => 'Término Anticipado: ' . ($request->early_termination_reason ?? 'Sin motivo especificado'),
+        ]);
+
+        // Liberar vehículo
+        $vehicleRequest->vehicle->update(['status' => 'available']);
+
+        return back()->with('success', 'Asignación finalizada anticipadamente y devolución registrada.');
     }
 
     /**

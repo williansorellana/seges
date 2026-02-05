@@ -22,7 +22,6 @@ class MaintenanceController extends Controller
             'next_oil_change_km' => 'nullable|integer|min:0',
             'tire_status_front' => 'required|in:good,fair,poor',
             'tire_status_rear' => 'required|in:good,fair,poor',
-            'last_service_date' => 'nullable|date',
         ]);
 
         $vehicle->currentMaintenanceState()->updateOrCreate(
@@ -81,7 +80,6 @@ class MaintenanceController extends Controller
             'next_oil_change_km' => 'required|integer|min:0',
             'tire_status_front' => 'required|in:good,fair,poor',
             'tire_status_rear' => 'required|in:good,fair,poor',
-            'last_service_date' => 'nullable|date',
         ]);
 
         // 3. Validaciones estricas para finalizar
@@ -123,5 +121,134 @@ class MaintenanceController extends Controller
             ->delete();
 
         return back()->with('success', 'Mantenimiento finalizado exitosamente. Vehículo liberado.');
+    }
+
+    public function history(Request $request, Vehicle $vehicle)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $hasDamages = $request->input('has_damages');
+
+        // 1. Filtrar solicitudes de mantención
+        $requestsQuery = $vehicle->maintenanceRequests()
+            ->orderBy('created_at', 'desc');
+
+        if ($startDate) {
+            $requestsQuery->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $requestsQuery->whereDate('created_at', '<=', $endDate);
+        }
+
+        $requests = $requestsQuery->get();
+
+        // 2. Filtrar historial de uso/reservas (y devoluciones)
+        $usageQuery = $vehicle->reservations()
+            ->with(['user', 'conductor', 'vehicleReturn', 'fuelLoads', 'completedBy'])
+            ->orderBy('start_date', 'desc');
+
+        if ($startDate) {
+            $usageQuery->whereDate('start_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $usageQuery->whereDate('start_date', '<=', $endDate);
+        }
+
+        // Filtro específico para Daños (solo afecta si se busca daños en Devoluciones)
+        if ($hasDamages === 'yes') {
+            $usageQuery->whereHas('vehicleReturn', function ($q) {
+                $q->where('body_damage_reported', true);
+            });
+        } elseif ($hasDamages === 'no') {
+            $usageQuery->whereHas('vehicleReturn', function ($q) {
+                $q->where('body_damage_reported', false);
+            });
+        }
+
+        $usageHistory = $usageQuery->get();
+
+        return view('vehicles.maintenance_history', compact('vehicle', 'requests', 'usageHistory'));
+    }
+    public function downloadHistoryPdf(Request $request, Vehicle $vehicle)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $hasDamages = $request->input('has_damages');
+        $tab = $request->input('tab', 'maintenance'); // Pestaña activa
+
+        // Datos para la vista PDF
+        $data = [
+            'vehicle' => $vehicle,
+            'tab' => $tab,
+            'filters' => [],
+            'requests' => collect([]),
+            'usageHistory' => collect([]),
+            'returns' => collect([]),
+            'generatedDate' => now()->format('d/m/Y H:i'),
+        ];
+
+        // Construir string de filtros aplicados
+        if ($startDate)
+            $data['filters'][] = "Desde: " . \Carbon\Carbon::parse($startDate)->format('d/m/Y');
+        if ($endDate)
+            $data['filters'][] = "Hasta: " . \Carbon\Carbon::parse($endDate)->format('d/m/Y');
+        if ($hasDamages === 'yes')
+            $data['filters'][] = "Solo con daños";
+        if ($hasDamages === 'no')
+            $data['filters'][] = "Sin daños";
+
+        // Lógica de obtención de datos según la pestaña
+        if ($tab === 'maintenance') {
+            $requestsQuery = $vehicle->maintenanceRequests()->orderBy('created_at', 'desc');
+            if ($startDate)
+                $requestsQuery->whereDate('created_at', '>=', $startDate);
+            if ($endDate)
+                $requestsQuery->whereDate('created_at', '<=', $endDate);
+            $data['requests'] = $requestsQuery->get();
+
+        } elseif ($tab === 'usage' || $tab === 'returns') {
+            $usageQuery = $vehicle->reservations()
+                ->with(['user', 'conductor', 'vehicleReturn', 'fuelLoads'])
+                ->orderBy('start_date', 'desc');
+
+            if ($startDate)
+                $usageQuery->whereDate('start_date', '>=', $startDate);
+            if ($endDate)
+                $usageQuery->whereDate('start_date', '<=', $endDate);
+
+            // Filtrar por daños si aplica (solo tiene sentido si hay devolución, pero se puede filtrar la query base)
+            if ($hasDamages === 'yes') {
+                $usageQuery->whereHas('vehicleReturn', function ($q) {
+                    $q->where('body_damage_reported', true);
+                });
+            } elseif ($hasDamages === 'no') {
+                $usageQuery->whereHas('vehicleReturn', function ($q) {
+                    $q->where('body_damage_reported', false);
+                });
+            }
+
+            $usageResults = $usageQuery->get();
+
+            if ($tab === 'usage') {
+                $data['usageHistory'] = $usageResults;
+            } else {
+                // Filtrar solo las que tienen devolución para la pestaña de devoluciones
+                $data['returns'] = $usageResults->filter(fn($u) => $u->vehicleReturn);
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('vehicles.history-pdf', $data);
+        $pdf->setPaper('letter', 'landscape'); // Tamaño Carta (Letter)
+
+        // Traducir nombre del tab para el archivo
+        $tabNameEs = match ($tab) {
+            'maintenance' => 'mantenciones',
+            'usage' => 'uso',
+            'returns' => 'devoluciones',
+            default => 'historial'
+        };
+
+        $filename = "historial_{$tabNameEs}_{$vehicle->plate}_" . now()->format('YmdHis') . ".pdf";
+        return $pdf->download($filename);
     }
 }

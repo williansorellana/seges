@@ -19,6 +19,9 @@ class VehicleRequest extends Model
         'return_mileage',
         'destination_type',
         'conductor_id',
+        'early_termination_reason',
+        'original_end_date',
+        'completed_by_user_id',
     ];
 
     /**
@@ -27,6 +30,14 @@ class VehicleRequest extends Model
     public function conductor()
     {
         return $this->belongsTo(Conductor::class);
+    }
+
+    /**
+     * Get the user who completed (finished) the request.
+     */
+    public function completedBy()
+    {
+        return $this->belongsTo(User::class, 'completed_by_user_id');
     }
 
     /**
@@ -39,6 +50,7 @@ class VehicleRequest extends Model
         return [
             'start_date' => 'datetime',
             'end_date' => 'datetime',
+            'original_end_date' => 'datetime',
         ];
     }
 

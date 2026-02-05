@@ -122,7 +122,7 @@ class Vehicle extends Model
             ->where('status', 'approved')
             ->where('start_date', '<=', now()->endOfDay()) // Por si la reserva empieza hoy más tarde
             ->where('end_date', '>=', now()->startOfDay()) // Incluir todo el día de término
-            ->with('user')
+            ->with(['user', 'conductor'])
             ->orderBy('start_date', 'asc') // Tomar la más cercana
             ->first();
     }
@@ -144,7 +144,7 @@ class Vehicle extends Model
             return $this->reservations()
                 ->where('status', 'approved')
                 ->where('end_date', '>=', now()->startOfDay()) // Que no haya terminado ayer
-                ->with('user')
+                ->with(['user', 'conductor'])
                 ->orderBy('start_date', 'asc')
                 ->first();
         }

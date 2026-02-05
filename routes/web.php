@@ -88,6 +88,8 @@ Route::middleware('auth')->group(function () {
     Route::post('vehiculos/{vehicle}/maintenance/request', [MaintenanceController::class, 'storeRequest'])->name('vehicles.maintenance.request');
     Route::post('vehiculos/{vehicle}/maintenance/complete', [MaintenanceController::class, 'complete'])->name('vehicles.maintenance.complete');
     Route::post('maintenance/requests/{id}/accept', [MaintenanceController::class, 'acceptRequest'])->name('maintenance.requests.accept');
+    Route::get('vehiculos/{vehicle}/historial-mantenimiento', [MaintenanceController::class, 'history'])->name('vehicles.maintenance.history');
+    Route::get('vehiculos/{vehicle}/historial-mantenimiento/pdf', [MaintenanceController::class, 'downloadHistoryPdf'])->name('vehicles.maintenance.history.pdf');
 
     // Trigger manual de alertas (Solo para pruebas/demo)
     // Trigger manual de alertas (Solo para pruebas/demo)
@@ -103,6 +105,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');
     Route::get('/mis-reservas', [VehicleRequestController::class, 'index'])->name('requests.index');
     Route::post('/requests/{id}/complete', [VehicleRequestController::class, 'complete'])->name('requests.complete');
+    Route::post('/requests/{id}/finish-early', [VehicleRequestController::class, 'finishEarly'])->name('requests.finish-early');
     Route::get('/historial-uso-vehiculos', [VehicleRequestController::class, 'history'])->name('requests.history.index');
     Route::get('/historial-uso-vehiculos/papelera', [VehicleRequestController::class, 'trash'])->name('requests.history.trash');
     Route::delete('/historial-uso-vehiculos/{id}', [VehicleRequestController::class, 'destroy'])->name('requests.history.destroy');

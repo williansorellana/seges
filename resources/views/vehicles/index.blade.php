@@ -384,12 +384,18 @@
                                                     'assigned_user_phone' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->user->phone : '',
                                                     'fuel_type' => $vehicle->fuel_type,
                                                     'reservation' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? [
+                                                        'id' => $vehicle->effective_reservation->id,
                                                         'start_date' => $vehicle->effective_reservation->start_date->format('Y-m-d H:i'),
                                                         'end_date' => $vehicle->effective_reservation->end_date->format('Y-m-d H:i'),
                                                         'destination_type' => $vehicle->effective_reservation->destination_type,
                                                         'user_name' => $vehicle->effective_reservation->user->name,
                                                         'user_email' => $vehicle->effective_reservation->user->email,
-                                                        'conductor_name' => $vehicle->effective_reservation->conductor ? $vehicle->effective_reservation->conductor->name : 'Solicitante',
+                                                        'user_rut' => $vehicle->effective_reservation->user->rut,
+                                                        'user_photo' => $vehicle->effective_reservation->user->profile_photo_path ? Storage::url($vehicle->effective_reservation->user->profile_photo_path) : null,
+                                                        'conductor_name' => $vehicle->effective_reservation->conductor ? $vehicle->effective_reservation->conductor->nombre : 'Mismo solicitante',
+                                                        'conductor_rut' => $vehicle->effective_reservation->conductor ? $vehicle->effective_reservation->conductor->rut : null,
+                                                        'conductor_photo' => ($vehicle->effective_reservation->conductor && $vehicle->effective_reservation->conductor->profile_photo_path) ? Storage::url($vehicle->effective_reservation->conductor->profile_photo_path) : null, 
+                                                        'has_external_conductor' => (bool) $vehicle->effective_reservation->conductor,
                                                         'days_remaining' => (int) ceil(now()->floatDiffInDays($vehicle->effective_reservation->end_date, false)),
                                                     ] : null,
                                                 ];
@@ -408,7 +414,6 @@
                                                                     next_oil_change_km: '{{ isset($vehicle->currentMaintenanceState->next_oil_change_km) ? number_format($vehicle->currentMaintenanceState->next_oil_change_km, 0, '', '.') : '' }}',
                                                                     tire_status_front: '{{ $vehicle->currentMaintenanceState->tire_status_front ?? 'good' }}',
                                                                     tire_status_rear: '{{ $vehicle->currentMaintenanceState->tire_status_rear ?? 'good' }}',
-                                                                    last_service_date: '{{ $vehicle->currentMaintenanceState->last_service_date ?? '' }}',
                                                                     oil_change_due: {{ ($vehicle->currentMaintenanceState && $vehicle->currentMaintenanceState->next_oil_change_km && $vehicle->mileage >= $vehicle->currentMaintenanceState->next_oil_change_km) ? 'true' : 'false' }}
                                                                 };
                                                                 $dispatch('open-modal', 'maintenance-vehicle-modal');
@@ -425,6 +430,15 @@
                                                             stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                     </svg>
                                                 </button>
+
+                                                <!-- Historial de Mantenimiento -->
+                                                <a href="{{ route('vehicles.maintenance.history', $vehicle->id) }}"
+                                                    class="text-gray-400 hover:text-white transition duration-150"
+                                                    title="Historial del Vehículo">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                </a>
 
                                                 <!-- Ver Detalle (General) -->
                                                 <button @click="
@@ -1204,14 +1218,7 @@
                                             </template>
                                         </div>
                                     </div>
-                                    <div>
-                                        <x-input-label for="last_service_date" :value="__('Fecha Última Revisión')"
-                                            class="text-gray-400" />
-                                        <x-text-input id="last_service_date"
-                                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100"
-                                            type="date" name="last_service_date"
-                                            x-model="maintenanceVehicle.last_service_date" />
-                                    </div>
+
                                 </div>
                             </div>
 
@@ -1619,15 +1626,14 @@
     </div>
 
     <!-- Modal Detalle de Reserva -->
-    <x-modal name="reservation-detail-modal" :show="false" focusable>
-        <div class="p-6 bg-gray-800 text-gray-100" x-data="{
+    <x-modal name="reservation-detail-modal" :show="false" focusable maxWidth="4xl">
+        <div class="bg-gray-800 text-gray-100 rounded-lg overflow-hidden" x-data="{
+            showEarlyTermination: false,
             getDates() {
                 if (!viewingVehicle || !viewingVehicle.reservation) return [];
-                // Fix date string parsing for cross-browser safety if needed, but YYYY-MM-DD usually works
                 const start = new Date(viewingVehicle.reservation.start_date.replace(/-/g, '/')); 
                 const end = new Date(viewingVehicle.reservation.end_date.replace(/-/g, '/'));
                 const days = [];
-                // Limit to avoiding infinite loops if dates are bad
                 let current = new Date(start);
                 let safeGuard = 0;
                 while (current <= end && safeGuard < 365) {
@@ -1638,70 +1644,237 @@
                 return days;
             }
         }">
-            <div class="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
-                <h2 class="text-xl font-bold text-gray-100">
-                    <span class="text-indigo-400">📅</span> Detalle de Reserva
+            <!-- Header -->
+            <div class="px-6 py-4 bg-gray-900 border-b border-gray-700 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-100 flex items-center">
+                    <span class="text-indigo-500 mr-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </span> 
+                    Detalle de Reserva
                 </h2>
-                <div class="text-right">
-                    <div class="text-sm text-gray-400">Vehículo</div>
-                    <div class="font-bold text-white" x-text="viewingVehicle.brand + ' ' + viewingVehicle.model"></div>
-                    <div class="text-xs text-gray-500" x-text="viewingVehicle.plate"></div>
-                </div>
-            </div>
-            
-            <!-- Info Grid -->
-            <div class="grid grid-cols-2 gap-6 mb-8 bg-gray-900/50 p-4 rounded-xl border border-gray-700">
-                <div>
-                    <label class="text-xs text-indigo-400 uppercase font-bold tracking-wider mb-1 block">Solicitante</label>
-                    <div class="font-bold text-lg text-white" x-text="viewingVehicle.reservation?.user_name"></div>
-                    <div class="text-xs text-gray-500" x-text="viewingVehicle.reservation?.user_email"></div>
-                </div>
-                <div>
-                    <label class="text-xs text-indigo-400 uppercase font-bold tracking-wider mb-1 block">Conductor Asignado</label>
-                    <div class="font-bold text-lg text-yellow-500" x-text="viewingVehicle.reservation?.conductor_name"></div>
-                </div>
-                <div>
-                    <label class="text-xs text-indigo-400 uppercase font-bold tracking-wider mb-1 block">Tipo de Viaje</label>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                        :class="viewingVehicle.reservation?.destination_type === 'outside' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'">
-                        <span x-text="viewingVehicle.reservation?.destination_type === 'outside' ? 'Fuera de Ciudad' : 'Local'"></span>
-                    </span>
-                </div>
-                <div>
-                    <label class="text-xs text-indigo-400 uppercase font-bold tracking-wider mb-1 block">Días Restantes</label>
-                    <div class="font-bold text-2xl font-mono" 
-                        :class="viewingVehicle.reservation?.days_remaining < 1 ? 'text-red-500' : 'text-green-400'" 
-                        x-text="viewingVehicle.reservation?.days_remaining >= 0 ? viewingVehicle.reservation?.days_remaining + ' días' : 'Vencido'"></div>
-                </div>
+                <button @click="$dispatch('close')" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
 
-            <!-- Timeline / Mini Calendar -->
-            <div class="mb-6">
-                <div class="flex justify-between items-end mb-3">
-                     <label class="text-xs text-gray-400 uppercase font-bold tracking-wider">Cronograma de Uso</label>
-                     <span class="text-xs text-gray-500" x-text="'Desde: ' + (viewingVehicle.reservation?.start_date.split(' ')[0] || '') + ' Hasta: ' + (viewingVehicle.reservation?.end_date.split(' ')[0] || '')"></span>
-                </div>
-               
-                <div class="flex space-x-2 overflow-x-auto pb-4 custom-scrollbar px-1">
-                    <template x-for="date in getDates()" :key="date.getTime()">
-                        <div class="flex-shrink-0 w-14 h-16 rounded-lg flex flex-col items-center justify-center border transition-all duration-300"
-                            :class="{
-                                'bg-indigo-600 border-indigo-500 text-white shadow-lg scale-110 z-10': date.toDateString() === new Date().toDateString(),
-                                'bg-gray-700 border-gray-600 text-gray-400 opacity-60': date < new Date().setHours(0,0,0,0),
-                                'bg-gray-800 border-gray-600 text-gray-300': date > new Date()
-                            }">
-                            <span class="text-[9px] uppercase tracking-tighter" x-text="date.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0,3)"></span>
-                            <span class="text-lg font-bold leading-none my-0.5" x-text="date.getDate()"></span>
-                            <span class="text-[8px]" x-show="date.toDateString() === new Date().toDateString()">HOY</span>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- Columna Izquierda: Vehículo (4 columnas) -->
+                    <div class="md:col-span-4 space-y-4">
+                        <!-- Foto Vehículo -->
+                        <div class="h-48 bg-gray-900 rounded-lg overflow-hidden border border-gray-700 shadow-md relative group">
+                            <template x-if="viewingVehicle.imageUrl">
+                                <img :src="viewingVehicle.imageUrl" alt="Foto Vehículo"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            </template>
+                            <template x-if="!viewingVehicle.imageUrl">
+                                <div class="w-full h-full flex items-center justify-center text-gray-500 flex-col">
+                                    <svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span class="text-sm">Sin imagen</span>
+                                </div>
+                            </template>
+                            <!-- Badge Estado -->
+                            <div class="absolute top-2 right-2">
+                                <span class="px-2 py-1 text-xs font-bold rounded bg-blue-600 text-white shadow-sm border border-blue-400">
+                                    RESERVADO
+                                </span>
+                            </div>
                         </div>
-                    </template>
-                </div>
-            </div>
 
-            <div class="mt-6 flex justify-end pt-4 border-t border-gray-700">
-                <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
-                    {{ __('Cerrar') }}
-                </x-secondary-button>
+                        <!-- Info Vehículo -->
+                        <div class="bg-gray-700/50 p-4 rounded-lg border border-gray-700">
+                            <h3 class="text-lg font-bold text-white mb-1" x-text="viewingVehicle.brand + ' ' + viewingVehicle.model"></h3>
+                            <div class="flex items-center text-gray-300 font-mono text-sm mb-2">
+                                <span class="bg-gray-800 px-2 py-0.5 rounded border border-gray-600 mr-2" x-text="viewingVehicle.plate"></span>
+                                <span x-text="viewingVehicle.year"></span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-gray-400 border-t border-gray-600 pt-2 mt-2">
+                                <span>Combustible:</span>
+                                <span class="font-bold" 
+                                    :class="viewingVehicle.fuel_type === 'diesel' ? 'text-yellow-400' : 'text-green-400'"
+                                    x-text="viewingVehicle.fuel_type === 'diesel' ? 'PETRÓLEO' : 'BENCINA'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Reserva y Personas (8 columnas) -->
+                    <div class="md:col-span-8 flex flex-col h-full">
+                        
+                        <!-- Tarjetas de Personas (Grid 2 columnas) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Solicitante -->
+                            <div class="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-lg relative overflow-hidden">
+                                <div class="absolute top-0 right-0 p-2 opacity-10">
+                                    <svg class="w-16 h-16 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                                </div>
+                                <h4 class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3 border-b border-indigo-500/30 pb-1">Solicitante</h4>
+                                <div class="flex items-start z-10 relative">
+                                    <div class="flex-shrink-0 mr-3">
+                                        <template x-if="viewingVehicle.reservation?.user_photo">
+                                            <img :src="viewingVehicle.reservation?.user_photo" class="h-12 w-12 rounded-full object-cover border-2 border-indigo-500 shadow-sm">
+                                        </template>
+                                        <template x-if="!viewingVehicle.reservation?.user_photo">
+                                            <div class="h-12 w-12 rounded-full bg-indigo-800 flex items-center justify-center text-white font-bold text-lg border-2 border-indigo-500 shadow-sm">
+                                                <span x-text="viewingVehicle.reservation?.user_name.charAt(0)"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-white text-base leading-tight mb-0.5" x-text="viewingVehicle.reservation?.user_name"></div>
+                                        <div class="text-xs text-gray-300 font-mono mb-1" x-text="viewingVehicle.reservation?.user_rut"></div>
+                                        <div class="text-xs text-gray-400 truncate max-w-[150px]" x-text="viewingVehicle.reservation?.user_email"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Conductor (Solo si es distinto o siempre mostrar? Mostrar siempre pero diferenciar si es el mismo) -->
+                            <div class="bg-gray-700/30 border border-gray-600 p-4 rounded-lg relative overflow-hidden"
+                                :class="{'bg-yellow-900/10 border-yellow-500/30': viewingVehicle.reservation?.conductor_name !== 'Mismo solicitante'}">
+                                <h4 class="text-yellow-500 text-xs font-bold uppercase tracking-widest mb-3 border-b border-gray-600 pb-1"
+                                    :class="{'border-yellow-500/30': viewingVehicle.reservation?.conductor_name !== 'Mismo solicitante'}">
+                                    Conductor Asignado
+                                </h4>
+                                
+                                <template x-if="viewingVehicle.reservation?.has_external_conductor">
+                                    <!-- Si hay conductor asignado distinto -->
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mr-3">
+                                             <template x-if="viewingVehicle.reservation?.conductor_photo">
+                                                <img :src="viewingVehicle.reservation?.conductor_photo" class="h-12 w-12 rounded-full object-cover border-2 border-yellow-500 shadow-sm">
+                                            </template>
+                                            <template x-if="!viewingVehicle.reservation?.conductor_photo">
+                                                <div class="h-12 w-12 rounded-full bg-yellow-900 flex items-center justify-center text-yellow-100 font-bold text-lg border-2 border-yellow-500 shadow-sm">
+                                                    <span x-text="viewingVehicle.reservation?.conductor_name.charAt(0)"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-white text-base leading-tight mb-0.5" x-text="viewingVehicle.reservation?.conductor_name"></div>
+                                            <div class="text-xs text-gray-300 font-mono" x-text="viewingVehicle.reservation?.conductor_rut"></div>
+                                            <div class="mt-1">
+                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800">
+                                                    Responsable
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="!viewingVehicle.reservation?.has_external_conductor">
+                                    <!-- Si es el mismo solicitante -->
+                                    <div class="flex items-center justify-center h-full pb-4 text-gray-400 italic text-sm">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        Mismo solicitante
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Info Reserva -->
+                        <div class="bg-gray-900 rounded-xl p-4 mb-auto border border-gray-700">
+                             <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 class="text-gray-400 text-xs font-bold uppercase mb-1">Tipo de Viaje</h4>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium"
+                                        :class="viewingVehicle.reservation?.destination_type === 'outside' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'">
+                                        <span x-text="viewingVehicle.reservation?.destination_type === 'outside' ? 'Fuera de Ciudad' : 'Local'"></span>
+                                    </span>
+                                </div>
+                                <div class="text-right">
+                                    <h4 class="text-gray-400 text-xs font-bold uppercase mb-1">Estado Tiempo</h4>
+                                    <div class="font-bold text-xl font-mono" 
+                                        :class="viewingVehicle.reservation?.days_remaining < 1 ? 'text-red-500' : 'text-green-400'" 
+                                        x-text="viewingVehicle.reservation?.days_remaining >= 0 ? viewingVehicle.reservation?.days_remaining + ' días restantes' : 'Vencido hace ' + Math.abs(viewingVehicle.reservation?.days_remaining) + ' días'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Fechas Grande -->
+                            <div class="flex items-center justify-between bg-gray-800/50 rounded-lg p-3 border border-gray-700 mb-4">
+                                <div class="text-center w-5/12">
+                                     <div class="text-xs text-gray-500 uppercase font-bold mb-1">Inicio</div>
+                                     <div class="text-white font-bold text-lg" x-text="viewingVehicle.reservation?.start_date.split(' ')[0]"></div>
+                                     <div class="text-sm text-gray-400" x-text="viewingVehicle.reservation?.start_date.split(' ')[1]"></div>
+                                </div>
+                                <div class="text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </div>
+                                <div class="text-center w-5/12">
+                                     <div class="text-xs text-gray-500 uppercase font-bold mb-1">Término</div>
+                                     <div class="text-white font-bold text-lg" x-text="viewingVehicle.reservation?.end_date.split(' ')[0]"></div>
+                                     <div class="text-sm text-gray-400" x-text="viewingVehicle.reservation?.end_date.split(' ')[1]"></div>
+                                </div>
+                            </div>
+
+                             <!-- Timeline / Mini Calendar -->
+                             <div>
+                                <h4 class="text-gray-500 text-xs font-bold uppercase mb-2">Cronograma del Periodo</h4>
+                                <div class="flex space-x-1 overflow-x-auto pb-1 custom-scrollbar">
+                                    <template x-for="date in getDates()" :key="date.getTime()">
+                                        <div class="flex-shrink-0 w-10 h-12 rounded flex flex-col items-center justify-center border transition-all duration-300"
+                                            :class="{
+                                                'bg-indigo-600 border-indigo-500 text-white shadow z-10': date.toDateString() === new Date().toDateString(),
+                                                'bg-gray-800 border-gray-600 text-gray-400 opacity-60': date < new Date().setHours(0,0,0,0),
+                                                'bg-gray-800 border-gray-700 text-gray-300': date > new Date()
+                                            }">
+                                            <span class="text-[8px] uppercase font-bold" x-text="date.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0,3)"></span>
+                                            <span class="text-sm font-bold leading-none" x-text="date.getDate()"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t border-gray-700 pt-4">
+                    <div x-show="!showEarlyTermination" class="flex justify-end space-x-3">
+                        <button @click="showEarlyTermination = true" 
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors border border-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            Finalizar Asignación
+                        </button>
+                        <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                            {{ __('Cerrar') }}
+                        </x-secondary-button>
+                    </div>
+
+                    <!-- Sección de Término Anticipado -->
+                    <div x-show="showEarlyTermination" x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 transform scale-95"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        class="bg-red-900/20 border border-red-900/50 rounded-lg p-4 mt-2">
+                        
+                        <h4 class="text-red-400 font-bold text-sm mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            Confirmar Término de Asignación
+                        </h4>
+                        
+                        <p class="text-xs text-gray-300 mb-4">
+                            Estás a punto de finalizar esta asignación antes de tiempo. El vehículo quedará <strong>DISPONIBLE</strong> inmediatamente.
+                            <br>Por favor, indica el motivo de este cambio.
+                        </p>
+
+                        <form method="POST" :action="'/requests/' + viewingVehicle.reservation?.id + '/finish-early'">
+                            @csrf
+                            <!-- Input Razón -->
+                            <div class="mb-4">
+                                <label for="early_termination_reason" class="block text-xs font-medium text-gray-400 mb-1">Motivo del Término (Obligatorio)</label>
+                                <textarea name="early_termination_reason" rows="2" required
+                                    class="w-full bg-gray-900 border-gray-700 rounded-md text-white text-sm focus:ring-red-500 focus:border-red-500"
+                                    placeholder="Ej: Trabajo terminado antes de lo previsto..."></textarea>
+                            </div>
+
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" @click="showEarlyTermination = false" class="px-3 py-2 bg-gray-700 text-gray-300 hover:bg-gray-600 rounded-md text-sm transition-colors border border-gray-600">
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-sm font-bold transition-colors shadow-sm">
+                                    Confirmar Término
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </x-modal>

@@ -100,18 +100,6 @@
                     :class="{{ request()->routeIs('requests.index') ? "'text-white bg-gray-800'" : "''" }}">
                     Mis Reservas
                 </a>
-                <a href="{{ route('requests.history.index') }}"
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('requests.history') ? "'text-white bg-gray-800'" : "''" }}">
-                    Historial de Uso
-                </a>
-                @if(Auth::user()->role === 'admin')
-                    <a href="{{ route('admin.returns.index') }}"
-                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                        :class="{{ request()->routeIs('admin.returns.*') ? "'text-white bg-gray-800'" : "''" }}">
-                        Historial Entregas
-                    </a>
-                @endif
             </div>
         </div>
 
