@@ -90,7 +90,7 @@ class RoomReservationController extends Controller
             'status' => 'pending' 
         ]);
 
-        $admins = User::where('role', 'admin')->get(); 
+        $admins = User::where('role', ['admin', 'supervisor'])->get(); 
         Notification::send($admins, new NewReservationRequest($reservation));
 
         return redirect()->route('reservations.my_reservations')->with('success', 'Solicitud enviada correctamente.');
@@ -261,4 +261,71 @@ class RoomReservationController extends Controller
 
         return $pdf->download('informe_ocupacion_' . $dateObj->format('m_Y') . '.pdf');
     }
+
+    public function createExternal()
+    {
+        $rooms = MeetingRoom::where('status', 'active')->get();
+        return view('reservations.create_external', compact('rooms'));
+    }
+
+    
+    public function storeExternal(Request $request)
+    {
+        $request->validate([
+            'meeting_room_id' => 'required|exists:meeting_rooms,id',
+            'external_name'   => 'nullable|string|max:100', 
+            'start_time'      => 'required|date',
+            'end_time'        => 'required|date|after:start_time',
+            'purpose'         => 'required|string|max:150',
+            'attendees'       => 'required|integer|min:1',
+            'resources'       => 'nullable|string|max:500',
+        ]);
+
+        $timezone = 'America/Santiago';
+        $now = Carbon::now($timezone);
+        
+        try {
+            $start = Carbon::parse($request->start_time, $timezone);
+            $end = Carbon::parse($request->end_time, $timezone);
+        } catch (\Exception $e) {
+            return back()->with('error_modal', 'Formato de fecha inválido.');
+        }
+
+        if ($start->lt($now->subMinute())) {
+            return back()->with('error_modal', '⚠️ Error: No puedes agendar en el pasado. La hora seleccionada ya pasó.');
+        }
+
+        if ($end->lte($start)) {
+            return back()->with('error_modal', '⚠️ Error Lógico: La hora de término debe ser DESPUÉS de la hora de inicio.');
+        }
+        
+        $exists = RoomReservation::where('meeting_room_id', $request->meeting_room_id)
+            ->where('status', 'approved')
+            ->where(function ($query) use ($start, $end) {
+                $query->where('start_time', '<', $end)
+                      ->where('end_time', '>', $start);
+            })
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors(['error' => '⚠️ La sala está ocupada en ese horario.']);
+        }
+
+        
+        $finalPurpose = "EXTERNO: " . $request->external_name . " - " . $request->purpose;
+
+        RoomReservation::create([
+            'user_id'         => Auth::id(), 
+            'meeting_room_id' => $request->meeting_room_id,
+            'start_time'      => $start,
+            'end_time'        => $end,
+            'purpose'         => $finalPurpose, 
+            'attendees'       => $request->attendees,
+            'resources'       => $request->resources,
+            'status'          => 'approved' 
+        ]);
+
+        return redirect()->route('rooms.agenda')->with('success', 'Reserva externa agendada correctamente.');
+    }
+
 }

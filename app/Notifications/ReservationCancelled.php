@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class ReservationCancelled extends Notification
 {
@@ -20,8 +21,22 @@ class ReservationCancelled extends Notification
 
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+                    ->error()
+                    ->subject('❌ Reserva Cancelada')
+                    ->greeting('Hola ' . $notifiable->name . ',')
+                    ->line('Lamentamos informarte que tu reserva en ' . $this->reservation->meetingRoom->name . ' ha sido cancelada.')
+                    ->line('Motivo de la cancelación: ' . $this->reason)
+                    ->action('Revisar estado', route('reservations.my_reservations'))
+                    ->line('Si tienes dudas, contacta con administración.')
+                    ->salutation('Atte, Equipo Dimak');
+    }
+
 
     public function toArray($notifiable)
     {

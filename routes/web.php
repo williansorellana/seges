@@ -81,6 +81,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/admin/rooms/history', [RoomReservationController::class, 'history'])->name('rooms.history');
         Route::get('/admin/rooms/report', [RoomReservationController::class, 'downloadMonthlyReport'])->name('rooms.report');
+        Route::get('/admin/reservar-externo', [RoomReservationController::class, 'createExternal'])->name('reservations.create_external');
+        Route::post('/admin/reservar-externo', [RoomReservationController::class, 'storeExternal'])->name('reservations.store_external');
     });
 
     // Rutas de Mantenimiento
