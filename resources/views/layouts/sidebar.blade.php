@@ -149,6 +149,13 @@
                 </a>
 
                 @if(Auth::user()->role === 'admin' || Auth::user()->role === 'supervisor')
+
+                    <a href="{{ route('reservations.create_external') }}"
+                        class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
+                        :class="{{ request()->routeIs('reservations.create_external') ? "'text-white bg-gray-800'" : "'text-gray-400 hover:text-white hover:bg-gray-800'" }}">
+                        Hacer Reserva
+                    </a>
+
                     <a href="{{ route('rooms.index') }}"
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                         :class="{{ request()->routeIs('rooms.*') ? "'text-white bg-gray-800'" : "''" }}">
@@ -166,6 +173,7 @@
                         :class="{{ request()->routeIs('rooms.agenda') ? "'text-white bg-gray-800'" : "''" }}">
                         Gestión de Reservas
                     </a>
+
 
                 @endif
             </div>
