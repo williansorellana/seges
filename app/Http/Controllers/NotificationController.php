@@ -14,7 +14,12 @@ class NotificationController extends Controller
         // Marcamos como leída para limpiar el "puntito rojo", pero la mostramos igual en la lista
         $notification->markAsRead();
 
-        // Obtener ID del vehículo para redirigir
+        // Primero verificar action_url explícita
+        if (isset($notification->data['action_url'])) {
+            return redirect($notification->data['action_url']);
+        }
+
+        // Obtener ID del vehículo para redirigir (Fallback logic)
         $vehicleId = $notification->data['vehicle_id'] ?? null;
 
         if ($vehicleId) {
@@ -25,10 +30,6 @@ class NotificationController extends Controller
             return redirect()->route('assets.index', ['search' => $notification->data['asset_code']]);
         }
 
-        if (isset($notification->data['action_url'])) {
-            return redirect($notification->data['action_url']);
-        }
-
         return back();
     }
 
@@ -36,6 +37,10 @@ class NotificationController extends Controller
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return back()->with('success', 'Notificación eliminada.');
     }

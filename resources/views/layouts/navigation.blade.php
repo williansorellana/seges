@@ -16,7 +16,7 @@
                                 d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                         </svg>
                         @if(Auth::user()->unreadNotifications->count() > 0)
-                            <span
+                            <span id="notification-count"
                                 class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full border-2 border-white dark:border-gray-800">
                                 {{ Auth::user()->unreadNotifications->count() }}
                             </span>
@@ -63,7 +63,7 @@
                                 </div>
                             @else
                                 @foreach(Auth::user()->notifications as $notification)
-                                    <div
+                                    <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms
                                         class="relative border-b border-gray-100 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 {{ $notification->read_at ? 'opacity-75 bg-white dark:bg-gray-800' : 'bg-blue-50/50 dark:bg-blue-900/10' }}">
 
                                         <a href="{{ route('notifications.read', $notification->id) }}"
@@ -110,19 +110,37 @@
                                         </a>
 
                                         <div class="absolute top-2 right-2">
-                                            <form method="POST"
-                                                action="{{ route('notifications.destroy', $notification->id) }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="p-1.5 text-gray-300 hover:text-red-500 transition-colors"
-                                                    title="Eliminar">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M6 18L18 6M6 6l12 12"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
+                                            <button type="button" @click="
+                                                                            fetch('{{ route('notifications.destroy', $notification->id) }}', {
+                                                                                method: 'DELETE',
+                                                                                headers: {
+                                                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                                                    'Accept': 'application/json',
+                                                                                    'Content-Type': 'application/json'
+                                                                                }
+                                                                            }).then(response => {
+                                                                                if (response.ok) {
+                                                                                    show = false;
+                                                                                    // Optional: decrement counter if exists
+                                                                                    const badge = document.getElementById('notification-count');
+                                                                                    if (badge) {
+                                                                                        let count = parseInt(badge.innerText);
+                                                                                        if (count > 1) {
+                                                                                            badge.innerText = count - 1;
+                                                                                        } else {
+                                                                                            badge.remove();
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                        "
+                                                class="p-1.5 text-gray-300 hover:text-red-500 transition-colors"
+                                                title="Eliminar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
                                         </div>
 
                                     </div>
@@ -159,7 +177,7 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
+                        <x-dropdown-link :href="route('profile.edit')" wire:navigate>
                             {{ __('Perfil') }}
                         </x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">

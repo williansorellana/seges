@@ -8,6 +8,10 @@ use App\Models\VehicleReturn;
 use App\Models\VehicleMaintenanceState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+use App\Models\User;
+use App\Notifications\NewVehicleRequestNotification;
+use App\Notifications\VehicleReturnedNotification;
 
 class VehicleRequestController extends Controller
 {
@@ -103,6 +107,10 @@ class VehicleRequestController extends Controller
             $vehicleRequest->update(['conductor_id' => $conductor->id]);
         }
 
+        // Notificar a administradores
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new NewVehicleRequestNotification($vehicleRequest));
+
         return redirect()->route('requests.create')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
     }
 
@@ -121,16 +129,29 @@ class VehicleRequestController extends Controller
         $request->update(['status' => 'approved']);
 
         $request->vehicle->update(['status' => 'occupied']);
+
+        // Notificar usuario
+        $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'approved'));
+
         return back()->with('success', 'Reserva aprobada exitosamente.');
     }
 
     /**
      * Rechaza una solicitud de reserva (Admin).
      */
-    public function reject($id)
+    public function reject(Request $req, $id)
     {
         $request = VehicleRequest::findOrFail($id);
-        $request->update(['status' => 'rejected']);
+
+        $reason = $req->input('rejection_reason');
+
+        $request->update([
+            'status' => 'rejected',
+            'rejection_reason' => $reason
+        ]);
+
+        // Notificar usuario
+        $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'rejected', $reason));
 
         return back()->with('success', 'Reserva rechazada.');
     }
@@ -208,6 +229,13 @@ class VehicleRequestController extends Controller
             'return_mileage' => $request->return_mileage
         ]);
 
+        // Detectar si hubo daños reportados
+        $hasDamage = $request->has('body_damage_reported') && $request->body_damage_reported;
+
+        // Notificar a administradores
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new VehicleReturnedNotification($vehicleRequest, $hasDamage));
+
         return back()->with('success', 'Devolución registrada correctamente. Historial actualizado.');
     }
 
@@ -253,7 +281,7 @@ class VehicleRequestController extends Controller
 
         // Crear registro de devolución (Entrega) automáticamente
         // Usamos valores por defecto ya que es un término rápido sin formulario de inspección
-        \App\Models\VehicleReturn::create([
+        VehicleReturn::create([
             'vehicle_request_id' => $vehicleRequest->id,
             'return_mileage' => $vehicleRequest->vehicle->mileage, // Asumimos kilometraje actual del vehículo
             'fuel_level' => 'full', // Valor por defecto
@@ -266,6 +294,10 @@ class VehicleRequestController extends Controller
 
         // Liberar vehículo
         $vehicleRequest->vehicle->update(['status' => 'available']);
+
+        // Notificar a administradores (sin daños reportados por defecto en termino anticipado)
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new VehicleReturnedNotification($vehicleRequest, false));
 
         return back()->with('success', 'Asignación finalizada anticipadamente y devolución registrada.');
     }

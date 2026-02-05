@@ -19,7 +19,7 @@
 
     <div class="h-16 flex items-center justify-between px-4 bg-gray-900 border-b border-gray-800">
         <div class="flex items-center space-x-2" :class="{'justify-center w-full': !open}">
-            <a href="{{ route('dashboard') }}" class="flex items-center justify-center overflow-hidden">
+            <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center justify-center overflow-hidden">
                 <img src="{{ asset('images/dimak-logo.png') }}" alt="Dimak Logo"
                     class="object-contain transition-all duration-300" :class="open ? 'h-10' : 'h-8'" />
             </a>
@@ -43,7 +43,7 @@
     <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
 
         @if(Auth::user()->role === 'admin')
-            <a href="{{ route('users.index') }}"
+            <a href="{{ route('users.index') }}" wire:navigate
                 class="flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group"
                 :class="{'justify-center': !open, 'bg-gray-800 text-white': {{ request()->routeIs('users.*') ? 'true' : 'false' }}}">
                 <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,27 +75,27 @@
 
             <div x-show="open && vehicleMenu" x-collapse
                 class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
-                <a href="{{ route('dashboard') }}"
+                <a href="{{ route('dashboard') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('dashboard') ? "'text-white bg-gray-800'" : "''" }}">
                     Dashboard
                 </a>
-                <a href="{{ route('vehicles.index') }}"
+                <a href="{{ route('vehicles.index') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('vehicles.*') ? "'text-white bg-gray-800'" : "''" }}">
                     Gestión de Vehículos
                 </a>
-                <a href="{{ route('conductores.index') }}"
+                <a href="{{ route('conductores.index') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('conductores.*') ? "'text-white bg-gray-800'" : "''" }}">
                     Conductores
                 </a>
-                <a href="{{ route('requests.create') }}"
+                <a href="{{ route('requests.create') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('requests.create') ? "'text-white bg-gray-800'" : "''" }}">
                     Solicitar Vehículo
                 </a>
-                <a href="{{ route('requests.index') }}"
+                <a href="{{ route('requests.index') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('requests.index') ? "'text-white bg-gray-800'" : "''" }}">
                     Mis Reservas
@@ -124,32 +124,32 @@
 
             <div x-show="open && roomMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
 
-                <a href="{{ route('reservations.catalog') }}"
+                <a href="{{ route('reservations.catalog') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('reservations.catalog') ? "'text-white bg-gray-800'" : "''" }}">
                     Ver Salas
                 </a>
 
-                <a href="{{ route('reservations.my_reservations') }}"
+                <a href="{{ route('reservations.my_reservations') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('reservations.my_reservations') ? "'text-white bg-gray-800'" : "''" }}">
                     Mis Reservas
                 </a>
 
                 @if(Auth::user()->role === 'admin' || Auth::user()->role === 'supervisor')
-                    <a href="{{ route('rooms.index') }}"
+                    <a href="{{ route('rooms.index') }}" wire:navigate
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                         :class="{{ request()->routeIs('rooms.*') ? "'text-white bg-gray-800'" : "''" }}">
                         Gestión de Salas
                     </a>
 
-                    <a href="{{ route('rooms.history') }}"
+                    <a href="{{ route('rooms.history') }}" wire:navigate
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                         :class="{{ request()->routeIs('rooms.history') ? "'text-white bg-gray-800'" : "''" }}">
                         Historial de Reservas
                     </a>
 
-                    <a href="{{ route('rooms.agenda') }}"
+                    <a href="{{ route('rooms.agenda') }}" wire:navigate
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800 transition-colors"
                         :class="{{ request()->routeIs('rooms.agenda') ? "'text-white bg-gray-800'" : "''" }}">
                         Gestión de Reservas
@@ -180,22 +180,22 @@
             </button>
 
             <div x-show="open && assetMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
-                <a href="{{ route('assets.dashboard') }}"
+                <a href="{{ route('assets.dashboard') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('assets.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
                     Dashboard
                 </a>
-                <a href="{{ route('assets.reports.index') }}"
+                <a href="{{ route('assets.reports.index') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('assets.reports.*') ? "'text-white bg-gray-800'" : "''" }}">
                     Reportes
                 </a>
-                <a href="{{ route('assets.index') }}"
+                <a href="{{ route('assets.index') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ (request()->routeIs('assets.*') && !request()->routeIs('assets.dashboard') && !request()->routeIs('assets.reports.*')) ? "'text-white bg-gray-800'" : "''" }}">
                     Gestión de Activos
                 </a>
-                <a href="{{ route('workers.index') }}"
+                <a href="{{ route('workers.index') }}" wire:navigate
                     class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                     :class="{{ request()->routeIs('workers.*') ? "'text-white bg-gray-800'" : "''" }}">
                     Trabajadores

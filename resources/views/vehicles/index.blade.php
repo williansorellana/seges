@@ -60,6 +60,8 @@
             viewingVehicle: {}, 
             maintenanceVehicle: {}, 
             viewingUser: null,
+            rejectionRequestId: null,
+            rejectionUrl: '',
             filtersOpen: false,
             searchQuery: '{{ request('search', '') }}',
             getDaysRemaining(dateStr) {
@@ -82,6 +84,11 @@
                     const target = new Date(parts[0], parts[1] - 1, parts[2]);
                     return target < today;
                 });
+            },
+            init() {
+                @if(request('open_requests'))
+                    this.$dispatch('open-modal', 'maintenance-requests-modal');
+                @endif
             }
         }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1434,13 +1441,12 @@
                                                             Aprobar
                                                         </button>
                                                     </form>
-                                                    <form action="{{ route('requests.reject', $reservation->id) }}" method="POST">
-                                                        @csrf
-                                                        <button type="submit" class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:border-red-700 focus:ring focus:ring-red-200 disabled:opacity-25 transition">
-                                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                            Rechazar
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" 
+                                                        @click="rejectionUrl = '{{ route('requests.reject', $reservation->id) }}'; $dispatch('open-modal', 'reject-request-modal')"
+                                                        class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:border-red-700 focus:ring focus:ring-red-200 disabled:opacity-25 transition">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                        Rechazar
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -1507,6 +1513,37 @@
                         {{ __('Cerrar') }}
                     </x-secondary-button>
                 </div>
+            </div>
+        </x-modal>
+
+        <!-- Modal Rechazar Solicitud -->
+        <x-modal name="reject-request-modal" :show="false" focusable>
+            <div class="p-6 bg-gray-800 text-gray-100">
+                <h2 class="text-xl font-bold text-gray-100 mb-4 border-b border-gray-700 pb-2">Rechazar Solicitud</h2>
+                
+                <p class="text-sm text-gray-400 mb-4">
+                    Por favor, indica el motivo del rechazo. Esta información será enviada al solicitante.
+                </p>
+
+                <form :action="rejectionUrl" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <x-input-label for="rejection_reason" :value="__('Motivo del Rechazo')" class="text-gray-300" />
+                        <textarea id="rejection_reason" name="rejection_reason" rows="3" required
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500"
+                            placeholder="Ej: El vehículo no está disponible por mantención imprevista..."></textarea>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                            {{ __('Cancelar') }}
+                        </x-secondary-button>
+                        
+                        <x-primary-button class="bg-red-600 hover:bg-red-500 border-transparent">
+                            {{ __('Confirmar Rechazo') }}
+                        </x-primary-button>
+                    </div>
+                </form>
             </div>
         </x-modal>
 

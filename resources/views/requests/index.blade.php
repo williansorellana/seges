@@ -13,6 +13,21 @@
 
 
 
+
+                    <div x-init="
+                        const highlightId = '{{ request('highlight_id') }}';
+                        if (highlightId) {
+                            const el = document.getElementById('request-' + highlightId);
+                            if (el) {
+                                setTimeout(() => {
+                                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    el.classList.add('ring-2', 'ring-blue-500', 'dark:ring-blue-400');
+                                    setTimeout(() => el.classList.remove('ring-2', 'ring-blue-500', 'dark:ring-blue-400'), 5000);
+                                }, 500);
+                            }
+                        }
+                    "></div>
+
                     @if($requests->count() > 0)
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -37,7 +52,8 @@
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach($requests as $request)
-                                        <tr>
+                                        <tr id="request-{{ $request->id }}" 
+                                            class="{{ request('highlight_id') == $request->id ? 'bg-blue-50 dark:bg-blue-900/30' : '' }} transition-colors duration-1000">
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 @if($request->vehicle)
@@ -73,6 +89,11 @@
                                                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$request->status] }}">
                                                     {{ $statusLabel[$request->status] }}
                                                 </span>
+                                                @if($request->status === 'rejected' && $request->rejection_reason)
+                                                    <div class="mt-2 text-xs text-red-500 font-medium bg-red-50 dark:bg-red-900/20 p-1.5 rounded border border-red-200 dark:border-red-800">
+                                                        <strong>Motivo:</strong> {{ $request->rejection_reason }}
+                                                    </div>
+                                                @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 @if($request->status === 'approved')

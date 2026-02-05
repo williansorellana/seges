@@ -195,7 +195,8 @@
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach($requests as $request)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-l-4 {{ request('highlight_id') == $request->id ? ($request->vehicleReturn && $request->vehicleReturn->body_damage_reported ? 'border-l-red-500 bg-red-50 dark:bg-red-900/20 animate-pulse' : 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20') : 'border-l-transparent' }}"
+                                            id="row-{{ $request->id }}"
                                             x-show="searchTerm === '' || '{{ strtolower($request->user->name ?? '') }}'.includes(searchTerm.toLowerCase())"
                                             x-transition>
                                             <!-- Empleado -->
@@ -385,4 +386,16 @@
             </div>
         </div>
     </div>
+
+    <!-- Script para sroll automático si hay highlight -->
+    @if(request('highlight_id'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const row = document.getElementById('row-{{ request('highlight_id') }}');
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    @endif
 </x-app-layout>

@@ -386,7 +386,8 @@
                                     </thead>
                                     <tbody class="divide-y divide-gray-700 bg-transparent">
                                         @foreach($returns as $usage)
-                                            <tr class="hover:bg-gray-800/50 transition duration-150">
+                                            <tr id="return-row-{{ $usage->id }}" 
+                                                class="hover:bg-gray-800/50 transition duration-150 {{ request('highlight_id') == $usage->id ? ($usage->vehicleReturn->body_damage_reported ? 'bg-red-900/20 ring-2 ring-inset ring-red-500' : 'bg-blue-900/20 ring-2 ring-inset ring-blue-500') : '' }}">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                                     {{ $usage->vehicleReturn->created_at->format('d/m/Y H:i') }}
                                                 </td>
@@ -775,4 +776,18 @@
             </div>
         </div>
     </div>
+
+    <!-- Auto-scroll script -->
+    @if(request('highlight_id'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const row = document.getElementById('return-row-{{ request('highlight_id') }}');
+                if (row) {
+                    setTimeout(() => {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500); // Small delay to allow tabs/Vue to render
+                }
+            });
+        </script>
+    @endif
 </x-app-layout>

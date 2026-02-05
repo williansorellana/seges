@@ -22,6 +22,7 @@ class VehicleRequest extends Model
         'early_termination_reason',
         'original_end_date',
         'completed_by_user_id',
+        'rejection_reason',
     ];
 
     /**
