@@ -1,5 +1,5 @@
 <nav x-data="{ open: false, notifyOpen: false }"
-    class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+    class="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
@@ -111,29 +111,29 @@
 
                                         <div class="absolute top-2 right-2">
                                             <button type="button" @click="
-                                                                            fetch('{{ route('notifications.destroy', $notification->id) }}', {
-                                                                                method: 'DELETE',
-                                                                                headers: {
-                                                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                                                    'Accept': 'application/json',
-                                                                                    'Content-Type': 'application/json'
-                                                                                }
-                                                                            }).then(response => {
-                                                                                if (response.ok) {
-                                                                                    show = false;
-                                                                                    // Optional: decrement counter if exists
-                                                                                    const badge = document.getElementById('notification-count');
-                                                                                    if (badge) {
-                                                                                        let count = parseInt(badge.innerText);
-                                                                                        if (count > 1) {
-                                                                                            badge.innerText = count - 1;
-                                                                                        } else {
-                                                                                            badge.remove();
+                                                                                    fetch('{{ route('notifications.destroy', $notification->id) }}', {
+                                                                                        method: 'DELETE',
+                                                                                        headers: {
+                                                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                                                            'Accept': 'application/json',
+                                                                                            'Content-Type': 'application/json'
                                                                                         }
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        "
+                                                                                    }).then(response => {
+                                                                                        if (response.ok) {
+                                                                                            show = false;
+                                                                                            // Optional: decrement counter if exists
+                                                                                            const badge = document.getElementById('notification-count');
+                                                                                            if (badge) {
+                                                                                                let count = parseInt(badge.innerText);
+                                                                                                if (count > 1) {
+                                                                                                    badge.innerText = count - 1;
+                                                                                                } else {
+                                                                                                    badge.remove();
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    });
+                                                                                "
                                                 class="p-1.5 text-gray-300 hover:text-red-500 transition-colors"
                                                 title="Eliminar">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

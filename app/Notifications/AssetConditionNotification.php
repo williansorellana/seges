@@ -33,7 +33,29 @@ class AssetConditionNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $conditionLabels = [
+            'good' => 'bueno',
+            'fair' => 'regular',
+            'poor' => 'malo',
+            'damaged' => 'dañado',
+        ];
+        $translatedCondition = $conditionLabels[$this->condition] ?? $this->condition;
+
+        return (new MailMessage)
+            ->subject('⚠️ Alerta de Activo: ' . ucfirst($translatedCondition))
+            ->greeting('Atención,')
+            ->line("El activo **{$this->asset->nombre}** (Código: {$this->asset->codigo_interno}) ha sido reportado en estado: **" . strtoupper($translatedCondition) . "**.")
+            ->line('Comentarios: ' . ($this->notes ?? 'Sin comentarios adicionales.'))
+            ->action('Ver Historial del Activo', route('assets.history', $this->asset->id))
+            ->salutation('Atte, Equipo de Gerencia');
     }
 
     /**

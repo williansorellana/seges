@@ -29,7 +29,27 @@ class NewVehicleRequestNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('🚙 Nueva Solicitud de Vehículo: ' . $this->vehicleRequest->vehicle->brand)
+            ->greeting('Hola ' . $notifiable->short_name . ',')
+            ->line('Se ha recibido una nueva solicitud de reserva de vehículo que requiere revisión.')
+            ->line('Solicitante: ' . $this->vehicleRequest->user->short_name)
+            ->line('Vehículo: ' . $this->vehicleRequest->vehicle->brand . ' ' . $this->vehicleRequest->vehicle->model)
+            ->line('Periodo: ' . $this->vehicleRequest->start_date->format('d/m/Y H:i') . ' hasta ' . $this->vehicleRequest->end_date->format('d/m/Y H:i'))
+            ->line('Destino: ' . ($this->vehicleRequest->destination_type === 'local' ? 'Local' : 'Fuera de ciudad'))
+            ->action('Revisar Solicitud', route('vehicles.index', [
+                'open_requests' => 'true',
+                'highlight_id' => $this->vehicleRequest->id
+            ]))
+            ->salutation('Atte, Equipo de Gerencia');
     }
 
     /**

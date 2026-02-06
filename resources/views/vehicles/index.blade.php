@@ -93,7 +93,38 @@
         }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            <!-- Stats Cards -->
+            <div class="mb-6 flex flex-wrap justify-center gap-3">
+                <a href="{{ route('vehicles.index', request()->except(['status', 'page'])) }}" 
+                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-gray-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ !request('status') ? 'ring-2 ring-gray-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
+                    <div class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase truncate">Total</div>
+                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $totalVehicles }}</div>
+                </a>
 
+                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'available'])) }}" 
+                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-green-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'available' ? 'ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
+                    <div class="text-green-600 dark:text-green-400 text-[10px] font-bold uppercase truncate">Disponibles</div>
+                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countDisponible }}</div>
+                </a>
+
+                 <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'occupied'])) }}" 
+                    class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'occupied' ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
+                    <div class="text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase truncate">En Uso</div>
+                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countAsignado }}</div>
+                </a>
+
+                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'maintenance'])) }}" 
+                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-yellow-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'maintenance' ? 'ring-2 ring-yellow-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
+                    <div class="text-yellow-600 dark:text-yellow-400 text-[10px] font-bold uppercase truncate">Mantenimiento</div>
+                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countMantenimiento }}</div>
+                </a>
+
+                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'out_of_service'])) }}" 
+                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-red-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'out_of_service' ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
+                    <div class="text-red-600 dark:text-red-400 text-[10px] font-bold uppercase truncate">Fuera Servicio</div>
+                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countFueraDeServicio }}</div>
+                </a>
+            </div>
 
             <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center">
                 <div class="relative w-full sm:max-w-md">
@@ -284,7 +315,7 @@
                             </thead>
                             <tbody class="divide-y divide-gray-700 bg-gray-900 text-gray-300">
                                 @forelse($vehicles as $vehicle)
-                                    <tr class="hover:bg-gray-800 transition duration-150"
+                                    <tr class="hover:bg-gray-800 transition duration-150 {{ request('highlight_id') == $vehicle->id ? 'bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500' : '' }}"
                                         data-search="{{ strtolower($vehicle->plate . ' ' . $vehicle->brand . ' ' . $vehicle->model) }}"
                                         x-show="!searchQuery || $el.dataset.search.split(' ').some(word => word.startsWith(searchQuery.toLowerCase()))">
                                         <td class="px-5 py-4 text-sm">

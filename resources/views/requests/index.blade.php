@@ -294,7 +294,8 @@
                                             this.files.forEach(file => {
                                                 dataTransfer.items.add(file);
                                             });
-                                            this.$refs.photosInput.files = dataTransfer.files;
+                                            // Update the HIDDEN input which is actually sent
+                                            this.$refs.photosStorage.files = dataTransfer.files;
                                         }
                                     }">
                                         <x-input-label for="photos" :value="__('Fotos (Opcional - Máx 5)')" />
@@ -321,8 +322,11 @@
                                             Optimizando imágenes...
                                         </div>
 
-                                        <input type="file" id="photos" name="photos[]" multiple accept="image/*"
-                                            x-ref="photosInput"
+                                        <!-- Hidden Input for Submission -->
+                                        <input type="file" name="photos[]" multiple class="hidden" x-ref="photosStorage">
+
+                                        <!-- Visible Input for Selection Only -->
+                                        <input type="file" id="photos" multiple accept="image/*"
                                             @change="handleFiles($event)"
                                             class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-gray-700 dark:file:text-gray-300" />
 

@@ -15,7 +15,7 @@
         '-translate-x-full': !mobileSidebarOpen,
         'translate-x-0': mobileSidebarOpen
     }"
-    class="fixed inset-y-0 left-0 z-50 flex-shrink-0 min-h-screen bg-gray-900 border-r border-gray-800 transition-all duration-300 ease-in-out flex flex-col pt-0 md:relative md:translate-x-0">
+    class="fixed inset-y-0 left-0 z-50 flex-shrink-0 h-screen bg-gray-900 border-r border-gray-800 transition-all duration-300 ease-in-out flex flex-col pt-0 md:sticky md:top-0 md:translate-x-0">
 
     <div class="h-16 flex items-center justify-between px-4 bg-gray-900 border-b border-gray-800">
         <div class="flex items-center space-x-2" :class="{'justify-center w-full': !open}">

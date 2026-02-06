@@ -87,12 +87,29 @@ class AssetController extends Controller
             $query->where('categoria_id', $request->input('categoria'));
         }
 
+        // Conteos para tarjetas
+        $totalAssets = Asset::count();
+        $countDisponible = Asset::where('estado', 'available')->count();
+        $countAsignado = Asset::where('estado', 'assigned')->count();
+        $countMantenimiento = Asset::where('estado', 'maintenance')->count();
+        $countBaja = Asset::where('estado', 'written_off')->count();
+
         $assets = $query->orderBy('created_at', 'desc')->paginate(10);
         $categories = AssetCategory::all();
         $users = User::all(); // Para el modal de asignación
         $workers = Worker::orderBy('nombre')->get(); // Para el modal de asignación
 
-        return view('assets.index', compact('assets', 'categories', 'users', 'workers'));
+        return view('assets.index', compact(
+            'assets',
+            'categories',
+            'users',
+            'workers',
+            'totalAssets',
+            'countDisponible',
+            'countAsignado',
+            'countMantenimiento',
+            'countBaja'
+        ));
     }
 
     /**
@@ -540,7 +557,7 @@ class AssetController extends Controller
 
             // Notificar si el estado es malo
             if (in_array($request->estado_devolucion, ['poor', 'damaged'])) {
-                $admins = User::all(); // Enviar a todos los usuarios del sistema
+                $admins = User::where('role', 'admin')->get(); // Enviar solo a administradores
                 foreach ($admins as $admin) {
                     $admin->notify(new AssetConditionNotification($asset, $request->estado_devolucion, $request->comentarios_devolucion));
                 }

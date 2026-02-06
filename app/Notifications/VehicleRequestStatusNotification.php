@@ -32,7 +32,33 @@ class VehicleRequestStatusNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $subject = $this->status === 'approved'
+            ? '✅ Solicitud Aprobada: ' . $this->vehicleRequest->vehicle->brand
+            : '❌ Solicitud Rechazada: ' . $this->vehicleRequest->vehicle->brand;
+
+        $mail = (new MailMessage)
+            ->subject($subject)
+            ->greeting('Hola ' . $notifiable->short_name . ',');
+
+        if ($this->status === 'approved') {
+            $mail->line('Tu solicitud para el vehículo ' . $this->vehicleRequest->vehicle->brand . ' ' . $this->vehicleRequest->vehicle->model . ' ha sido APROBADA.')
+                ->line('Periodo: ' . $this->vehicleRequest->start_date->format('d/m/Y H:i') . ' hasta ' . $this->vehicleRequest->end_date->format('d/m/Y H:i'));
+        } else {
+            $mail->line('Tu solicitud para el vehículo ' . $this->vehicleRequest->vehicle->brand . ' ' . $this->vehicleRequest->vehicle->model . ' ha sido RECHAZADA.')
+                ->line('Motivo: ' . $this->reason);
+        }
+
+        return $mail->action('Ver Detalles', route('requests.index', ['highlight_id' => $this->vehicleRequest->id]))
+            ->salutation('Atte, Equipo de Gerencia')
+            ->line('Gracias por utilizar nuestro sistema de gestión.');
     }
 
     /**

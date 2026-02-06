@@ -67,6 +67,7 @@ class VehicleController extends Controller
         $vehicles = $query->get();
 
         // Estados
+        $totalVehicles = Vehicle::count();
         $countDisponible = Vehicle::where('status', 'available')->count();
         $countFueraDeServicio = Vehicle::where('status', 'out_of_service')->count();
         $countMantenimiento = Vehicle::where('status', 'maintenance')->count();
@@ -89,6 +90,7 @@ class VehicleController extends Controller
             'vehicles',
             'pendingRequests',
             'pendingReservations',
+            'totalVehicles',
             'countDisponible',
             'countAsignado',
             'countMantenimiento',

@@ -31,7 +31,43 @@ class VehicleReturnedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $subject = $this->hasDamage
+            ? '⚠️ ALERTA: Vehículo devuelto con DAÑOS'
+            : '✅ Vehículo devuelto correctamente';
+
+        $mail = (new MailMessage)
+            ->subject($subject)
+            ->greeting('Estimado Administrador,');
+
+        $vehicle = $this->vehicleRequest->vehicle;
+        $driver = $this->vehicleRequest->user;
+
+        $mail->line('Detalles de la devolución:')
+            ->line('Vehículo: ' . $vehicle->brand . ' ' . $vehicle->model . ' (' . $vehicle->plate . ')')
+            ->line('Conductor: ' . $driver->name . ' ' . $driver->last_name);
+
+        if ($this->hasDamage) {
+            $mail->error()
+                ->line('⛔ SE HAN REPORTADO DAÑOS EN EL VEHÍCULO.')
+                ->line('Por favor revise el historial de mantenimiento para más detalles y evidencia.');
+        } else {
+            $mail->line('El vehículo se ha recibido sin novedades.');
+        }
+
+        return $mail->action('Ver Historial', route('vehicles.maintenance.history', [
+            'vehicle' => $this->vehicleRequest->vehicle_id,
+            'tab' => 'returns',
+            'highlight_id' => $this->vehicleRequest->id
+        ]))
+            ->salutation('Atte, Equipo de Gerencia');
     }
 
     /**

@@ -25,7 +25,7 @@
         @include('layouts.sidebar')
 
         <!-- Main Content Wrapper -->
-        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div class="flex-1 flex flex-col min-w-0">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -38,7 +38,7 @@
             @endisset
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+            <main class="flex-1 bg-gray-100 dark:bg-gray-900">
                 {{ $slot }}
             </main>
         </div>
