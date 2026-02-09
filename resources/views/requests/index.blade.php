@@ -28,102 +28,326 @@
                         }
                     "></div>
 
+                    {{-- Panel de Estadísticas --}}
+                    @php
+                        $totalRequests = $requests->count();
+                        $activeRequests = $requests->where('status', 'approved')->whereBetween('start_date', [now()->subDays(30), now()->addDays(30)])->count();
+                        $pendingRequests = $requests->where('status', 'pending')->count();
+                        $completedRequests = $requests->where('status', 'completed')->count();
+                        $rejectedRequests = $requests->where('status', 'rejected')->count();
+                    @endphp
+
+                    @php
+                        $currentTab = request('tab', 'all');
+                    @endphp
+
+                    <div class="mb-6 flex flex-wrap justify-center gap-3">
+                        {{-- Total --}}
+                        <a href="{{ route('requests.index', array_merge(request()->except('tab'), ['tab' => 'all'])) }}"
+                           class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-gray-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ $currentTab === 'all' ? 'ring-2 ring-gray-400 bg-gray-700' : '' }}">
+                            <div class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase truncate">Total</div>
+                            <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $totalRequests }}</div>
+                        </a>
+
+                        {{-- Activas --}}
+                        <a href="{{ route('requests.index', array_merge(request()->except('tab'), ['tab' => 'approved'])) }}"
+                           class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-green-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ $currentTab === 'approved' ? 'ring-2 ring-green-400 bg-gray-700' : '' }}">
+                            <div class="text-green-600 dark:text-green-400 text-[10px] font-bold uppercase truncate">Activas</div>
+                            <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $activeRequests }}</div>
+                        </a>
+
+                        {{-- Pendientes --}}
+                        <a href="{{ route('requests.index', array_merge(request()->except('tab'), ['tab' => 'pending'])) }}"
+                           class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-yellow-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ $currentTab === 'pending' ? 'ring-2 ring-yellow-400 bg-gray-700' : '' }}">
+                            <div class="text-yellow-600 dark:text-yellow-400 text-[10px] font-bold uppercase truncate">Pendientes</div>
+                            <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $pendingRequests }}</div>
+                        </a>
+
+                        {{-- Completadas --}}
+                        <a href="{{ route('requests.index', array_merge(request()->except('tab'), ['tab' => 'completed'])) }}"
+                           class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-gray-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ $currentTab === 'completed' ? 'ring-2 ring-gray-400 bg-gray-700' : '' }}">
+                            <div class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase truncate">Completadas</div>
+                            <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $completedRequests }}</div>
+                        </a>
+
+                        {{-- Rechazadas --}}
+                        <a href="{{ route('requests.index', array_merge(request()->except('tab'), ['tab' => 'rejected'])) }}"
+                           class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-red-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ $currentTab === 'rejected' ? 'ring-2 ring-red-400 bg-gray-700' : '' }}">
+                            <div class="text-red-600 dark:text-red-400 text-[10px] font-bold uppercase truncate">Rechazadas</div>
+                            <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $rejectedRequests }}</div>
+                        </a>
+                    </div>
+
+
+
+                    {{-- Barra de Búsqueda y Filtros --}}
+                    <div class="mb-6 space-y-4">
+                        {{-- Búsqueda --}}
+                        <form method="GET" action="{{ route('requests.index') }}" class="flex gap-3">
+                            <input type="hidden" name="tab" value="{{ request('tab', 'all') }}">
+                            @if(request('start_date'))
+                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                            @endif
+                            @if(request('end_date'))
+                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                            @endif
+                            
+                            <div class="flex-1 relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <input type="text" 
+                                       name="search" 
+                                       value="{{ request('search') }}"
+                                       placeholder="Buscar por vehículo (marca, modelo o patente)..." 
+                                       class="block w-full pl-10 pr-10 py-2 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                @if(request('search'))
+                                    <a href="{{ route('requests.index', request()->except('search')) }}" 
+                                       class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </a>
+                                @endif
+                            </div>
+                            <button type="submit" 
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors">
+                                Buscar
+                            </button>
+                        </form>
+
+                        {{-- Filtros de Fecha --}}
+                        <form method="GET" action="{{ route('requests.index') }}" class="flex flex-wrap gap-3 items-end">
+                            <input type="hidden" name="tab" value="{{ request('tab', 'all') }}">
+                            @if(request('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
+                            
+                            <div class="flex-1 min-w-[200px]">
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Desde</label>
+                                <input type="date" 
+                                       name="start_date" 
+                                       value="{{ request('start_date') }}"
+                                       class="block w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            
+                            <div class="flex-1 min-w-[200px]">
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Hasta</label>
+                                <input type="date" 
+                                       name="end_date" 
+                                       value="{{ request('end_date') }}"
+                                       class="block w-full px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            
+                            <button type="submit" 
+                                    class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-medium rounded-lg transition-colors">
+                                Aplicar Filtros
+                            </button>
+                            
+                            @if(request('start_date') || request('end_date'))
+                                <a href="{{ route('requests.index', request()->except(['start_date', 'end_date'])) }}" 
+                                   class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors">
+                                    Limpiar Fechas
+                                </a>
+                            @endif
+                        </form>
+                    </div>
+
                     @if($requests->count() > 0)
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Vehículo</th>
-                                        <th
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Desde</th>
-                                        <th
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Hasta</th>
-                                        <th
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Estado</th>
-                                        <th
-                                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                    @foreach($requests as $request)
-                                        <tr id="request-{{ $request->id }}" 
-                                            class="{{ request('highlight_id') == $request->id ? 'bg-blue-50 dark:bg-blue-900/30' : '' }} transition-colors duration-1000">
-                                            <td
-                                                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                @if($request->vehicle)
+                        {{-- Grid de Tarjetas --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($requests as $request)
+                                @php
+                                    $statusColors = [
+                                        'pending' => 'bg-yellow-900/50 text-yellow-300 border border-yellow-700',
+                                        'approved' => 'bg-green-900/50 text-green-300 border border-green-700',
+                                        'rejected' => 'bg-red-900/50 text-red-300 border border-red-700',
+                                        'completed' => 'bg-gray-900/50 text-gray-300 border border-gray-700',
+                                    ];
+                                    $statusLabel = [
+                                        'pending' => 'Pendiente',
+                                        'approved' => 'Aprobado',
+                                        'rejected' => 'Rechazado',
+                                        'completed' => 'Finalizado',
+                                    ];
+                                    
+                                    // Calcular progreso para reservas activas
+                                    $showProgress = $request->status === 'approved' && now()->between($request->start_date, $request->end_date);
+                                    if ($showProgress) {
+                                        $totalDuration = $request->start_date->diffInHours($request->end_date);
+                                        $elapsed = $request->start_date->diffInHours(now());
+                                        $percentage = $totalDuration > 0 ? min(100, ($elapsed / $totalDuration) * 100) : 0;
+                                        $remaining = $request->end_date->diffForHumans(null, true);
+                                    }
+                                @endphp
+
+                                <div id="request-{{ $request->id }}" 
+                                     class="bg-gray-800 rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:border-gray-600 hover:shadow-xl transition-all duration-300 {{ request('highlight_id') == $request->id ? 'ring-2 ring-blue-500 border-blue-500' : '' }}">
+                                    
+                                    {{-- Cabecera con Foto --}}
+                                    <div class="relative h-48 bg-gray-900 overflow-hidden">
+                                        @if($request->vehicle && $request->vehicle->image_path)
+                                            <img src="{{ Storage::url($request->vehicle->image_path) }}" 
+                                                 alt="{{ $request->vehicle->brand }} {{ $request->vehicle->model }}"
+                                                 class="w-full h-full object-cover">
+                                        @else
+                                            {{-- Icono de vehículo por defecto --}}
+                                            <div class="w-full h-full flex items-center justify-center text-gray-600">
+                                                <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                                </svg>
+                                            </div>
+                                        @endif
+                                        
+                                        {{-- Badge de Estado --}}
+                                        <div class="absolute top-3 right-3">
+                                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$request->status] }} shadow-lg">
+                                                {{ $statusLabel[$request->status] }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Cuerpo de la Tarjeta --}}
+                                    <div class="p-4">
+                                        {{-- Información del Vehículo --}}
+                                        <div class="mb-3">
+                                            @if($request->vehicle)
+                                                <h3 class="text-lg font-bold text-gray-100">
                                                     {{ $request->vehicle->brand }} {{ $request->vehicle->model }}
-                                                    <span
-                                                        class="text-xs text-gray-500 block">({{ $request->vehicle->plate }})</span>
-                                                @else
-                                                    <span class="text-red-500 italic">Vehículo Eliminado</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                {{ $request->start_date->format('d/m/Y H:i') }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                {{ $request->end_date->format('d/m/Y H:i') }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                @php
-                                                    $statusColors = [
-                                                        'pending' => 'bg-yellow-100 text-yellow-800',
-                                                        'approved' => 'bg-green-100 text-green-800',
-                                                        'rejected' => 'bg-red-100 text-red-800',
-                                                        'completed' => 'bg-gray-100 text-gray-800',
-                                                    ];
-                                                    $statusLabel = [
-                                                        'pending' => 'Pendiente',
-                                                        'approved' => 'Aprobado',
-                                                        'rejected' => 'Rechazado',
-                                                        'completed' => 'Finalizado',
-                                                    ];
-                                                @endphp
-                                                <span
-                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$request->status] }}">
-                                                    {{ $statusLabel[$request->status] }}
-                                                </span>
-                                                @if($request->status === 'rejected' && $request->rejection_reason)
-                                                    <div class="mt-2 text-xs text-red-500 font-medium bg-red-50 dark:bg-red-900/20 p-1.5 rounded border border-red-200 dark:border-red-800">
-                                                        <strong>Motivo:</strong> {{ $request->rejection_reason }}
+                                                </h3>
+                                                <div class="flex items-center text-sm text-gray-400 mt-1">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    </svg>
+                                                    {{ $request->vehicle->plate }}
+                                                </div>
+                                            @else
+                                                <h3 class="text-lg font-bold text-red-400 italic">Vehículo Eliminado</h3>
+                                            @endif
+                                        </div>
+
+                                        {{-- Fechas --}}
+                                        <div class="space-y-2 mb-3">
+                                            <div class="flex items-start text-sm">
+                                                <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                                <div class="flex-1">
+                                                    <div class="text-gray-100 font-medium">{{ $request->start_date->format('d/m/Y H:i') }}</div>
+                                                    <div class="text-xs text-gray-400">{{ $request->start_date->diffForHumans() }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flex items-start text-sm">
+                                                <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                                <div class="flex-1">
+                                                    <div class="text-gray-100 font-medium">{{ $request->end_date->format('d/m/Y H:i') }}</div>
+                                                    <div class="text-xs text-gray-400">{{ $request->end_date->diffForHumans() }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Duración --}}
+                                        @php
+                                            $duration = floor($request->start_date->diffInDays($request->end_date));
+                                            $hours = $request->start_date->diffInHours($request->end_date) % 24;
+                                        @endphp
+                                        <div class="flex items-center text-sm text-blue-400 mb-3">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="font-medium">
+                                                {{ $duration }} día{{ $duration != 1 ? 's' : '' }}{{ $hours > 0 ? ", {$hours}h" : '' }}
+                                            </span>
+                                        </div>
+
+                                        {{-- Barra de Progreso (solo para reservas activas en curso) --}}
+                                        @if($showProgress)
+                                            <div class="mb-3">
+                                                <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
+                                                    <span>Progreso</span>
+                                                    <span>{{ number_format($percentage, 0) }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                                                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500" 
+                                                         style="width: {{ $percentage }}%"></div>
+                                                </div>
+                                                <p class="text-xs text-gray-400 mt-1">
+                                                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    Quedan {{ $remaining }}
+                                                </p>
+                                            </div>
+                                        @endif
+
+                                        {{-- Motivo de Rechazo --}}
+                                        @if($request->status === 'rejected' && $request->rejection_reason)
+                                            <div class="mb-3 text-xs text-red-400 bg-red-950/40 p-3 rounded-lg border border-red-800/50">
+                                                <div class="flex items-start gap-2">
+                                                    <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                    <div class="flex-1">
+                                                        <div class="font-semibold text-red-300 mb-1">Motivo del rechazo:</div>
+                                                        <div class="text-red-200">{{ $request->rejection_reason }}</div>
                                                     </div>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                @if($request->status === 'approved')
-                                                    <div class="flex flex-col space-y-2 text-right">
-                                                        @if($request->vehicle)
-                                                            <button
-                                                                @click="fuelRequestId = '{{ $request->id }}'; fuelVehicleId = '{{ $request->vehicle_id }}'; fuelType = '{{ $request->vehicle->fuel_type }}'; $dispatch('open-modal', 'fuel-load-modal')"
-                                                                class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 disabled:opacity-25 transition w-full justify-center">
-                                                                <span class="mr-2">⛽</span> Cargar Combustible
-                                                            </button>
-                                                            <button
-                                                                @click="returnUrl = '{{ route('requests.complete', $request->id) }}'; $dispatch('open-modal', 'confirm-return-modal')"
-                                                                class="inline-flex items-center px-3 py-1 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring focus:ring-indigo-200 disabled:opacity-25 transition w-full justify-center">
-                                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                                                                Devolver / Finalizar
-                                                            </button>
-                                                        @else
-                                                            <span class="text-xs text-red-500 font-bold uppercase">Vehículo No
-                                                                Disponible</span>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- Footer con Acciones --}}
+                                    @if($request->status === 'approved')
+                                        <div class="px-4 py-3 bg-gray-900/50 border-t border-gray-700">
+                                            @if($request->vehicle)
+                                                <div class="flex flex-col gap-2">
+                                                    <button
+                                                        @click="fuelRequestId = '{{ $request->id }}'; fuelVehicleId = '{{ $request->vehicle_id }}'; fuelType = '{{ $request->vehicle->fuel_type }}'; $dispatch('open-modal', 'fuel-load-modal')"
+                                                        class="w-full inline-flex items-center justify-center px-3 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 disabled:opacity-25 transition">
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                        </svg>
+                                                        Cargar Combustible
+                                                    </button>
+                                                    <button
+                                                        @click="returnUrl = '{{ route('requests.complete', $request->id) }}'; $dispatch('open-modal', 'confirm-return-modal')"
+                                                        class="w-full inline-flex items-center justify-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring focus:ring-indigo-200 disabled:opacity-25 transition">
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                                        Devolver / Finalizar
+                                                    </button>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-red-500 font-bold uppercase text-center block">Vehículo No Disponible</span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        {{-- Espacio vacío para mantener altura uniforme --}}
+                                        <div class="h-3"></div>
+                                    @endif
+                                </div>
+                            @endforeach
                         </div>
                     @else
-                        <p class="text-center text-gray-500 dark:text-gray-400">No tienes reservas registradas.</p>
+                        <div class="text-center py-16 border-2 border-dashed border-gray-700 rounded-lg">
+                            <svg class="mx-auto h-20 w-20 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-300 mb-2">No tienes reservas</h3>
+                            <p class="text-gray-500 mb-6">Solicita un vehículo para comenzar con tus reservas</p>
+                            <a href="{{ route('vehicles.index') }}" class="inline-flex items-center px-6 py-3 bg-yellow-600 hover:bg-yellow-500 text-white font-semibold rounded-lg transition-colors shadow-lg">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Solicitar Vehículo
+                            </a>
+                        </div>
                     @endif
 
                     <!-- Modal de Confirmación -->

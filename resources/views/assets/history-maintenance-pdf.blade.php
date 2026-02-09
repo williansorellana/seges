@@ -65,8 +65,8 @@
 
         /* Sección de estadísticas */
         .stats-section {
-            background-color: #fef3c7;
-            border: 1px solid #fbbf24;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
             padding: 10px 15px;
             margin: 15px 0;
@@ -81,7 +81,7 @@
             display: table-cell;
             text-align: center;
             padding: 5px 10px;
-            border-right: 1px solid #fbbf24;
+            border-right: 1px solid #e2e8f0;
         }
 
         .stat-item:last-child {
@@ -172,11 +172,11 @@
         }
 
         tbody tr:nth-child(even) {
-            background-color: #fef3c7;
+            background-color: #f8fafc;
         }
 
         tbody tr:nth-child(odd) {
-            background-color: #fffbeb;
+            background-color: #ffffff;
         }
 
         /* Badges */

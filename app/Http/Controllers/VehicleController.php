@@ -315,6 +315,30 @@ class VehicleController extends Controller
         return redirect()->route('vehicles.trash')->with('success', 'Vehículo eliminado permanentemente.');
     }
 
+    /**
+     * Vaciar papelera (eliminar permanentemente todos los vehículos en papelera)
+     */
+    public function emptyTrash()
+    {
+        $vehicles = Vehicle::onlyTrashed()->get();
+
+        if ($vehicles->isEmpty()) {
+            return redirect()->route('vehicles.trash')->with('info', 'La papelera ya está vacía.');
+        }
+
+        $count = $vehicles->count();
+
+        // Eliminar imágenes asociadas y registros
+        foreach ($vehicles as $vehicle) {
+            if ($vehicle->image_path) {
+                Storage::disk('public')->delete($vehicle->image_path);
+            }
+            $vehicle->forceDelete();
+        }
+
+        return redirect()->route('vehicles.trash')->with('success', "Se eliminaron permanentemente {$count} vehículos de la papelera.");
+    }
+
     public function storeDocument(Request $request, Vehicle $vehicle)
     {
         $request->validate([

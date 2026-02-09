@@ -18,16 +18,38 @@ class VehicleRequestController extends Controller
     /**
      * Muestra las reservas del usuario actual.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $requests = VehicleRequest::with([
+        $query = VehicleRequest::with([
             'vehicle' => function ($query) {
                 $query->withTrashed();
             }
-        ])
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        ])->where('user_id', Auth::id());
+
+        // Filtro por pestaña (estado)
+        $tab = $request->get('tab', 'all');
+        if ($tab !== 'all') {
+            $query->where('status', $tab);
+        }
+
+        // Filtro por búsqueda (vehículo)
+        if ($search = $request->get('search')) {
+            $query->whereHas('vehicle', function ($q) use ($search) {
+                $q->where('brand', 'like', "%{$search}%")
+                    ->orWhere('model', 'like', "%{$search}%")
+                    ->orWhere('plate', 'like', "%{$search}%");
+            });
+        }
+
+        // Filtro por rango de fechas
+        if ($startDate = $request->get('start_date')) {
+            $query->whereDate('start_date', '>=', $startDate);
+        }
+        if ($endDate = $request->get('end_date')) {
+            $query->whereDate('end_date', '<=', $endDate);
+        }
+
+        $requests = $query->orderBy('created_at', 'desc')->get();
 
         return view('requests.index', compact('requests'));
     }
@@ -344,7 +366,7 @@ class VehicleRequestController extends Controller
         $requests = $query->paginate(15)->withQueryString();
 
         // Obtener lista única de cargos para el filtro
-        $cargos = \App\Models\User::whereNotNull('cargo')
+        $cargos = User::whereNotNull('cargo')
             ->distinct()
             ->pluck('cargo')
             ->sort()
@@ -393,7 +415,7 @@ class VehicleRequestController extends Controller
 
         $requests = $query->paginate(15)->withQueryString();
 
-        $cargos = \App\Models\User::whereNotNull('cargo')
+        $cargos = User::whereNotNull('cargo')
             ->distinct()
             ->pluck('cargo')
             ->sort()

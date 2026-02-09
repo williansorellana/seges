@@ -3,6 +3,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-100" x-data="{ 
+                    width: window.innerWidth,
                     activeTab: '{{ request('tab', 'maintenance') }}',
                     lightboxOpen: false,
                     currentPhoto: '',
@@ -84,7 +85,7 @@
                     formatNumber(num) {
                         return new Intl.NumberFormat('es-CL').format(num);
                     }
-                }" @keydown.escape.window="closeLightbox(); closeDetailModal()" @keydown.arrow-right.window="lightboxOpen && nextPhoto()"
+                }" @resize.window="width = window.innerWidth" @keydown.escape.window="closeLightbox(); closeDetailModal()" @keydown.arrow-right.window="lightboxOpen && nextPhoto()"
                     @keydown.arrow-left.window="lightboxOpen && prevPhoto()">
                     
                     <!-- Header y Filtros (IGUAL QUE ANTES) -->
@@ -195,7 +196,7 @@
                     </div>
 
                     <!-- Tabs Navigation (IGUAL QUE ANTES) -->
-                    <div class="border-b border-gray-700 mb-6">
+                    <div class="border-b border-gray-700 mb-6 overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden" style="scrollbar-width: none; -ms-overflow-style: none;">
                         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
                             <button @click="activeTab = 'maintenance'" :class="activeTab === 'maintenance' ? 'border-yellow-500 text-yellow-500' : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors duration-150">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -223,65 +224,130 @@
                                 @if(request('start_date') || request('end_date')) <p class="text-sm text-gray-400 mt-2">Prueba cambiando los filtros de fecha.</p> @endif
                             </div>
                         @else
-                            <div class="overflow-x-auto bg-gray-900 rounded-lg shadow-xl border border-gray-700">
-                                <table class="min-w-full divide-y divide-gray-700">
-                                    <thead class="bg-gray-800">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Solicitud</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tipo</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descripción / Detalle</th>
-                                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Completado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-700 bg-transparent">
-                                        @foreach($requests as $req)
-                                            <tr class="hover:bg-gray-800/50 transition duration-150">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                    {{ $req->created_at->format('d/m/Y H:i') }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    @switch($req->type)
-                                                        @case('oil') <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900/50 text-yellow-300 border border-yellow-700">🛢️ Aceite</span> @break
-                                                        @case('tires') <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-900/50 text-blue-300 border border-blue-700">🛞 Neumáticos</span> @break
-                                                        @case('mechanics') <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-900/50 text-red-300 border border-red-700">🔧 Mecánica</span> @break
-                                                        @default <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-700 text-gray-200 border border-gray-600">📋 General</span>
-                                                    @endswitch
-                                                </td>
-                                                <td class="px-6 py-4 text-sm text-gray-300 max-w-md">
-                                                    <div class="line-clamp-2" title="{{ $req->description }}">{{ $req->description }}</div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <div class="bg-gray-900 rounded-lg shadow-xl border border-gray-700">
+                                {{-- Vista Desktop --}}
+                                <div x-show="width >= 768" class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-700">
+                                        <thead class="bg-gray-800">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Solicitud</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tipo</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descripción / Detalle</th>
+                                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Completado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-700 bg-transparent">
+                                            @foreach($requests as $req)
+                                                <tr class="hover:bg-gray-800/50 transition duration-150">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                        {{ $req->created_at->format('d/m/Y H:i') }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                        @switch($req->type)
+                                                            @case('oil') <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900/50 text-yellow-300 border border-yellow-700">🛢️ Aceite</span> @break
+                                                            @case('tires') <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-900/50 text-blue-300 border border-blue-700">🛞 Neumáticos</span> @break
+                                                            @case('mechanics') <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-900/50 text-red-300 border border-red-700">🔧 Mecánica</span> @break
+                                                            @default <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-700 text-gray-200 border border-gray-600">📋 General</span>
+                                                        @endswitch
+                                                    </td>
+                                                    <td class="px-6 py-4 text-sm text-gray-300 max-w-md">
+                                                        <div class="line-clamp-2" title="{{ $req->description }}">{{ $req->description }}</div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        @switch($req->status)
+                                                            @case('pending')
+                                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                                    <span class="w-2 h-2 mr-1 bg-yellow-500 rounded-full animate-pulse"></span> Pendiente
+                                                                </span>
+                                                                @break
+                                                            @case('in_progress')
+                                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                    <span class="w-2 h-2 mr-1 bg-blue-500 rounded-full animate-pulse"></span> En Taller
+                                                                </span>
+                                                                @break
+                                                            @case('completed')
+                                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                                    Finalizado
+                                                                </span>
+                                                                @break
+                                                        @endswitch
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                                        @if($req->status === 'completed')
+                                                            {{ $req->updated_at->format('d/m/Y H:i') }}
+                                                        @else
+                                                            <span class="text-xs italic text-gray-500">-</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {{-- Vista Mobile (Tarjetas) --}}
+                                <div x-show="width < 768" class="space-y-4 p-4">
+                                    @foreach($requests as $req)
+                                        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-sm">
+                                            {{-- Header --}}
+                                            <div class="flex justify-between items-start mb-3 border-b border-gray-700 pb-2">
+                                                <div class="text-sm font-bold text-white">
+                                                    {{ $req->created_at->format('d/m/Y') }}
+                                                </div>
+                                                <div>
                                                     @switch($req->status)
                                                         @case('pending')
-                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                                <span class="w-2 h-2 mr-1 bg-yellow-500 rounded-full animate-pulse"></span> Pendiente
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">
+                                                                Pendiente
                                                             </span>
                                                             @break
                                                         @case('in_progress')
-                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                                <span class="w-2 h-2 mr-1 bg-blue-500 rounded-full animate-pulse"></span> En Taller
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800">
+                                                                En Taller
                                                             </span>
                                                             @break
                                                         @case('completed')
-                                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800">
                                                                 Finalizado
                                                             </span>
                                                             @break
                                                     @endswitch
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                                                    @if($req->status === 'completed')
-                                                        {{ $req->updated_at->format('d/m/Y H:i') }}
-                                                    @else
-                                                        <span class="text-xs italic text-gray-500">-</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                                </div>
+                                            </div>
+
+                                            {{-- Detalles --}}
+                                            <div class="space-y-3">
+                                                <div class="flex justify-between items-center text-sm">
+                                                    <span class="text-gray-400">Tipo:</span>
+                                                    <div>
+                                                        @switch($req->type)
+                                                            @case('oil') <span class="px-2 py-0.5 inline-flex text-[10px] leading-4 font-semibold rounded-full bg-yellow-900/50 text-yellow-300 border border-yellow-700">🛢️ Aceite</span> @break
+                                                            @case('tires') <span class="px-2 py-0.5 inline-flex text-[10px] leading-4 font-semibold rounded-full bg-blue-900/50 text-blue-300 border border-blue-700">🛞 Neumáticos</span> @break
+                                                            @case('mechanics') <span class="px-2 py-0.5 inline-flex text-[10px] leading-4 font-semibold rounded-full bg-red-900/50 text-red-300 border border-red-700">🔧 Mecánica</span> @break
+                                                            @default <span class="px-2 py-0.5 inline-flex text-[10px] leading-4 font-semibold rounded-full bg-gray-700 text-gray-200 border border-gray-600">📋 General</span>
+                                                        @endswitch
+                                                    </div>
+                                                </div>
+                                                
+                                                <div>
+                                                    <span class="text-xs text-gray-500 block mb-1">Descripción:</span>
+                                                    <p class="text-sm text-gray-300 bg-gray-900/50 p-2 rounded border border-gray-700/50">
+                                                        {{ $req->description }}
+                                                    </p>
+                                                </div>
+
+                                                @if($req->status === 'completed')
+                                                    <div class="flex justify-between text-sm pt-2 border-t border-gray-700/50">
+                                                        <span class="text-gray-400">Completado el:</span>
+                                                        <span class="text-gray-200">{{ $req->updated_at->format('d/m/Y') }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -298,63 +364,122 @@
                                 @if(request('has_damages')) <p class="text-sm text-gray-400 mt-2">El filtro de daños puede estar ocultando resultados sin reporte.</p> @endif
                             </div>
                         @else
-                            <div class="overflow-x-auto bg-gray-900 rounded-lg shadow-xl border border-gray-700">
-                                <table class="min-w-full divide-y divide-gray-700">
-                                    <thead class="bg-gray-800">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Solicitado Por</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Inicio</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Término</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Destino / Uso</th>
-                                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-700 bg-transparent">
-                                        @foreach($usageHistory as $usage)
-                                            <tr class="hover:bg-gray-800/50 transition duration-150">
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-medium text-white">
-                                                        @if($usage->conductor)
-                                                            Conductor: {{ $usage->conductor->nombre }}
-                                                        @elseif($usage->user)
-                                                            {{ $usage->user->name }}
-                                                        @else
-                                                            Usuario Eliminado
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                    {{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                    {{ $usage->end_date ? $usage->end_date->format('d/m/Y H:i') : '-' }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                   {{ ucfirst($usage->destination_type ?? 'Uso General') }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    @switch($usage->status)
-                                                        @case('approved') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Curso / Aprobado</span> @break
-                                                        @case('completed') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Finalizado</span> @break
-                                                        @case('pending') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
-                                                        @case('rejected') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rechazado</span> @break
-                                                        @case('cancelled') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Cancelado</span> @break
-                                                        @default <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-white">{{ ucfirst($usage->status) }}</span>
-                                                    @endswitch
-                                                    @if($usage->early_termination_reason)
-                                                        <div class="mt-2 text-center">
-                                                            <button @click="openTerminationModal('{{ addslashes($usage->early_termination_reason) }}', '{{ $usage->original_end_date ? $usage->original_end_date->format('d/m/Y') : '-' }}')"
-                                                                class="inline-flex items-center px-2.5 py-1 rounded bg-red-900/30 text-red-300 border border-red-800 hover:bg-red-900/50 transition-colors text-xs">
-                                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                                Ver motivo término
-                                                            </button>
-                                                        </div>
-                                                    @endif
-                                                </td>
+                            <div class="bg-gray-900 rounded-lg shadow-xl border border-gray-700">
+                                {{-- Vista Desktop --}}
+                                <div x-show="width >= 768" class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-700">
+                                        <thead class="bg-gray-800">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Solicitado Por</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Inicio</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Término</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Destino / Uso</th>
+                                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</th>
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-700 bg-transparent">
+                                            @foreach($usageHistory as $usage)
+                                                <tr class="hover:bg-gray-800/50 transition duration-150">
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="text-sm font-medium text-white">
+                                                            @if($usage->conductor)
+                                                                Conductor: {{ $usage->conductor->nombre }}
+                                                            @elseif($usage->user)
+                                                                {{ $usage->user->name }}
+                                                            @else
+                                                                Usuario Eliminado
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                        {{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                        {{ $usage->end_date ? $usage->end_date->format('d/m/Y H:i') : '-' }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                       {{ ucfirst($usage->destination_type ?? 'Uso General') }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        @switch($usage->status)
+                                                            @case('approved') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Curso / Aprobado</span> @break
+                                                            @case('completed') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Finalizado</span> @break
+                                                            @case('pending') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
+                                                            @case('rejected') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rechazado</span> @break
+                                                            @case('cancelled') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Cancelado</span> @break
+                                                            @default <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-white">{{ ucfirst($usage->status) }}</span>
+                                                        @endswitch
+                                                        @if($usage->early_termination_reason)
+                                                            <div class="mt-2 text-center">
+                                                                <button @click="openTerminationModal('{{ addslashes($usage->early_termination_reason) }}', '{{ $usage->original_end_date ? $usage->original_end_date->format('d/m/Y') : '-' }}')"
+                                                                    class="inline-flex items-center px-2.5 py-1 rounded bg-red-900/30 text-red-300 border border-red-800 hover:bg-red-900/50 transition-colors text-xs">
+                                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                                    Ver motivo término
+                                                                </button>
+                                                            </div>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {{-- Vista Mobile (Tarjetas) --}}
+                                <div x-show="width < 768" class="space-y-4 p-4">
+                                    @foreach($usageHistory as $usage)
+                                        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-sm">
+                                            {{-- Header --}}
+                                            <div class="flex justify-between items-start mb-3 border-b border-gray-700 pb-2">
+                                                <div class="text-sm font-bold text-white">
+                                                    @if($usage->conductor)
+                                                        {{ $usage->conductor->nombre }} (C)
+                                                    @elseif($usage->user)
+                                                        {{ $usage->user->name }}
+                                                    @else
+                                                        Usuario Eliminado
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    @switch($usage->status)
+                                                        @case('approved') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800">En Curso</span> @break
+                                                        @case('completed') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800">Finalizado</span> @break
+                                                        @case('pending') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
+                                                        @case('rejected') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800">Rechazado</span> @break
+                                                        @case('cancelled') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-800">Cancelado</span> @break
+                                                        @default <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-500 text-white">{{ ucfirst($usage->status) }}</span>
+                                                    @endswitch
+                                                </div>
+                                            </div>
+
+                                            {{-- Detalles --}}
+                                            <div class="space-y-2 text-sm">
+                                                <div class="flex justify-between">
+                                                    <span class="text-gray-400">Inicio:</span>
+                                                    <span class="text-gray-200">{{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}</span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span class="text-gray-400">Término:</span>
+                                                    <span class="text-gray-200">{{ $usage->end_date ? $usage->end_date->format('d/m/Y H:i') : '-' }}</span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span class="text-gray-400">Destino:</span>
+                                                    <span class="text-gray-200">{{ ucfirst($usage->destination_type ?? 'Uso General') }}</span>
+                                                </div>
+                                                
+                                                @if($usage->early_termination_reason)
+                                                    <div class="pt-2 text-center">
+                                                        <button @click="openTerminationModal('{{ addslashes($usage->early_termination_reason) }}', '{{ $usage->original_end_date ? $usage->original_end_date->format('d/m/Y') : '-' }}')"
+                                                            class="w-full inline-flex justify-center items-center px-3 py-1.5 rounded bg-red-900/30 text-red-300 border border-red-800 hover:bg-red-900/50 transition-colors text-xs">
+                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                            Ver motivo término ant.
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -373,82 +498,168 @@
                                 @if(request('has_damages') === 'yes') <p class="text-sm text-red-400 mt-2">No se encontraron entregas con daños reportados en este rango.</p> @endif
                             </div>
                         @else
-                            <div class="overflow-x-auto bg-gray-900 rounded-lg shadow-xl border border-gray-700">
-                                <table class="min-w-full divide-y divide-gray-700">
-                                    <thead class="bg-gray-800">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Devolución</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuario / Conductor</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado Entregado</th>
-                                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Observaciones</th>
-                                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-700 bg-transparent">
-                                        @foreach($returns as $usage)
-                                            <tr id="return-row-{{ $usage->id }}" 
-                                                class="hover:bg-gray-800/50 transition duration-150 {{ request('highlight_id') == $usage->id ? ($usage->vehicleReturn->body_damage_reported ? 'bg-red-900/20 ring-2 ring-inset ring-red-500' : 'bg-blue-900/20 ring-2 ring-inset ring-blue-500') : '' }}">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                    {{ $usage->vehicleReturn->created_at->format('d/m/Y H:i') }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                     <div class="text-sm font-medium text-white">
+                            <div class="bg-gray-900 rounded-lg shadow-xl border border-gray-700">
+                                {{-- Vista Desktop --}}
+                                <div x-show="width >= 768" class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-700">
+                                        <thead class="bg-gray-800">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Devolución</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuario / Conductor</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado Entregado</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Observaciones</th>
+                                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-700 bg-transparent">
+                                            @foreach($returns as $usage)
+                                                <tr id="return-row-{{ $usage->id }}" 
+                                                    class="hover:bg-gray-800/50 transition duration-150 {{ request('highlight_id') == $usage->id ? ($usage->vehicleReturn->body_damage_reported ? 'bg-red-900/20 ring-2 ring-inset ring-red-500' : 'bg-blue-900/20 ring-2 ring-inset ring-blue-500') : '' }}">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                        {{ $usage->vehicleReturn->created_at->format('d/m/Y H:i') }}
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                         <div class="text-sm font-medium text-white">
+                                                            @if($usage->conductor)
+                                                                {{ Str::of($usage->conductor->nombre)->explode(' ')->first() }} {{ Str::of($usage->conductor->nombre)->explode(' ')->last() }} (C)
+                                                            @elseif($usage->user)
+                                                                {{ Str::of($usage->user->name)->explode(' ')->first() }} {{ Str::of($usage->user->last_name)->explode(' ')->first() }}
+                                                            @endif
+                                                        </div>
+                                                        <div class="text-xs text-gray-500">
+                                                            Km: {{ number_format($usage->vehicleReturn->return_mileage, 0, '', '.') }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                        <div class="flex flex-col gap-1">
+                                                             <span class="px-2 w-fit inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                                {{ $usage->vehicleReturn->body_damage_reported ? 'bg-red-900/50 text-red-300 border border-red-700' : 'bg-green-900/50 text-green-300 border border-green-700' }}">
+                                                                {{ $usage->vehicleReturn->body_damage_reported ? '⚠ Con Daños' : '✓ Sin Daños' }}
+                                                            </span>
+                                                             <span class="px-2 w-fit inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-900/50 text-blue-300 border border-blue-700">
+                                                                ⛽ {{ $usage->vehicleReturn->fuel_level }}%
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-sm text-gray-300 max-w-md">
+                                                         <div class="max-w-xs overflow-hidden text-ellipsis line-clamp-2" title="{{ $usage->vehicleReturn->comments }}">
+                                                            {{ $usage->vehicleReturn->comments ?: 'Sin observaciones' }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                                        <button @click="openDetailModal({{ json_encode([
+                                                                'id' => $usage->id,
+                                                                'return_date' => $usage->vehicleReturn->created_at->format('Y-m-d H:i:s'),
+                                                                'start_date' => $usage->start_date ? $usage->start_date->format('Y-m-d H:i:s') : null,
+                                                                'end_date' => $usage->end_date ? $usage->end_date->format('Y-m-d H:i:s') : null,
+                                                                'destination' => $usage->destination_type,
+                                                                'user_name' => $usage->user ? (Str::of($usage->user->name)->explode(' ')->first() . ' ' . Str::of($usage->user->last_name)->explode(' ')->first()) : ($usage->conductor ? $usage->conductor->nombre : 'Desconocido'),
+                                                                'user_role' => $usage->conductor ? 'Conductor' : 'Usuario',
+                                                                'user_email' => $usage->user ? $usage->user->email : ($usage->conductor ? $usage->conductor->rut : ''),
+                                                                'user_photo' => $usage->user && $usage->user->profile_photo_path ? Storage::url($usage->user->profile_photo_path) : ($usage->conductor && $usage->conductor->profile_photo_path ? Storage::url($usage->conductor->profile_photo_path) : null),
+                                                                'completed_by_name' => $usage->completedBy ? $usage->completedBy->name : null,
+                                                                'completed_by_email' => $usage->completedBy ? $usage->completedBy->email : null,
+                                                                'completed_by_photo' => ($usage->completedBy && $usage->completedBy->profile_photo_path) ? Storage::url($usage->completedBy->profile_photo_path) : null,
+                                                                'return_data' => $usage->vehicleReturn,
+                                                                'fuel_loads' => $usage->fuelLoads,
+                                                                'photos' => is_array($usage->vehicleReturn->photos_paths) ? collect($usage->vehicleReturn->photos_paths)->map(fn($p) => asset('storage/'.$p))->values()->toArray() : []
+                                                            ]) }})"
+                                                            class="inline-flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors border border-gray-600">
+                                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                            </svg>
+                                                            Ver Detalle
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {{-- Vista Mobile (Tarjetas) --}}
+                                <div x-show="width < 768" class="space-y-4 p-4">
+                                    @foreach($returns as $usage)
+                                        <div id="return-card-{{ $usage->id }}" 
+                                             class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-sm {{ request('highlight_id') == $usage->id ? ($usage->vehicleReturn->body_damage_reported ? 'bg-red-900/20 ring-2 ring-inset ring-red-500' : 'bg-blue-900/20 ring-2 ring-inset ring-blue-500') : '' }}">
+                                            
+                                            {{-- Header Tarjeta --}}
+                                            <div class="flex justify-between items-start mb-3 border-b border-gray-700 pb-2">
+                                                <div>
+                                                    <div class="text-sm font-bold text-white">
+                                                        {{ $usage->vehicleReturn->created_at->format('d/m/Y') }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-400">
+                                                        {{ $usage->vehicleReturn->created_at->format('H:i') }} hrs
+                                                    </div>
+                                                </div>
+                                                <div class="flex flex-col items-end gap-1">
+                                                     <span class="px-2 py-0.5 inline-flex text-[10px] leading-4 font-semibold rounded-full 
+                                                        {{ $usage->vehicleReturn->body_damage_reported ? 'bg-red-900/50 text-red-300 border border-red-700' : 'bg-green-900/50 text-green-300 border border-green-700' }}">
+                                                        {{ $usage->vehicleReturn->body_damage_reported ? 'Con Daños' : 'Sin Daños' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {{-- Contenido --}}
+                                            <div class="space-y-2 mb-4">
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-gray-400">Usuario:</span>
+                                                    <span class="text-gray-200 font-medium">
                                                         @if($usage->conductor)
                                                             {{ Str::of($usage->conductor->nombre)->explode(' ')->first() }} {{ Str::of($usage->conductor->nombre)->explode(' ')->last() }} (C)
                                                         @elseif($usage->user)
                                                             {{ Str::of($usage->user->name)->explode(' ')->first() }} {{ Str::of($usage->user->last_name)->explode(' ')->first() }}
                                                         @endif
+                                                    </span>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-gray-400">Kilometraje:</span>
+                                                    <span class="text-gray-200">{{ number_format($usage->vehicleReturn->return_mileage, 0, '', '.') }} km</span>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-gray-400">Combustible:</span>
+                                                    <span class="text-blue-300">⛽ {{ $usage->vehicleReturn->fuel_level }}%</span>
+                                                </div>
+                                                @if($usage->vehicleReturn->comments)
+                                                    <div class="pt-2">
+                                                        <span class="text-xs text-gray-500 block mb-1">Observaciones:</span>
+                                                        <p class="text-xs text-gray-300 italic bg-gray-900/50 p-2 rounded border border-gray-700/50">
+                                                            "{{ $usage->vehicleReturn->comments }}"
+                                                        </p>
                                                     </div>
-                                                    <div class="text-xs text-gray-500">
-                                                        Km: {{ number_format($usage->vehicleReturn->return_mileage, 0, '', '.') }}
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    <div class="flex flex-col gap-1">
-                                                         <span class="px-2 w-fit inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                            {{ $usage->vehicleReturn->body_damage_reported ? 'bg-red-900/50 text-red-300 border border-red-700' : 'bg-green-900/50 text-green-300 border border-green-700' }}">
-                                                            {{ $usage->vehicleReturn->body_damage_reported ? '⚠ Con Daños' : '✓ Sin Daños' }}
-                                                        </span>
-                                                         <span class="px-2 w-fit inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-900/50 text-blue-300 border border-blue-700">
-                                                            ⛽ {{ $usage->vehicleReturn->fuel_level }}%
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 text-sm text-gray-300 max-w-md">
-                                                     <div class="max-w-xs overflow-hidden text-ellipsis line-clamp-2" title="{{ $usage->vehicleReturn->comments }}">
-                                                        {{ $usage->vehicleReturn->comments ?: 'Sin observaciones' }}
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                                    <button @click="openDetailModal({{ json_encode([
-                                                            'id' => $usage->id,
-                                                            'return_date' => $usage->vehicleReturn->created_at->format('Y-m-d H:i:s'),
-                                                            'start_date' => $usage->start_date ? $usage->start_date->format('Y-m-d H:i:s') : null,
-                                                            'end_date' => $usage->end_date ? $usage->end_date->format('Y-m-d H:i:s') : null,
-                                                            'destination' => $usage->destination_type,
-                                                            'user_name' => $usage->user ? (Str::of($usage->user->name)->explode(' ')->first() . ' ' . Str::of($usage->user->last_name)->explode(' ')->first()) : ($usage->conductor ? $usage->conductor->nombre : 'Desconocido'),
-                                                            'user_role' => $usage->conductor ? 'Conductor' : 'Usuario',
-                                                            'user_email' => $usage->user ? $usage->user->email : ($usage->conductor ? $usage->conductor->rut : ''),
-                                                            'user_photo' => $usage->user && $usage->user->profile_photo_path ? Storage::url($usage->user->profile_photo_path) : ($usage->conductor && $usage->conductor->profile_photo_path ? Storage::url($usage->conductor->profile_photo_path) : null),
-                                                            'completed_by_name' => $usage->completedBy ? $usage->completedBy->name : null,
-                                                            'completed_by_email' => $usage->completedBy ? $usage->completedBy->email : null,
-                                                            'completed_by_photo' => ($usage->completedBy && $usage->completedBy->profile_photo_path) ? Storage::url($usage->completedBy->profile_photo_path) : null,
-                                                            'return_data' => $usage->vehicleReturn,
-                                                            'fuel_loads' => $usage->fuelLoads,
-                                                            'photos' => is_array($usage->vehicleReturn->photos_paths) ? collect($usage->vehicleReturn->photos_paths)->map(fn($p) => asset('storage/'.$p))->values()->toArray() : []
-                                                        ]) }})"
-                                                        class="inline-flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors border border-gray-600">
-                                                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                        </svg>
-                                                        Ver Detalle
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                                @endif
+                                            </div>
+
+                                            {{-- Footer Acciones --}}
+                                            <button @click="openDetailModal({{ json_encode([
+                                                    'id' => $usage->id,
+                                                    'return_date' => $usage->vehicleReturn->created_at->format('Y-m-d H:i:s'),
+                                                    'start_date' => $usage->start_date ? $usage->start_date->format('Y-m-d H:i:s') : null,
+                                                    'end_date' => $usage->end_date ? $usage->end_date->format('Y-m-d H:i:s') : null,
+                                                    'destination' => $usage->destination_type,
+                                                    'user_name' => $usage->user ? (Str::of($usage->user->name)->explode(' ')->first() . ' ' . Str::of($usage->user->last_name)->explode(' ')->first()) : ($usage->conductor ? $usage->conductor->nombre : 'Desconocido'),
+                                                    'user_role' => $usage->conductor ? 'Conductor' : 'Usuario',
+                                                    'user_email' => $usage->user ? $usage->user->email : ($usage->conductor ? $usage->conductor->rut : ''),
+                                                    'user_photo' => $usage->user && $usage->user->profile_photo_path ? Storage::url($usage->user->profile_photo_path) : ($usage->conductor && $usage->conductor->profile_photo_path ? Storage::url($usage->conductor->profile_photo_path) : null),
+                                                    'completed_by_name' => $usage->completedBy ? $usage->completedBy->name : null,
+                                                    'completed_by_email' => $usage->completedBy ? $usage->completedBy->email : null,
+                                                    'completed_by_photo' => ($usage->completedBy && $usage->completedBy->profile_photo_path) ? Storage::url($usage->completedBy->profile_photo_path) : null,
+                                                    'return_data' => $usage->vehicleReturn,
+                                                    'fuel_loads' => $usage->fuelLoads,
+                                                    'photos' => is_array($usage->vehicleReturn->photos_paths) ? collect($usage->vehicleReturn->photos_paths)->map(fn($p) => asset('storage/'.$p))->values()->toArray() : []
+                                                ]) }})"
+                                                class="w-full inline-flex justify-center items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors border border-gray-600">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                                Ver Detalle
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
                     </div>

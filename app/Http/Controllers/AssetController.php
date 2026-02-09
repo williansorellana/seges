@@ -331,6 +331,30 @@ class AssetController extends Controller
         $asset->forceDelete();
         return redirect()->route('assets.trash')->with('success', 'Activo eliminado permanentemente.');
     }
+
+    /**
+     * Vaciar papelera (eliminar permanentemente todos los activos en papelera)
+     */
+    public function emptyTrash()
+    {
+        $assets = Asset::onlyTrashed()->get();
+
+        if ($assets->isEmpty()) {
+            return redirect()->route('assets.trash')->with('info', 'La papelera ya está vacía.');
+        }
+
+        $count = $assets->count();
+
+        // Eliminar fotos asociadas y registros
+        foreach ($assets as $asset) {
+            if ($asset->foto_path) {
+                Storage::disk('public')->delete($asset->foto_path);
+            }
+            $asset->forceDelete();
+        }
+
+        return redirect()->route('assets.trash')->with('success', "Se eliminaron permanentemente {$count} activos de la papelera.");
+    }
     public function assign(Request $request, $id)
     {
         $asset = Asset::findOrFail($id);

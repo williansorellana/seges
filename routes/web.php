@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('papelera/vehiculos', [VehicleController::class, 'trash'])->name('vehicles.trash');
     Route::put('papelera/vehiculos/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
     Route::delete('papelera/vehiculos/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.force-delete');
+    Route::delete('papelera/vehiculos/empty', [VehicleController::class, 'emptyTrash'])->name('vehicles.empty-trash');
 
     // Recurso de Vehículos
     Route::resource('vehiculos', VehicleController::class)
@@ -136,6 +137,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/assets/trash', [\App\Http\Controllers\AssetController::class, 'trash'])->name('assets.trash');
     Route::put('/assets/{id}/restore', [\App\Http\Controllers\AssetController::class, 'restore'])->name('assets.restore');
     Route::delete('/assets/{id}/force-delete', [\App\Http\Controllers\AssetController::class, 'forceDelete'])->name('assets.force-delete');
+    Route::delete('/assets/trash/empty', [\App\Http\Controllers\AssetController::class, 'emptyTrash'])->name('assets.empty-trash');
     Route::get('/assets/{id}/barcode', [\App\Http\Controllers\AssetController::class, 'downloadBarcode'])->name('assets.barcode');
     Route::post('/assets/barcodes/batch', [\App\Http\Controllers\AssetController::class, 'downloadBarcodes'])->name('assets.barcodes.batch');
     Route::post('/assets/{id}/assign', [\App\Http\Controllers\AssetController::class, 'assign'])->name('assets.assign');
