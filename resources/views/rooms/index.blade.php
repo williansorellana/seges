@@ -1,11 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Gestión de Salas de Reuniones') }}
             </h2>
             
-            <div class="flex items-center space-x-2">
+            <div class="flex flex-wrap gap-2 sm:flex-nowrap sm:space-x-2">
+
                 
                 <a href="{{ route('rooms.trash') }}"
                     class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-500 active:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
@@ -63,7 +65,8 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto">
+                    <div class="hidden sm:block overflow-x-auto">
+
                         <table class="min-w-full leading-normal">
                             <thead class="bg-gray-800 text-gray-300">
                                 <tr>
@@ -134,7 +137,93 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    
                     </div>
+                    <!-- VISTA MÓVIL -->
+                    <div class="sm:hidden space-y-4">
+                        @forelse($rooms as $room)
+                            <div class="bg-gray-900 border border-gray-700 rounded-xl p-4 shadow-md">
+
+                                <div class="flex items-center gap-3">
+                                    @if($room->image_path)
+                                        <img src="{{ Storage::url($room->image_path) }}"
+                                            class="w-12 h-12 rounded-full object-cover border border-gray-600">
+                                    @else
+                                        <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-gray-400">
+                                            🏢
+                                        </div>
+                                    @endif
+
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-lg">
+                                            {{ $room->name }}
+                                        </h3>
+                                        <p class="text-sm text-gray-400">
+                                            {{ $room->location ?? 'Sin ubicación' }}
+                                        </p>
+                                    </div>
+
+                                    <span class="text-xs px-2 py-1 rounded-md
+                                        {{ $room->status === 'active' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300' }}">
+                                        {{ $room->status === 'active' ? 'DISPONIBLE' : 'MANT.' }}
+                                    </span>
+                                </div>
+
+                                <div class="mt-3 text-sm text-gray-300">
+                                    👥 Capacidad: <span class="font-bold">{{ $room->capacity }}</span>
+                                </div>
+
+                                <div class="mt-4 flex justify-between items-center">
+                                    <button
+                                        @click="viewingRoom = {{ json_encode([
+                                            'id'=>$room->id,
+                                            'name'=>$room->name,
+                                            'capacity'=>$room->capacity,
+                                            'location'=>$room->location,
+                                            'description'=>$room->description,
+                                            'status'=>$room->status,
+                                            'image_url'=>$room->image_path ? Storage::url($room->image_path) : null
+                                        ]) }}; $dispatch('open-modal','view-room-modal')"
+                                        class="text-blue-400 text-sm underline">
+                                        Ver detalle
+                                    </button>
+
+                                    <div class="flex items-center gap-2">
+                                        <button
+                                            @click="editingRoom = {{ json_encode([
+                                                'id'=>$room->id,
+                                                'name'=>$room->name,
+                                                'capacity'=>$room->capacity,
+                                                'location'=>$room->location,
+                                                'description'=>$room->description,
+                                                'status'=>$room->status,
+                                                'image_url'=>$room->image_path ? Storage::url($room->image_path) : null
+                                            ]) }};
+                                            editAction='{{ route('rooms.update',$room->id) }}';
+                                            $dispatch('open-modal','edit-room-modal')"
+                                            class="inline-flex items-center px-3 py-1.5 text-sm font-medium
+                                                text-blue-500 border border-blue-500 rounded-md
+                                                hover:bg-blue-500 hover:text-white transition">
+                                            Editar
+                                        </button>
+
+                                        <button
+                                            @click="deleteAction='{{ route('rooms.destroy',$room) }}';
+                                            $dispatch('open-modal','confirm-delete-modal')"
+                                            class="inline-flex items-center px-3 py-1.5 text-sm font-medium
+                                                text-red-500 border border-red-500 rounded-md
+                                                hover:bg-red-500 hover:text-white transition">
+                                            Eliminar
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-center text-gray-400">No hay salas registradas.</p>
+                        @endforelse
+                    </div>
+
                 </div>
             </div>
         </div>

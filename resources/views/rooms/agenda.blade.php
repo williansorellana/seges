@@ -38,7 +38,7 @@
             cancelUrl: '',
             data: {},       // Datos de la reserva actual
             roomData: {},   // Datos de la sala
-            userData: {},   // Datos del usuario (AHORA COMPLETOS)
+            userData: {},   // Datos del usuario
 
             // Funciones Helpers
             openRes(reservationData) {
@@ -131,10 +131,10 @@
                                 <div class="space-y-4 pl-2 md:pl-4">
                                     @foreach($dayReservations as $reservation)
                                         @php 
+                                            // == ZONA SEGURA: PROTECCIÓN CONTRA ELIMINADOS ==
                                             $isFinished = $reservation->end_time->isPast(); 
                                             $cancelUrl = route('room-reservations.cancel_admin', $reservation->id);
                                             
-                                            // == AQUÍ ESTABA EL PROBLEMA, AHORA PASAMOS TODOS LOS DATOS ==
                                             $jsData = [
                                                 'start' => $reservation->start_time->format('H:i'),
                                                 'end' => $reservation->end_time->format('H:i'),
@@ -145,26 +145,27 @@
                                                 'attendees' => $reservation->attendees ?? 0,
                                                 'is_finished' => $isFinished,
                                                 'room_data' => [
-                                                    'name' => $reservation->meetingRoom->name,
-                                                    'capacity' => $reservation->meetingRoom->capacity,
-                                                    'location' => $reservation->meetingRoom->location,
-                                                    'description' => $reservation->meetingRoom->description,
-                                                    'status' => $reservation->meetingRoom->status,
-                                                    'image_url' => $reservation->meetingRoom->image_path ? Storage::url($reservation->meetingRoom->image_path) : null,
+                                                    // Usamos '?->' para evitar error si la sala fue borrada
+                                                    'name' => $reservation->meetingRoom?->name ?? 'Sala Eliminada',
+                                                    'capacity' => $reservation->meetingRoom?->capacity ?? 0,
+                                                    'location' => $reservation->meetingRoom?->location ?? 'N/A',
+                                                    'description' => $reservation->meetingRoom?->description ?? '',
+                                                    'status' => $reservation->meetingRoom?->status ?? 'inactive',
+                                                    'image_url' => ($reservation->meetingRoom?->image_path) ? Storage::url($reservation->meetingRoom->image_path) : null,
                                                 ],
                                                 'user_data' => [
-                                                    'name' => $reservation->user->name,
-                                                    'email' => $reservation->user->email,
-                                                    'photo_url' => $reservation->user->profile_photo_path ? Storage::url($reservation->user->profile_photo_path) : null,
-                                                    'initials' => substr($reservation->user->name, 0, 1),
-                                                    // DATOS AGREGADOS PARA QUE NO FALLE:
-                                                    'rut' => $reservation->user->rut ?? 'N/A',
-                                                    'phone' => $reservation->user->phone ?? 'N/A',
-                                                    'address' => $reservation->user->address ?? 'N/A',
-                                                    'role' => ucfirst($reservation->user->role ?? 'Usuario'),
-                                                    'status' => $reservation->user->status ?? 'Activo',
-                                                    'verified' => $reservation->user->email_verified_at ? 'Verificado' : 'Pendiente',
-                                                    'created_at' => $reservation->user->created_at->format('d/m/Y'),
+                                                    // Usamos '?->' para evitar error si el usuario fue borrado
+                                                    'name' => $reservation->user?->name ?? 'Usuario Desconocido',
+                                                    'email' => $reservation->user?->email ?? 'sin-email@dimak.cl',
+                                                    'photo_url' => ($reservation->user?->profile_photo_path) ? Storage::url($reservation->user->profile_photo_path) : null,
+                                                    'initials' => substr($reservation->user?->name ?? 'X', 0, 1),
+                                                    'rut' => $reservation->user?->rut ?? 'N/A',
+                                                    'phone' => $reservation->user?->phone ?? 'N/A',
+                                                    'address' => $reservation->user?->address ?? 'N/A',
+                                                    'role' => ucfirst($reservation->user?->role ?? 'Invitado'),
+                                                    'status' => $reservation->user?->status ?? 'Inactivo',
+                                                    'verified' => ($reservation->user?->email_verified_at) ? 'Verificado' : 'Pendiente',
+                                                    'created_at' => optional($reservation->user?->created_at)->format('d/m/Y') ?? '-',
                                                 ]
                                             ];
                                         @endphp
@@ -179,14 +180,17 @@
 
                                             <div class="flex-1 min-w-0 pr-4">
                                                 <div class="flex justify-between items-center">
-                                                    <h4 class="text-base font-bold text-gray-900 dark:text-white leading-tight truncate">{{ $reservation->meetingRoom->name }}</h4>
+                                                    <h4 class="text-base font-bold text-gray-900 dark:text-white leading-tight truncate">
+                                                        {{ $reservation->meetingRoom?->name ?? 'Sala Eliminada' }}
+                                                    </h4>
                                                     @if($isFinished)<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Finalizada</span>@endif
                                                 </div>
-                                                <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400"><span class="font-medium mr-1">Por:</span> {{ $reservation->user->name }}</div>
+                                                <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    <span class="font-medium mr-1">Por:</span> {{ $reservation->user?->name ?? 'Usuario Desconocido' }}
+                                                </div>
                                             </div>
 
                                             <div class="flex space-x-2">
-                                                
                                                 <button type="button" 
                                                         @click.stop="openRes({{ json_encode($jsData) }})"
                                                         class="p-2 rounded-full text-green-700 bg-green-200 hover:bg-green-300 dark:bg-green-800 dark:text-green-100 dark:hover:bg-green-700 transition shadow-sm" 
