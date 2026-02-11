@@ -115,6 +115,14 @@ Route::middleware('auth')->group(function () {
     Route::put('/historial-uso-vehiculos/{id}/restore', [VehicleRequestController::class, 'restore'])->name('requests.history.restore');
     Route::delete('/historial-uso-vehiculos/{id}/force', [VehicleRequestController::class, 'forceDelete'])->name('requests.history.force-delete');
 
+    // AJAX Check for External RUT
+    Route::get('/requests/check-external-rut', [VehicleRequestController::class, 'checkExternalRut'])->name('requests.check-external-rut');
+
+    // Delivery Photos (Check-in) y Start Trip
+    Route::post('/requests/{id}/delivery-photos', [VehicleRequestController::class, 'uploadDeliveryPhotos'])->name('requests.delivery-photos');
+    Route::delete('/requests/{id}/delivery-photos', [VehicleRequestController::class, 'deleteDeliveryPhoto'])->name('requests.delete-delivery-photo');
+    Route::post('/requests/{id}/start-trip', [VehicleRequestController::class, 'startTrip'])->name('requests.start-trip');
+
 
     // Historial de Devoluciones (Admin)
     Route::get('/admin/returns/trash', [VehicleReturnController::class, 'trash'])->name('admin.returns.trash');
@@ -161,6 +169,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/workers/{id}/force-delete', [\App\Http\Controllers\WorkerController::class, 'forceDelete'])->name('workers.force-delete');
     Route::resource('workers', \App\Http\Controllers\WorkerController::class);
 
+    // Personas Externas Frecuentes
+    Route::get('/external-people/trash', [\App\Http\Controllers\FrequentExternalPersonController::class, 'trash'])->name('external-people.trash');
+    Route::post('/external-people/{id}/restore', [\App\Http\Controllers\FrequentExternalPersonController::class, 'restore'])->name('external-people.restore');
+    Route::delete('/external-people/{id}/force-delete', [\App\Http\Controllers\FrequentExternalPersonController::class, 'forceDelete'])->name('external-people.force-delete');
+    Route::delete('/external-people/empty-trash', [\App\Http\Controllers\FrequentExternalPersonController::class, 'emptyTrash'])->name('external-people.empty-trash');
+    Route::resource('external-people', \App\Http\Controllers\FrequentExternalPersonController::class);
 });
 
 // Rutas de cambio de contraseña forzado 

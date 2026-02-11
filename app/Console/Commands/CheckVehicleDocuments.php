@@ -46,20 +46,44 @@ class CheckVehicleDocuments extends Command
             ->where('status', 'active')
             ->get();
 
-        $admins = User::all(); // Send to all users for now, or filter by admin role if implemented
+        $admins = User::whereIn('role', ['admin', 'supervisor'])->get();
 
         $count = 0;
 
         foreach ($warningDocs as $doc) {
-            Notification::send($admins, new VehicleDocumentExpired($doc, 7));
-            $this->info("Warning sent for vehicle: {$doc->vehicle->plate} - {$doc->type}");
-            $count++;
+            foreach ($admins as $admin) {
+                // Check if already notified recently (last 2 days) to avoid spam
+                $lastNotification = $admin->notifications()
+                    ->where('type', VehicleDocumentExpired::class)
+                    ->where('data->document_type', $doc->type)
+                    ->where('data->vehicle_id', $doc->vehicle->id)
+                    ->where('created_at', '>=', Carbon::now()->subDays(2))
+                    ->first();
+
+                if (!$lastNotification) {
+                    $admin->notify(new VehicleDocumentExpired($doc, 7));
+                    $this->info("Warning sent to {$admin->email} for vehicle: {$doc->vehicle->plate} - {$doc->type}");
+                    $count++;
+                }
+            }
         }
 
         foreach ($dangerDocs as $doc) {
-            Notification::send($admins, new VehicleDocumentExpired($doc, 0));
-            $this->error("Danger sent for vehicle: {$doc->vehicle->plate} - {$doc->type}");
-            $count++;
+            foreach ($admins as $admin) {
+                // Check if already notified recently (last 1 day for danger)
+                $lastNotification = $admin->notifications()
+                    ->where('type', VehicleDocumentExpired::class)
+                    ->where('data->document_type', $doc->type)
+                    ->where('data->vehicle_id', $doc->vehicle->id)
+                    ->where('created_at', '>=', Carbon::now()->subDays(1))
+                    ->first();
+
+                if (!$lastNotification) {
+                    $admin->notify(new VehicleDocumentExpired($doc, 0));
+                    $this->error("Danger sent to {$admin->email} for vehicle: {$doc->vehicle->plate} - {$doc->type}");
+                    $count++;
+                }
+            }
         }
 
         $this->info("Check complete. {$count} notifications sent.");

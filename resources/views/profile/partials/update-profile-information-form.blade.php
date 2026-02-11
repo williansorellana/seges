@@ -138,10 +138,31 @@
                 isScanning: false,
                 scanMessage: '',
                 scanProgress: 0,
+                showErrorModal: false,
+                errorMessage: '',
 
-                scanLicense(file) {
+                processLicense(folder) {
+                    const file = folder.files[0];
                     if (!file) return;
 
+                    // 1. Mostrar preview temporal inmediatamente
+                    const reader = new FileReader();
+                    reader.onload = (e) => { this.licensePreview = e.target.result; };
+                    reader.readAsDataURL(file);
+
+                    // 2. Comprimir y luego escanear
+                    this.compressImage(file).then(compressedFile => {
+                        // Reemplazar archivo en input (hack)
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(compressedFile);
+                        folder.files = dataTransfer.files;
+
+                        // Escanear
+                        this.scanLicense(compressedFile, folder);
+                    });
+                },
+
+                scanLicense(file, inputElement) {
                     this.isScanning = true;
                     this.scanMessage = 'Iniciando escáner OCR...';
                     this.scanProgress = 0;
@@ -153,7 +174,7 @@
                             logger: m => {
                                 if (m.status === 'recognizing text') {
                                     this.scanProgress = Math.round(m.progress * 100);
-                                    this.scanMessage = `Analizando imagen: ${this.scanProgress}%`;
+                                    this.scanMessage = 'Analizando imagen: ' + this.scanProgress + '%';
                                 } else {
                                     this.scanMessage = m.status;
                                 }
@@ -161,14 +182,47 @@
                         }
                     ).then(({ data: { text } }) => {
                         console.log('Texto OCR:', text);
+                        
+                        // 1. Validar RUT
+                        const rutValid = this.validateRutMatch(text);
+                        
+                        if (!rutValid) {
+                            this.isScanning = false;
+                            this.scanMessage = '❌ Error: El RUT de la licencia no coincide con su perfil.';
+                            this.errorMessage = 'El RUT detectado en la licencia no coincide con el RUT registrado en su perfil. Por favor, suba su propia licencia para continuar.';
+                            this.showErrorModal = true;
+                            
+                            // Limpiar input y preview
+                            this.licensePreview = null;
+                            inputElement.value = ''; // Limpiar el input file real
+                            
+                            return;
+                        }
+
+                        // 2. Si el RUT coincide, extraer fecha
                         this.extractDate(text);
                         this.isScanning = false;
-                        this.scanMessage = 'Escaneo completado.';
                     }).catch(err => {
                         console.error(err);
                         this.isScanning = false;
                         this.scanMessage = 'Error al escanear.';
                     });
+                },
+
+                validateRutMatch(text) {
+                    // Obtener RUT del usuario (desde backend) y limpiarlo
+                    const userRutRaw = '{{ $user->rut }}';
+                    if (!userRutRaw) return true; 
+                    
+                    const userRutClean = userRutRaw.replace(/[^0-9kK]/g, '').toUpperCase();
+                    const textClean = text.replace(/[^0-9kK]/g, '').toUpperCase();
+                    
+                    if (textClean.includes(userRutClean)) {
+                        return true;
+                    }
+
+                    const userRutBody = userRutClean.slice(0, -1);
+                    return textClean.includes(userRutBody);
                 },
 
                 async compressImage(file) {
@@ -184,7 +238,6 @@
                                 const canvas = document.createElement('canvas');
                                 const ctx = canvas.getContext('2d');
 
-                                // Redimensionar si es muy grande (máx 1920px ancho)
                                 const MAX_WIDTH = 1920;
                                 let width = img.width;
                                 let height = img.height;
@@ -198,9 +251,7 @@
                                 canvas.height = height;
                                 ctx.drawImage(img, 0, 0, width, height);
 
-                                // Convertir a Blob (JPEG calidad 80%)
                                 canvas.toBlob((blob) => {
-                                    // Crear un nuevo archivo con el blob comprimido
                                     const compressedFile = new File([blob], file.name, {
                                         type: 'image/jpeg',
                                         lastModified: Date.now(),
@@ -213,8 +264,6 @@
                 },
 
                 extractDate(text) {
-                    // ... (rest of logic same)
-                    // Patrones comunes para fechas: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
                     const datePatterns = [
                         /\b(\d{2})[-/](\d{2})[-/](\d{4})\b/g, // DD/MM/YYYY
                         /\b(\d{4})[-/](\d{2})[-/](\d{2})\b/g  // YYYY-MM-DD
@@ -226,7 +275,7 @@
                         let match;
                         while ((match = pattern.exec(text)) !== null) {
                             if (match[3].length === 4) { // DD/MM/YYYY
-                                foundDates.push(new Date(`${match[3]}-${match[2]}-${match[1]}`));
+                                foundDates.push(new Date(match[3] + '-' + match[2] + '-' + match[1]));
                             } else { // YYYY-MM-DD
                                 foundDates.push(new Date(match[0]));
                             }
@@ -240,18 +289,41 @@
                             const bestDate = foundDates[0];
                             const formatted = bestDate.toISOString().split('T')[0];
                             document.getElementById('license_expires_at').value = formatted;
-                            this.scanMessage = `Fecha detectada: ${bestDate.toLocaleDateString()}`;
+                            this.scanMessage = '✅ Licencia validada. Vence: ' + bestDate.toLocaleDateString();
                         } else {
-                            this.scanMessage = 'No se encontraron fechas válidas.';
+                            this.scanMessage = '✅ Licencia validada (Fecha no detectada).';
                         }
                     } else {
-                         this.scanMessage = 'No se detectó ninguna fecha legible.';
+                         this.scanMessage = '✅ Licencia validada (Fecha no detectada).';
                     }
                 }
             }">
 
+                <!-- Error Modal -->
+                <div x-show="showErrorModal" style="display: none;" 
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 relative">
+                        <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900 rounded-full mb-4">
+                            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-center text-gray-900 dark:text-gray-100 mb-2">Error de Validación</h3>
+                        <p class="text-sm text-center text-gray-500 dark:text-gray-400 mb-6" x-text="errorMessage"></p>
+                        <button @click="showErrorModal = false" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm">
+                            Entendido
+                        </button>
+                    </div>
+                </div>
+
                 <!-- License Photo Input -->
-                <div class="mb-4">
+                <div class="mb-4" id="license-section">
                     <x-input-label for="license_photo" :value="__('Foto de la Licencia')" />
 
                     <!-- Preview Area -->
@@ -289,26 +361,7 @@
 
                     <input type="file" id="license_photo" class="hidden" x-ref="license" name="license_photo"
                         accept="image/*"
-                        x-on:change="
-                            const originalFile = $refs.license.files[0];
-                            if (originalFile) {
-                                // 1. Mostrar preview temporal
-                                const reader = new FileReader();
-                                reader.onload = (e) => { licensePreview = e.target.result; };
-                                reader.readAsDataURL(originalFile);
-
-                                // 2. Comprimir imagen
-                                compressImage(originalFile).then(compressedFile => {
-                                    // 3. Reemplazar el archivo en el input (hack para enviar el comprimido)
-                                    const dataTransfer = new DataTransfer();
-                                    dataTransfer.items.add(compressedFile);
-                                    $refs.license.files = dataTransfer.files;
-
-                                    // 4. Escanear la imagen ya comprimida
-                                    scanLicense(compressedFile);
-                                });
-                            }
-                        " />
+                        x-on:change="processLicense($refs.license)" />
                     <x-input-error class="mt-2" :messages="$errors->get('license_photo')" />
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                         La imagen será escaneada automáticamente para detectar la fecha de vencimiento.

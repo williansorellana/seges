@@ -79,7 +79,15 @@ class VehicleRequestController extends Controller
 
         $conductors = ($user->role === 'admin') ? \App\Models\Conductor::all() : collect([]);
 
-        return view('requests.create', compact('vehicles', 'conductors'));
+        // Obtener usuarios activos para acompañantes
+        $users = \App\Models\User::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        // Obtener personas externas frecuentes para acompañantes
+        $frequentExternalPersons = \App\Models\FrequentExternalPerson::orderBy('name')->get();
+
+        return view('requests.create', compact('vehicles', 'conductors', 'users', 'frequentExternalPersons'));
     }
 
     /**
@@ -87,11 +95,25 @@ class VehicleRequestController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        // Verificar validez de licencia antes de procesar
+        if (!$user->license_expires_at || $user->license_expires_at < now()->startOfDay()) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'Su Licencia de Conducir está vencida o no registrada. Por favor actualícela para continuar.');
+        }
+
         $request->validate([
             'vehicle_id' => 'required|exists:vehicles,id',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after:start_date',
             'destination_type' => 'required|in:local,outside',
+            'origin' => 'required|string|max:255',
+            'destination' => 'required|string|max:255',
+            'companions' => 'nullable|array|max:5',
+            'companions.*.user_id' => 'nullable|exists:users,id',
+            'companions.*.external_name' => 'nullable|string|max:255',
+            'companions.*.external_rut' => 'nullable|string|max:20',
         ]);
 
         $user = Auth::user();
@@ -113,20 +135,68 @@ class VehicleRequestController extends Controller
             'end_date' => $request->end_date,
             'status' => 'pending',
             'destination_type' => $request->destination_type,
+            'origin' => $request->origin,
+            'destination' => $request->destination,
             'conductor_id' => ($user->role === 'admin' && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
         ]);
 
         // Manejo de nuevo conductor si se solicita
         if ($user->role === 'admin' && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
-            $conductor = \App\Models\Conductor::create([
-                'nombre' => $request->input('new_conductor_name'),
-                'rut' => $request->input('new_conductor_rut'), // Puede ser nulo
-                'cargo' => 'Externo', // Valor por defecto
-                'departamento' => 'Externo',
-                'fecha_licencia' => now()->addYear(), // Valor por defecto para evitar error SQL
-            ]);
 
-            $vehicleRequest->update(['conductor_id' => $conductor->id]);
+            // Verificar si se debe guardar permanentemente
+            if ($request->has('save_conductor_permanently') && $request->save_conductor_permanently) {
+                // Guardar en tabla de conductores permanentemente
+                $conductor = \App\Models\Conductor::create([
+                    'nombre' => $request->input('new_conductor_name'),
+                    'rut' => $request->input('new_conductor_rut'), // Puede ser nulo
+                    'cargo' => 'Externo', // Valor por defecto
+                    'departamento' => 'Externo',
+                    'fecha_licencia' => now()->addYear(), // Valor por defecto para evitar error SQL
+                ]);
+
+                $vehicleRequest->update(['conductor_id' => $conductor->id]);
+            } else {
+                // Guardar solo para este viaje (temporal)
+                $vehicleRequest->update([
+                    'temporary_conductor_name' => $request->input('new_conductor_name'),
+                    'temporary_conductor_rut' => $request->input('new_conductor_rut'),
+                ]);
+            }
+        }
+
+        // Guardar acompañantes si existen
+        if ($request->has('companions') && is_array($request->companions)) {
+            foreach ($request->companions as $companionData) {
+                // Validar que tenga al menos un user_id o un external_name
+                if (!empty($companionData['user_id']) || !empty($companionData['external_name'])) {
+                    \App\Models\VehicleRequestCompanion::create([
+                        'vehicle_request_id' => $vehicleRequest->id,
+                        'user_id' => $companionData['user_id'] ?? null,
+                        'external_name' => $companionData['external_name'] ?? null,
+                        'external_rut' => $companionData['external_rut'] ?? null,
+                        'external_position' => $companionData['external_position'] ?? null,
+                        'external_department' => $companionData['external_department'] ?? null,
+                    ]);
+
+                    // Si es persona externa y se marcó "guardar como frecuente"
+                    if (
+                        !empty($companionData['external_name']) &&
+                        isset($companionData['save_as_frequent']) &&
+                        $companionData['save_as_frequent']
+                    ) {
+
+                        // Verificar que no exista ya con ese nombre
+                        $existingPerson = \App\Models\FrequentExternalPerson::where('name', $companionData['external_name'])->first();
+
+                        if (!$existingPerson) {
+                            \App\Models\FrequentExternalPerson::create([
+                                'name' => $companionData['external_name'],
+                                'rut' => $companionData['external_rut'] ?? null,
+                            ]);
+                        }
+                    }
+                }
+            }
         }
 
         // Notificar a administradores
@@ -194,7 +264,7 @@ class VehicleRequestController extends Controller
 
         $request->validate([
             'return_mileage' => 'required|integer|min:' . $vehicleRequest->vehicle->mileage,
-            'fuel_level' => 'required|in:1/4,1/2,3/4,full',
+            'fuel_level' => 'required|in:1/4,1/2,3/4,full,casi_lleno,lleno',
             'tire_status_front' => 'required|in:good,fair,poor',
             'tire_status_rear' => 'required|in:good,fair,poor',
             'cleanliness' => 'required|in:clean,dirty,very_dirty',
@@ -320,6 +390,9 @@ class VehicleRequestController extends Controller
         // Notificar a administradores (sin daños reportados por defecto en termino anticipado)
         $admins = User::where('role', 'admin')->get();
         Notification::send($admins, new VehicleReturnedNotification($vehicleRequest, false));
+
+        // Notificar al usuario afectado sobre el término anticipado
+        $vehicleRequest->user->notify(new \App\Notifications\VehicleEarlyTerminationNotification($vehicleRequest));
 
         return back()->with('success', 'Asignación finalizada anticipadamente y devolución registrada.');
     }
@@ -458,5 +531,144 @@ class VehicleRequestController extends Controller
 
         return redirect()->route('requests.history.trash')
             ->with('success', 'Solicitud eliminada permanentemente.');
+    }
+    /**
+     * Check if an external companion's RUT already exists in the system.
+     */
+    public function checkExternalRut(Request $request)
+    {
+        $rut = $request->query('rut');
+
+        if (!$rut) {
+            return response()->json(['exists' => false]);
+        }
+
+        // 1. Check in Users (Internal)
+        $user = User::where('rut', $rut)->first();
+        if ($user) {
+            return response()->json([
+                'exists' => true,
+                'type' => 'user',
+                'bg_class' => 'bg-blue-100 text-blue-800 border-blue-200',
+                'message' => "El RUT {$rut} pertenece al usuario interno: {$user->name} {$user->last_name}. Por favor selecciónelo como 'Usuario Interno'."
+            ]);
+        }
+
+        // 2. Check in Frequent External People
+        $frequent = \App\Models\FrequentExternalPerson::where('rut', $rut)->first();
+        if ($frequent) {
+            return response()->json([
+                'exists' => true,
+                'type' => 'external',
+                'bg_class' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                'message' => "El RUT {$rut} ya está registrado como persona frecuente: {$frequent->name}. Por favor selecciónelo de la lista 'Persona Frecuente' o guarde sin marcar 'Guardar como frecuente'."
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
+
+    /**
+     * Sube fotos de recepción del vehículo (Check-in).
+     */
+    /**
+     * Sube fotos de recepción del vehículo (Check-in) y actualiza el comentario de entrega.
+     */
+    public function uploadDeliveryPhotos(Request $request, $id)
+    {
+        $vehicleRequest = VehicleRequest::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($vehicleRequest->status !== 'approved') {
+            return back()->with('error', 'Solo se pueden subir fotos cuando la solicitud está aprobada y no ha iniciado el viaje.');
+        }
+
+        $request->validate([
+            'delivery_photos.*' => 'nullable|image|max:10240', // Max 10MB per image, nullable to allow comment update only
+            'delivery_comment' => 'nullable|string|max:1000',
+        ]);
+
+        $photos = $vehicleRequest->delivery_photos ?? [];
+
+        if ($request->hasFile('delivery_photos')) {
+            foreach ($request->file('delivery_photos') as $photo) {
+                $path = $photo->store('vehicle_delivery_photos', 'public');
+                $photos[] = $path;
+            }
+        }
+
+        $vehicleRequest->delivery_photos = $photos;
+
+        // Update delivery comment if present (or empty string to clear if needed, relying on nullable)
+        if ($request->has('delivery_comment')) {
+            $vehicleRequest->delivery_comment = $request->input('delivery_comment');
+        }
+
+        $vehicleRequest->save();
+
+        return back()->with('success', 'Información de recepción actualizada correctamente.');
+    }
+
+    /**
+     * Elimina una foto de recepción específica via AJAX.
+     */
+    public function deleteDeliveryPhoto(Request $request, $id)
+    {
+        $vehicleRequest = VehicleRequest::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($vehicleRequest->status !== 'approved') {
+            return response()->json(['error' => 'No se pueden eliminar fotos en el estado actual.'], 403);
+        }
+
+        $photoPath = $request->input('photo_path');
+
+        if (!$photoPath) {
+            return response()->json(['error' => 'Ruta de foto no proporcionada.'], 400);
+        }
+
+        $photos = $vehicleRequest->delivery_photos ?? [];
+        $updatedPhotos = [];
+        $found = false;
+
+        foreach ($photos as $photo) {
+            if ($photo === $photoPath) {
+                // Encontrada, no la agregamos al nuevo array y la borramos del storage
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($photo)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($photo);
+                }
+                $found = true;
+            } else {
+                $updatedPhotos[] = $photo;
+            }
+        }
+
+        if ($found) {
+            // Re-index array keys just in case
+            $vehicleRequest->delivery_photos = array_values($updatedPhotos);
+            $vehicleRequest->save();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['error' => 'Foto no encontrada.'], 404);
+    }
+
+    /**
+     * Comienza el viaje (Cambia estado a in_trip).
+     */
+    public function startTrip($id)
+    {
+        $vehicleRequest = VehicleRequest::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($vehicleRequest->status !== 'approved') {
+            return back()->with('error', 'No se puede iniciar el viaje en el estado actual.');
+        }
+
+        // Validar que existan fotos de entrega (Opcional según requerimiento)
+        // if (empty($vehicleRequest->delivery_photos)) {
+        //     return back()->with('error', 'Debe subir fotos de recepción antes de comenzar el viaje.');
+        // }
+
+        $vehicleRequest->update(['status' => 'in_trip']);
+
+        return back()->with('success', 'Viaje iniciado correctamente. ¡Buen viaje!');
     }
 }

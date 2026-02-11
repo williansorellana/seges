@@ -37,7 +37,31 @@ class MaintenanceAlert extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $subject = ($this->type === 'danger' ? '⛔ URGENTE: ' : '⚠️ Alerta: ') . $this->message;
+
+        $mail = (new MailMessage)
+            ->subject($subject)
+            ->greeting('Estimado/a ' . $notifiable->short_name . ',')
+            ->line($this->message)
+            ->line('Detalles del Vehículo:')
+            ->line('Marca/Modelo: ' . $this->vehicle->brand . ' ' . $this->vehicle->model)
+            ->line('Patente: ' . $this->vehicle->plate)
+            ->line('Próximo cambio de aceite sugerido a los: ' . number_format($this->nextKm, 0, ',', '.') . ' km');
+
+        if ($this->type === 'danger') {
+            $mail->error();
+        }
+
+        return $mail->action('Ver Historial', route('vehicles.maintenance.history', ['vehicle' => $this->vehicle->id]))
+            ->salutation('Atte, Administración de Flota');
     }
 
     /**

@@ -18,11 +18,16 @@ class VehicleRequest extends Model
         'status',
         'return_mileage',
         'destination_type',
+        'origin',
+        'destination',
         'conductor_id',
+        'temporary_conductor_name',
+        'temporary_conductor_rut',
         'early_termination_reason',
         'original_end_date',
         'completed_by_user_id',
         'rejection_reason',
+        'delivery_comment',
     ];
 
     /**
@@ -52,8 +57,16 @@ class VehicleRequest extends Model
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'original_end_date' => 'datetime',
+            'return_mileage' => 'integer',
+            'delivery_photos' => 'array',
         ];
     }
+
+    const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+    const STATUS_IN_TRIP = 'in_trip';
+    const STATUS_COMPLETED = 'completed';
 
     /**
      * Obtiene el usuario que hizo la solicitud.
@@ -85,5 +98,37 @@ class VehicleRequest extends Model
     public function vehicleReturn()
     {
         return $this->hasOne(VehicleReturn::class);
+    }
+
+    /**
+     * Obtiene los acompañantes de esta solicitud
+     */
+    public function companions()
+    {
+        return $this->hasMany(VehicleRequestCompanion::class);
+    }
+
+    /**
+     * Obtiene el nombre del conductor (permanente o temporal)
+     */
+    public function getConductorNameAttribute()
+    {
+        if ($this->conductor_id && $this->conductor) {
+            return $this->conductor->nombre;
+        }
+
+        return $this->temporary_conductor_name ?? null;
+    }
+
+    /**
+     * Obtiene el RUT del conductor (permanente o temporal)
+     */
+    public function getConductorRutAttribute()
+    {
+        if ($this->conductor_id && $this->conductor) {
+            return $this->conductor->rut ?? 'N/A';
+        }
+
+        return $this->temporary_conductor_rut ?? 'N/A';
     }
 }

@@ -22,7 +22,24 @@
         </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ editingWorker: {}, editAction: '', deleteAction: '' }">
+    <div class="py-12" x-data="{ 
+        editingWorker: {}, 
+        editAction: '', 
+        deleteAction: '',
+        createWorker: { rut: '' },
+        formatRut(target) {
+            if (!target.rut) return;
+            let value = target.rut.replace(/[^0-9kK]/g, '').toUpperCase();
+            if (value.length > 1) {
+                const dv = value.slice(-1);
+                let body = value.slice(0, -1);
+                body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                target.rut = body + '-' + dv;
+            } else {
+                target.rut = value;
+            }
+        }
+    }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
@@ -71,10 +88,11 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex justify-end items-center space-x-3">
                                                 <button @click="
-                                                            editingWorker = {{ $worker }};
-                                                            editAction = '{{ route('workers.update', $worker->id) }}';
-                                                            $dispatch('open-modal', 'edit-worker-modal');
-                                                        " class="text-indigo-400 hover:text-indigo-300" title="Editar">
+                                                                    editingWorker = {{ $worker }};
+                                                                    editAction = '{{ route('workers.update', $worker->id) }}';
+                                                                    $dispatch('open-modal', 'edit-worker-modal');
+                                                                " class="text-indigo-400 hover:text-indigo-300"
+                                                    title="Editar">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -85,9 +103,9 @@
                                                 </button>
 
                                                 <button @click="
-                                                        deleteAction = '{{ route('workers.destroy', $worker->id) }}';
-                                                        $dispatch('open-modal', 'confirm-worker-deletion');
-                                                    " class="text-red-400 hover:text-red-300" title="Eliminar">
+                                                                deleteAction = '{{ route('workers.destroy', $worker->id) }}';
+                                                                $dispatch('open-modal', 'confirm-worker-deletion');
+                                                            " class="text-red-400 hover:text-red-300" title="Eliminar">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -157,7 +175,8 @@
                     <div>
                         <x-input-label for="rut" value="RUT" class="text-gray-300" />
                         <x-text-input id="rut" name="rut" type="text"
-                            class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100" required />
+                            class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100"
+                            x-model="createWorker.rut" @input="formatRut(createWorker)" required />
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -200,7 +219,7 @@
                         <x-input-label for="edit_rut" value="RUT" class="text-gray-300" />
                         <x-text-input id="edit_rut" name="rut" type="text"
                             class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100"
-                            x-model="editingWorker.rut" required />
+                            x-model="editingWorker.rut" @input="formatRut(editingWorker)" required />
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>

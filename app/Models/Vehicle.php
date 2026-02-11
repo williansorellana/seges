@@ -57,7 +57,7 @@ class Vehicle extends Model
     public function isAvailable($startDate, $endDate)
     {
         return !$this->reservations()
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'in_trip'])
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('start_date', [$startDate, $endDate])
                     ->orWhereBetween('end_date', [$startDate, $endDate])
@@ -119,7 +119,7 @@ class Vehicle extends Model
     public function getActiveReservationAttribute()
     {
         return $this->reservations()
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'in_trip'])
             ->where('start_date', '<=', now()->endOfDay()) // Por si la reserva empieza hoy más tarde
             ->where('end_date', '>=', now()->startOfDay()) // Incluir todo el día de término
             ->with(['user', 'conductor'])
@@ -142,7 +142,7 @@ class Vehicle extends Model
         // buscar la próxima reserva aprobada (aunque empiece en el futuro).
         if ($this->status === 'occupied') {
             return $this->reservations()
-                ->where('status', 'approved')
+                ->whereIn('status', ['approved', 'in_trip'])
                 ->where('end_date', '>=', now()->startOfDay()) // Que no haya terminado ayer
                 ->with(['user', 'conductor'])
                 ->orderBy('start_date', 'asc')

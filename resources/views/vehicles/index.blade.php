@@ -60,6 +60,7 @@
             viewingVehicle: {}, 
             maintenanceVehicle: {}, 
             viewingUser: null,
+            viewingCompanions: [],
             rejectionRequestId: null,
             rejectionUrl: '',
             filtersOpen: false,
@@ -421,6 +422,7 @@
                                                     'assigned_user_rut' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->user->rut : '',
                                                     'assigned_user_phone' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->user->phone : '',
                                                     'fuel_type' => $vehicle->fuel_type,
+                                                    'reservation_status' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->status : null,
                                                     'reservation' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? [
                                                         'id' => $vehicle->effective_reservation->id,
                                                         'start_date' => $vehicle->effective_reservation->start_date->format('Y-m-d H:i'),
@@ -435,6 +437,15 @@
                                                         'conductor_photo' => ($vehicle->effective_reservation->conductor && $vehicle->effective_reservation->conductor->profile_photo_path) ? Storage::url($vehicle->effective_reservation->conductor->profile_photo_path) : null, 
                                                         'has_external_conductor' => (bool) $vehicle->effective_reservation->conductor,
                                                         'days_remaining' => (int) ceil(now()->floatDiffInDays($vehicle->effective_reservation->end_date, false)),
+                                                        'companions' => $vehicle->effective_reservation->companions->map(function($companion) {
+                                                            return [
+                                                                'name' => $companion->user_id && $companion->user ? $companion->user->name . ' ' . $companion->user->last_name : ($companion->external_name ?? 'Sin nombre'),
+                                                                'rut' => $companion->user_id && $companion->user ? ($companion->user->rut ?? 'N/A') : ($companion->external_rut ?? 'N/A'),
+                                                                'type' => $companion->user_id ? 'Interno' : 'Externo',
+                                                                'position' => $companion->user_id && $companion->user ? ($companion->user->position ?? 'N/A') : ($companion->external_position ?? 'N/A'),
+                                                                'department' => $companion->user_id && $companion->user ? ($companion->user->department ?? 'N/A') : ($companion->external_department ?? 'N/A'),
+                                                            ];
+                                                        }),
                                                     ] : null,
                                                 ];
                                                 $jsonVehicle = json_encode($jsVehicle);
@@ -1115,6 +1126,12 @@
                                 }"
                                 x-text="viewingVehicle.status === 'available' ? 'DISPONIBLE' : (viewingVehicle.status === 'out_of_service' ? 'FUERA DE SERVICIO' : (viewingVehicle.status === 'maintenance' ? 'MANTENIMIENTO' : 'RESERVADO'))">
                             </span>
+                            <!-- Badge "EN VIAJE" cuando el estado de la reserva es in_trip -->
+                            <template x-if="viewingVehicle.status === 'occupied' && viewingVehicle.reservation_status === 'in_trip'">
+                                <span class="mt-2 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md bg-indigo-900 text-indigo-200 border border-indigo-700">
+                                    EN VIAJE
+                                </span>
+                            </template>
                         </div>
                         <div>
                             <span class="block text-xs text-gray-400 uppercase tracking-widest mb-1">Estado Doc.</span>
@@ -1351,7 +1368,7 @@
             </div>
         </x-modal>
         <!-- Modal Solicitudes Pendientes -->
-        <x-modal name="maintenance-requests-modal" :show="false" focusable maxWidth="6xl">
+        <x-modal name="maintenance-requests-modal" :show="false" focusable maxWidth="fit">
             <div class="p-6 bg-gray-800 text-gray-100">
                 <h2 class="text-lg font-medium text-gray-100 mb-4 flex items-center">
                     <svg class="w-6 h-6 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1371,7 +1388,10 @@
                                         <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Foto</th>
                                         <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuario</th>
                                         <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Vehículo</th>
+                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Origen</th>
                                         <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Destino</th>
+                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Acompañantes</th>
+                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tipo Viaje</th>
                                         <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Desde</th>
                                         <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Hasta</th>
                                         <th class="px-4 py-3 bg-gray-900 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Acciones</th>
@@ -1399,6 +1419,8 @@
                                             </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-100">
                                                 <div>{{ $reservation->user->name }}</div>
+                                                <div class="text-xs text-gray-400 mt-0.5">{{ $reservation->user->cargo ?? 'N/A' }}</div>
+                                                <div class="text-xs text-gray-500">{{ $reservation->user->departamento ?? 'N/A' }}</div>
                                                 @if($reservation->conductor)
                                                     <div class="text-xs text-yellow-500 mt-1 flex items-center">
                                                         <span class="mr-1">👉 Para:</span>
@@ -1449,6 +1471,33 @@
                                                         <div class="text-xs text-gray-500 font-mono">{{ $reservation->vehicle->plate }}</div>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
+                                                <div class="text-sm font-medium text-gray-100">{{ $reservation->origin ?? 'N/A' }}</div>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
+                                                <div class="text-sm font-medium text-gray-100">{{ $reservation->destination ?? 'N/A' }}</div>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-gray-300">
+                                                 @if($reservation->companions->count() > 0)
+                                                    <button @click="
+                                                        viewingCompanions = {{ json_encode($reservation->companions->map(function($c) {
+                                                            return [
+                                                                    'name' => $c->user ? $c->user->name : $c->external_name,
+                                                                    'rut' => $c->user ? $c->user->rut : $c->external_rut,
+                                                                    'type' => $c->user ? 'Interno' : 'Externo',
+                                                                    'department' => $c->user ? ($c->user->departamento ?? 'N/A') : ($c->external_department ?? 'N/A'),
+                                                                    'position' => $c->user ? ($c->user->cargo ?? 'N/A') : ($c->external_position ?? 'N/A')
+                                                                ];
+                                                        }), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }};
+                                                        $dispatch('open-modal', 'companions-list-modal');
+                                                    " class="inline-flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                                                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                                        Ver Lista
+                                                    </button>
+                                                @else
+                                                    <span class="text-xs text-gray-500 italic">Sin acompañantes</span>
+                                                @endif
                                             </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
                                                 @if($reservation->destination_type === 'outside')
@@ -1742,10 +1791,16 @@
                                 </div>
                             </template>
                             <!-- Badge Estado -->
-                            <div class="absolute top-2 right-2">
+                            <div class="absolute top-2 right-2 flex flex-col gap-1 items-end">
                                 <span class="px-2 py-1 text-xs font-bold rounded bg-blue-600 text-white shadow-sm border border-blue-400">
                                     RESERVADO
                                 </span>
+                                <!-- Badge EN VIAJE cuando el estado de la reserva es in_trip -->
+                                <template x-if="viewingVehicle.reservation_status === 'in_trip'">
+                                    <span class="px-2 py-1 text-xs font-bold rounded bg-indigo-600 text-white shadow-sm border border-indigo-400">
+                                        EN VIAJE
+                                    </span>
+                                </template>
                             </div>
                         </div>
 
@@ -1835,6 +1890,43 @@
                                         Mismo solicitante
                                     </div>
                                 </template>
+                            </div>
+                        </div>
+
+                        <!-- Acompañantes -->
+                        <!-- Acompañantes -->
+                        <div class="mb-6" x-show="viewingVehicle.reservation?.companions && viewingVehicle.reservation?.companions.length > 0" x-data="{ open: false }">
+                            <button @click="open = !open" type="button" class="w-full flex justify-between items-center text-left focus:outline-none group">
+                                <h4 class="text-gray-400 text-xs font-bold uppercase mb-2 flex items-center group-hover:text-gray-200 transition-colors">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                    Acompañantes (<span x-text="viewingVehicle.reservation?.companions.length"></span>)
+                                </h4>
+                                <svg class="w-4 h-4 text-gray-500 transform transition-transform duration-200" 
+                                    :class="{'rotate-180': open}" 
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            
+                            <div x-show="open" x-collapse
+                                class="bg-gray-700/30 border border-gray-600 rounded-lg overflow-hidden mt-2">
+                                <ul class="divide-y divide-gray-600 max-h-40 overflow-y-auto custom-scrollbar">
+                                    <template x-for="(companion, index) in viewingVehicle.reservation?.companions" :key="index">
+                                        <li class="p-3 flex items-center justify-between hover:bg-gray-700/50 transition">
+                                            <div class="flex items-center">
+                                                 <div class="h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-xs border mr-3"
+                                                    :class="companion.type === 'Interno' ? 'bg-indigo-600 border-indigo-400' : 'bg-green-600 border-green-400'">
+                                                    <span x-text="companion.name.charAt(0)"></span>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xs font-bold text-white leading-tight" x-text="companion.name"></p>
+                                                    <p class="text-[10px] text-gray-400" x-text="companion.type + ' - ' + (companion.department || 'Sin Depto')"></p>
+                                                </div>
+                                            </div>
+                                             <span class="text-[10px] text-gray-500 font-mono" x-text="companion.rut"></span>
+                                        </li>
+                                    </template>
+                                </ul>
                             </div>
                         </div>
 
@@ -1943,6 +2035,58 @@
                         </form>
                     </div>
                 </div>
+            </div>
+        </div>
+    </x-modal>
+
+    <!-- Modal Lista de Acompañantes -->
+    <x-modal name="companions-list-modal" :show="false" focusable>
+        <div class="p-6 bg-gray-800 text-gray-100">
+            <h2 class="text-xl font-bold text-gray-100 mb-4 border-b border-gray-700 pb-2 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                Lista de Acompañantes
+            </h2>
+            
+            <div class="overflow-y-auto max-h-96">
+                <template x-if="viewingCompanions && viewingCompanions.length > 0">
+                    <ul class="divide-y divide-gray-700">
+                        <template x-for="(companion, index) in viewingCompanions" :key="index">
+                            <li class="py-3 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 mr-3">
+                                        <div class="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm border-2"
+                                            :class="companion.type === 'Interno' ? 'bg-indigo-600 border-indigo-400' : 'bg-green-600 border-green-400'">
+                                            <span x-text="companion.name.charAt(0)"></span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-white" x-text="companion.name"></p>
+                                        <p class="text-xs text-gray-400">RUT: <span x-text="companion.rut || 'N/A'"></span></p>
+                                        <p class="text-xs text-gray-500" x-show="companion.position && companion.position !== 'N/A'">
+                                            <span x-text="companion.position"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                        :class="companion.type === 'Interno' ? 'bg-indigo-100 text-indigo-800' : 'bg-green-100 text-green-800'">
+                                        <span x-text="companion.type"></span>
+                                    </span>
+                                    <p class="text-xs text-gray-400 mt-1" x-text="companion.department"></p>
+                                </div>
+                            </li>
+                        </template>
+                    </ul>
+                </template>
+                <template x-if="!viewingCompanions || viewingCompanions.length === 0">
+                    <p class="text-gray-500 text-center py-4">No se pudo cargar la lista de acompañantes.</p>
+                </template>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                    {{ __('Cerrar') }}
+                </x-secondary-button>
             </div>
         </div>
     </x-modal>

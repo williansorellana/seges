@@ -32,7 +32,44 @@ class VehicleDocumentExpired extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $typeLabels = [
+            'insurance' => 'Seguro',
+            'permit' => 'Permiso de Circulación',
+            'technical_review' => 'Revisión Técnica',
+        ];
+
+        $docName = $typeLabels[$this->document->type] ?? 'Documento';
+        $status = $this->daysRemaining <= 0 ? 'VENCIDO' : 'por vencer';
+        $subject = ($this->daysRemaining <= 0 ? '⛔ URGENTE: ' : '⚠️ Aviso: ') . "{$docName} {$status}";
+
+        $mail = (new MailMessage)
+            ->subject($subject)
+            ->greeting('Estimado/a ' . $notifiable->short_name . ',');
+
+        $messageTop = $this->daysRemaining <= 0
+            ? "El documento **{$docName}** del vehículo ha **VENCIDO**."
+            : "El documento **{$docName}** del vehículo vencerá en **{$this->daysRemaining} días**.";
+
+        $mail->line($messageTop)
+            ->line('Detalles del Vehículo:')
+            ->line('Marca/Modelo: ' . $this->vehicle->brand . ' ' . $this->vehicle->model)
+            ->line('Patente: ' . $this->vehicle->plate);
+
+        if ($this->daysRemaining <= 0) {
+            $mail->error(); // Muestra el botón en rojo si es crítico
+        }
+
+        return $mail->action('Gestionar Documentos', route('vehicles.index')) // Asumiendo que dirige al index donde se gestionan
+            ->salutation('Atte, Administración de Flota')
+            ->line('Por favor regularice esta situación a la brevedad.');
     }
 
     /**

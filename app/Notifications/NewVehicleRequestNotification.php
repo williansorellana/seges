@@ -44,7 +44,9 @@ class NewVehicleRequestNotification extends Notification
             ->line('Solicitante: ' . $this->vehicleRequest->user->short_name)
             ->line('Vehículo: ' . $this->vehicleRequest->vehicle->brand . ' ' . $this->vehicleRequest->vehicle->model)
             ->line('Periodo: ' . $this->vehicleRequest->start_date->format('d/m/Y H:i') . ' hasta ' . $this->vehicleRequest->end_date->format('d/m/Y H:i'))
-            ->line('Destino: ' . ($this->vehicleRequest->destination_type === 'local' ? 'Local' : 'Fuera de ciudad'))
+            ->line('Origen: ' . ($this->vehicleRequest->origin ?? 'No especificado'))
+            ->line('Destino: ' . ($this->vehicleRequest->destination ?? 'No especificado'))
+            ->line('Tipo de viaje: ' . ($this->vehicleRequest->destination_type === 'local' ? 'Local (Urbano)' : 'Fuera de Ciudad'))
             ->action('Revisar Solicitud', route('vehicles.index', [
                 'open_requests' => 'true',
                 'highlight_id' => $this->vehicleRequest->id

@@ -22,9 +22,28 @@
         </div>
     </x-slot>
 
-    <div class="py-12"
-        x-data="{ width: window.innerWidth, openDeleteModal: false, openViewModal: false, openEditModal: false, openCreateModal: false, deleteAction: '', viewingConductor: {}, editingConductor: {} }"
-        @resize.window="width = window.innerWidth" @open-create-modal.window="openCreateModal = true">
+    <div class="py-12" x-data="{ 
+            width: window.innerWidth, 
+            openDeleteModal: false, 
+            openViewModal: false, 
+            openEditModal: false, 
+            openCreateModal: false, 
+            deleteAction: '', 
+            viewingConductor: {}, 
+            editingConductor: {},
+            formatRut(person) {
+                if (!person.rut) return;
+                let value = person.rut.replace(/[^0-9kK]/g, '').toUpperCase();
+                if (value.length > 1) {
+                    const dv = value.slice(-1);
+                    let body = value.slice(0, -1);
+                    body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    person.rut = body + '-' + dv;
+                } else {
+                    person.rut = value;
+                }
+            }
+        }" @resize.window="width = window.innerWidth" @open-create-modal.window="openCreateModal = true">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div x-show="width >= 768"
                 class="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-700">
@@ -69,14 +88,14 @@
                                     <div class="flex justify-end items-center gap-4">
                                         <button
                                             @click="viewingConductor = { 
-                                                                                                                                nombre: '{{ $conductor->nombre }}',
-                                                                                                                                rut: '{{ $conductor->rut ?? '' }}',
-                                                                                                                                cargo: '{{ $conductor->cargo }}', 
-                                                                                                                                depto: '{{ $conductor->departamento }}', 
-                                                                                                                                vencimiento: '{{ $conductor->fecha_licencia->format('d/m/Y') }}', 
-                                                                                                                                foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
-                                                                                                                                is_expired: {{ $conductor->fecha_licencia->isPast() ? 'true' : 'false' }}
-                                                                                                                            }; openViewModal = true"
+                                                                                                                                                nombre: '{{ $conductor->nombre }}',
+                                                                                                                                                rut: '{{ $conductor->rut ?? '' }}',
+                                                                                                                                                cargo: '{{ $conductor->cargo }}', 
+                                                                                                                                                depto: '{{ $conductor->departamento }}', 
+                                                                                                                                                vencimiento: '{{ $conductor->fecha_licencia->format('d/m/Y') }}', 
+                                                                                                                                                foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
+                                                                                                                                                is_expired: {{ $conductor->fecha_licencia->isPast() ? 'true' : 'false' }}
+                                                                                                                                            }; openViewModal = true"
                                             class="text-green-400 hover:text-green-300">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -88,15 +107,15 @@
                                         </button>
                                         <button
                                             @click="editingConductor = {
-                                                                                                                    id: {{ $conductor->id }},
-                                                                                                                    nombre: '{{ $conductor->nombre }}',
-                                                                                                                    rut: '{{ $conductor->rut ?? '' }}',
-                                                                                                                    cargo: '{{ $conductor->cargo }}',
-                                                                                                                    depto: '{{ $conductor->departamento }}',
-                                                                                                                    vencimiento: '{{ $conductor->fecha_licencia->format('Y-m-d') }}',
-                                                                                                                    foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
-                                                                                                                    has_foto: {{ $conductor->fotografia ? 'true' : 'false' }}
-                                                                                                                }; openEditModal = true"
+                                                                                                                                    id: {{ $conductor->id }},
+                                                                                                                                    nombre: '{{ $conductor->nombre }}',
+                                                                                                                                    rut: '{{ $conductor->rut ?? '' }}',
+                                                                                                                                    cargo: '{{ $conductor->cargo }}',
+                                                                                                                                    depto: '{{ $conductor->departamento }}',
+                                                                                                                                    vencimiento: '{{ $conductor->fecha_licencia->format('Y-m-d') }}',
+                                                                                                                                    foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
+                                                                                                                                    has_foto: {{ $conductor->fotografia ? 'true' : 'false' }}
+                                                                                                                                }; openEditModal = true"
                                             class="text-blue-400 hover:text-blue-300">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -163,14 +182,14 @@
 
                         <div class="flex justify-end gap-3 border-t border-gray-700 pt-3">
                             <button @click="viewingConductor = { 
-                                    nombre: '{{ $conductor->nombre }}',
-                                    rut: '{{ $conductor->rut ?? '' }}',
-                                    cargo: '{{ $conductor->cargo }}', 
-                                    depto: '{{ $conductor->departamento }}', 
-                                    vencimiento: '{{ $conductor->fecha_licencia->format('d/m/Y') }}', 
-                                    foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
-                                    is_expired: {{ $conductor->fecha_licencia->isPast() ? 'true' : 'false' }} 
-                                }; openViewModal = true"
+                                                    nombre: '{{ $conductor->nombre }}',
+                                                    rut: '{{ $conductor->rut ?? '' }}',
+                                                    cargo: '{{ $conductor->cargo }}', 
+                                                    depto: '{{ $conductor->departamento }}', 
+                                                    vencimiento: '{{ $conductor->fecha_licencia->format('d/m/Y') }}', 
+                                                    foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
+                                                    is_expired: {{ $conductor->fecha_licencia->isPast() ? 'true' : 'false' }} 
+                                                }; openViewModal = true"
                                 class="p-2 bg-gray-700 rounded-lg text-green-400 hover:bg-gray-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -181,15 +200,15 @@
                                 </svg>
                             </button>
                             <button @click="editingConductor = {
-                                    id: {{ $conductor->id }},
-                                    nombre: '{{ $conductor->nombre }}',
-                                    rut: '{{ $conductor->rut ?? '' }}',
-                                    cargo: '{{ $conductor->cargo }}',
-                                    depto: '{{ $conductor->departamento }}',
-                                    vencimiento: '{{ $conductor->fecha_licencia->format('Y-m-d') }}',
-                                    foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
-                                    has_foto: {{ $conductor->fotografia ? 'true' : 'false' }}
-                                }; openEditModal = true"
+                                                    id: {{ $conductor->id }},
+                                                    nombre: '{{ $conductor->nombre }}',
+                                                    rut: '{{ $conductor->rut ?? '' }}',
+                                                    cargo: '{{ $conductor->cargo }}',
+                                                    depto: '{{ $conductor->departamento }}',
+                                                    vencimiento: '{{ $conductor->fecha_licencia->format('Y-m-d') }}',
+                                                    foto: '{{ $conductor->fotografia ? asset('storage/' . $conductor->fotografia) : '' }}',
+                                                    has_foto: {{ $conductor->fotografia ? 'true' : 'false' }}
+                                                }; openEditModal = true"
                                 class="p-2 bg-gray-700 rounded-lg text-blue-400 hover:bg-gray-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -355,6 +374,18 @@
                     <form action="{{ route('conductores.store') }}" method="POST" enctype="multipart/form-data" x-data="{
                             photoPreview: null,
                             isCompressing: false,
+                            rut: '',
+                            formatRut() {
+                                let value = this.rut.replace(/[^0-9kK]/g, '').toUpperCase();
+                                if (value.length > 1) {
+                                    const dv = value.slice(-1);
+                                    let body = value.slice(0, -1);
+                                    body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                    this.rut = body + '-' + dv;
+                                } else {
+                                    this.rut = value;
+                                }
+                            },
                             async compressImage(file) {
                                 this.isCompressing = true;
                                 return new Promise((resolve) => {
@@ -424,6 +455,7 @@
                                     <label for="create-rut" class="block text-sm font-semibold text-white mb-2">RUT
                                         (Opcional)</label>
                                     <input id="create-rut" name="rut" type="text" placeholder="Ej: 12.345.678-9"
+                                        x-model="rut" @input="formatRut()"
                                         class="w-full outline-none text-white placeholder:text-gray-600 border border-gray-600 bg-gray-900 transition-all text-sm py-2.5 px-3 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm" />
                                 </div>
 
@@ -605,8 +637,8 @@
                                 <div>
                                     <label for="edit-rut" class="block text-sm font-semibold text-white mb-2">RUT
                                         (Opcional)</label>
-                                    <input id="edit-rut" name="rut" type="text" :value="editingConductor.rut"
-                                        placeholder="Ej: 12.345.678-9"
+                                    <input id="edit-rut" name="rut" type="text" x-model="editingConductor.rut"
+                                        @input="formatRut(editingConductor)" placeholder="Ej: 12.345.678-9"
                                         class="w-full outline-none text-white placeholder:text-gray-600 border border-gray-600 bg-gray-900 transition-all text-sm py-2.5 px-3 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm" />
                                 </div>
 

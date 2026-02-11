@@ -45,6 +45,22 @@
                         document.body.style.overflow = 'auto';
                     },
 
+                    // Modal de Detalle de Entrega (Check-in)
+                    deliveryDetailModalOpen: false,
+                    selectedDelivery: null,
+                    
+                    openDeliveryModal(delivery) {
+                        this.selectedDelivery = delivery;
+                        this.deliveryDetailModalOpen = true;
+                        document.body.style.overflow = 'hidden';
+                    },
+                    
+                    closeDeliveryModal() {
+                        this.deliveryDetailModalOpen = false;
+                        this.selectedDelivery = null;
+                        document.body.style.overflow = 'auto';
+                    },
+
                     openLightbox(photoUrl, photos, index) {
                         this.currentPhoto = photoUrl;
                         this.allPhotos = photos;
@@ -85,7 +101,7 @@
                     formatNumber(num) {
                         return new Intl.NumberFormat('es-CL').format(num);
                     }
-                }" @resize.window="width = window.innerWidth" @keydown.escape.window="closeLightbox(); closeDetailModal()" @keydown.arrow-right.window="lightboxOpen && nextPhoto()"
+                }" @resize.window="width = window.innerWidth" @keydown.escape.window="closeLightbox(); closeDetailModal(); closeDeliveryModal()" @keydown.arrow-right.window="lightboxOpen && nextPhoto()"
                     @keydown.arrow-left.window="lightboxOpen && prevPhoto()">
                     
                     <!-- Header y Filtros (IGUAL QUE ANTES) -->
@@ -371,6 +387,7 @@
                                         <thead class="bg-gray-800">
                                             <tr>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Solicitado Por</th>
+                                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Fotos Iniciales</th>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Inicio</th>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Término</th>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Destino / Uso</th>
@@ -391,6 +408,26 @@
                                                             @endif
                                                         </div>
                                                     </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        @if(!empty($usage->delivery_photos))
+                                                            <button @click="openDeliveryModal({
+                                                                    id: {{ $usage->id }},
+                                                                    comment: '{{ $usage->delivery_comment ?? '' }}',
+                                                                    photos: {{ json_encode($usage->delivery_photos ? array_map(fn($p) => asset('storage/'.$p), $usage->delivery_photos) : []) }},
+                                                                    date: '{{ $usage->created_at->format('d/m/Y H:i') }}',
+                                                                    conductor: '{{ $usage->conductor ? $usage->conductor->nombre : ($usage->user ? $usage->user->name : 'N/A') }}'
+                                                                })"
+                                                                class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-200 bg-indigo-900 hover:bg-indigo-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                </svg>
+                                                                {{ count($usage->delivery_photos) }}
+                                                            </button>
+                                                        @else
+                                                            <span class="text-xs text-gray-500 italic">-</span>
+                                                        @endif
+                                                    </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                                         {{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}
                                                     </td>
@@ -402,6 +439,7 @@
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                                         @switch($usage->status)
+                                                            @case('in_trip') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">En Viaje</span> @break
                                                             @case('approved') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Curso / Aprobado</span> @break
                                                             @case('completed') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Finalizado</span> @break
                                                             @case('pending') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
@@ -442,6 +480,7 @@
                                                 </div>
                                                 <div>
                                                     @switch($usage->status)
+                                                        @case('in_trip') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-100 text-indigo-800">En Viaje</span> @break
                                                         @case('approved') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800">En Curso</span> @break
                                                         @case('completed') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800">Finalizado</span> @break
                                                         @case('pending') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
@@ -553,15 +592,22 @@
                                                                 'start_date' => $usage->start_date ? $usage->start_date->format('Y-m-d H:i:s') : null,
                                                                 'end_date' => $usage->end_date ? $usage->end_date->format('Y-m-d H:i:s') : null,
                                                                 'destination' => $usage->destination_type,
-                                                                'user_name' => $usage->user ? (Str::of($usage->user->name)->explode(' ')->first() . ' ' . Str::of($usage->user->last_name)->explode(' ')->first()) : ($usage->conductor ? $usage->conductor->nombre : 'Desconocido'),
-                                                                'user_role' => $usage->conductor ? 'Conductor' : 'Usuario',
-                                                                'user_email' => $usage->user ? $usage->user->email : ($usage->conductor ? $usage->conductor->rut : ''),
+                                                                'user_name' => $usage->user ? (Str::of($usage->user->name)->explode(' ')->first() . ' ' . Str::of($usage->user->last_name)->explode(' ')->first()) : ($usage->conductor ? $usage->conductor->nombre : ($usage->temporary_conductor_name ?? 'Desconocido')),
+                                                                'user_role' => $usage->conductor || $usage->temporary_conductor_name? 'Conductor' : 'Usuario',
+                                                                'user_email' => $usage->user ? $usage->user->email : ($usage->conductor ? $usage->conductor->rut : ($usage->temporary_conductor_rut ?? 'N/A')),
+                                                                'user_cargo' => $usage->user ? ($usage->user->cargo ?? 'N/A') : 'N/A',
+                                                                'user_departamento' => $usage->user ? ($usage->user->departamento ?? 'N/A') : 'N/A',
                                                                 'user_photo' => $usage->user && $usage->user->profile_photo_path ? Storage::url($usage->user->profile_photo_path) : ($usage->conductor && $usage->conductor->profile_photo_path ? Storage::url($usage->conductor->profile_photo_path) : null),
                                                                 'completed_by_name' => $usage->completedBy ? $usage->completedBy->name : null,
                                                                 'completed_by_email' => $usage->completedBy ? $usage->completedBy->email : null,
                                                                 'completed_by_photo' => ($usage->completedBy && $usage->completedBy->profile_photo_path) ? Storage::url($usage->completedBy->profile_photo_path) : null,
                                                                 'return_data' => $usage->vehicleReturn,
                                                                 'fuel_loads' => $usage->fuelLoads,
+                                                                'conductor_name' => $usage->conductor ? $usage->conductor->nombre : null,
+                                                                'conductor_rut' => $usage->conductor ? $usage->conductor->rut : null,
+                                                                'conductor_cargo' => $usage->conductor ? $usage->conductor->cargo : null,
+                                                                'conductor_departamento' => $usage->conductor ? $usage->conductor->departamento : null,
+                                                                'conductor_photo' => $usage->conductor && $usage->conductor->fotografia ? asset('storage/' . $usage->conductor->fotografia) : null,
                                                                 'photos' => is_array($usage->vehicleReturn->photos_paths) ? collect($usage->vehicleReturn->photos_paths)->map(fn($p) => asset('storage/'.$p))->values()->toArray() : []
                                                             ]) }})"
                                                             class="inline-flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors border border-gray-600">
@@ -642,12 +688,19 @@
                                                     'user_name' => $usage->user ? (Str::of($usage->user->name)->explode(' ')->first() . ' ' . Str::of($usage->user->last_name)->explode(' ')->first()) : ($usage->conductor ? $usage->conductor->nombre : 'Desconocido'),
                                                     'user_role' => $usage->conductor ? 'Conductor' : 'Usuario',
                                                     'user_email' => $usage->user ? $usage->user->email : ($usage->conductor ? $usage->conductor->rut : ''),
+                                                    'user_cargo' => $usage->user ? ($usage->user->cargo ?? 'N/A') : 'N/A',
+                                                    'user_departamento' => $usage->user ? ($usage->user->departamento ?? 'N/A') : 'N/A',
                                                     'user_photo' => $usage->user && $usage->user->profile_photo_path ? Storage::url($usage->user->profile_photo_path) : ($usage->conductor && $usage->conductor->profile_photo_path ? Storage::url($usage->conductor->profile_photo_path) : null),
                                                     'completed_by_name' => $usage->completedBy ? $usage->completedBy->name : null,
                                                     'completed_by_email' => $usage->completedBy ? $usage->completedBy->email : null,
                                                     'completed_by_photo' => ($usage->completedBy && $usage->completedBy->profile_photo_path) ? Storage::url($usage->completedBy->profile_photo_path) : null,
                                                     'return_data' => $usage->vehicleReturn,
                                                     'fuel_loads' => $usage->fuelLoads,
+                                                    'conductor_name' => $usage->conductor ? $usage->conductor->nombre : null,
+                                                    'conductor_rut' => $usage->conductor ? $usage->conductor->rut : null,
+                                                    'conductor_cargo' => $usage->conductor ? $usage->conductor->cargo : null,
+                                                    'conductor_departamento' => $usage->conductor ? $usage->conductor->departamento : null,
+                                                    'conductor_photo' => $usage->conductor && $usage->conductor->fotografia ? asset('storage/' . $usage->conductor->fotografia) : null,
                                                     'photos' => is_array($usage->vehicleReturn->photos_paths) ? collect($usage->vehicleReturn->photos_paths)->map(fn($p) => asset('storage/'.$p))->values()->toArray() : []
                                                 ]) }})"
                                                 class="w-full inline-flex justify-center items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors border border-gray-600">
@@ -720,12 +773,36 @@
                                                     <div>
                                                         <div class="text-white font-bold text-lg" x-text="selectedReturn.user_name"></div>
                                                         <div class="text-indigo-400 text-xs font-bold uppercase tracking-wide" x-text="selectedReturn.user_role"></div>
+                                                        <div class="text-gray-400 text-xs mt-0.5" x-text="selectedReturn.user_cargo"></div>
+                                                        <div class="text-gray-500 text-xs" x-text="selectedReturn.user_departamento"></div>
                                                         <div class="text-gray-400 text-xs mt-0.5" x-text="selectedReturn.user_email"></div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Información de Finalización (Separado) -->
+                                            <!-- Información Conductor -->
+                                            <template x-if="selectedReturn.conductor_name">
+                                                <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 mt-4">
+                                                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-3 text-blue-400">Conductor Asignado</h4>
+                                                    <div class="flex items-center">
+                                                        <template x-if="selectedReturn.conductor_photo">
+                                                            <img :src="selectedReturn.conductor_photo" class="h-12 w-12 rounded-full object-cover mr-4 border border-gray-600">
+                                                        </template>
+                                                        <template x-if="!selectedReturn.conductor_photo">
+                                                            <div class="h-12 w-12 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-200 font-bold text-lg mr-4 border border-blue-700/50">
+                                                                <span x-text="selectedReturn.conductor_name.charAt(0)"></span>
+                                                            </div>
+                                                        </template>
+                                                        <div>
+                                                            <div class="text-white font-bold text-lg" x-text="selectedReturn.conductor_name"></div>
+                                                            <div class="text-blue-400 text-xs font-bold uppercase tracking-wide" x-text="selectedReturn.conductor_cargo || 'Conductor'"></div>
+                                                            <div class="text-gray-500 text-xs mt-0.5" x-text="selectedReturn.conductor_departamento"></div>
+                                                            <div class="text-gray-400 text-xs mt-0.5" x-text="selectedReturn.conductor_rut"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+
                                             <!-- Información de Finalización (Separado) -->
                                             <template x-if="selectedReturn.completed_by_name">
                                                  <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
@@ -913,6 +990,87 @@
                                             Entendido
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Detalle de Entrega (Check-in) -->
+                    <div x-show="deliveryDetailModalOpen"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+                        
+                        <div class="fixed inset-0 bg-black/75 transition-opacity" @click="closeDeliveryModal()"></div>
+
+                        <div class="flex items-center justify-center min-h-screen p-4 text-center">
+                            <div class="relative bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-2xl sm:w-full border border-gray-700">
+                                
+                                <!-- Header -->
+                                <div class="bg-gray-800 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                                    <h3 class="text-lg leading-6 font-medium text-white flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                        Detalle de Entrega (Check-in)
+                                    </h3>
+                                    <button type="button" class="text-gray-400 hover:text-white focus:outline-none" @click="closeDeliveryModal()">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+
+                                <div class="px-4 py-5 sm:p-6" x-if="selectedDelivery">
+                                    <div class="space-y-6">
+                                        
+                                        <!-- Info Resumen -->
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="bg-gray-900 p-3 rounded border border-gray-700">
+                                                <span class="block text-gray-500 text-xs uppercase font-bold">Fecha</span>
+                                                <span class="text-white font-medium" x-text="selectedDelivery.date"></span>
+                                            </div>
+                                            <div class="bg-gray-900 p-3 rounded border border-gray-700">
+                                                <span class="block text-gray-500 text-xs uppercase font-bold">Responsable</span>
+                                                <span class="text-white font-medium" x-text="selectedDelivery.conductor"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Comentarios -->
+                                        <div>
+                                            <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Observaciones / Comentarios</h4>
+                                            <div class="bg-gray-900 p-4 rounded border border-gray-700">
+                                                <p class="text-sm text-gray-300 italic" x-text="selectedDelivery.comment || 'Sin comentarios registrados.'"></p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Fotos -->
+                                        <div>
+                                            <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Evidencia Fotográfica</h4>
+                                            
+                                            <div x-show="selectedDelivery.photos.length > 0" class="grid grid-cols-3 gap-2">
+                                                <template x-for="(photo, index) in selectedDelivery.photos" :key="index">
+                                                    <div class="relative aspect-square cursor-pointer group rounded-lg overflow-hidden border border-gray-600"
+                                                         @click="openLightbox(photo, selectedDelivery.photos, index)">
+                                                        <img :src="photo" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                                                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            
+                                            <div x-show="selectedDelivery.photos.length === 0" class="text-center py-8 bg-gray-900 rounded border border-dashed border-gray-700">
+                                                <svg class="w-10 h-10 mx-auto text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                <p class="text-sm text-gray-500">Sin fotos adjuntas.</p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-700">
+                                    <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-gray-700 text-base font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" @click="closeDeliveryModal()">
+                                        Cerrar
+                                    </button>
                                 </div>
                             </div>
                         </div>
