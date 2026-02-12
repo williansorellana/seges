@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rule;
+use App\Models\AssetAssignment;
 
 class UserController extends Controller
 {
@@ -102,6 +103,37 @@ class UserController extends Controller
         $user = User::onlyTrashed()->findOrFail($id);
         $user->forceDelete();
         return redirect()->route('users.index', ['view' => 'trash'])->with('success', 'Usuario eliminado permanentemente.');
+    }
+
+    public function assetHistory(Request $request, $id)
+    {
+        
+        $recipient = User::findOrFail($id);
+
+        
+        $query = AssetAssignment::with(['asset', 'photos', 'creator'])
+            ->where('user_id', $recipient->id);
+
+       
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $assignments = $query->orderBy('created_at', 'desc')->get();
+
+       
+        return view('assets.user-history', compact('recipient', 'assignments'));
+    }
+
+    public function usersHistoryIndex()
+    {
+        $users = \App\Models\User::all(); 
+        $workers = \App\Models\Worker::all();
+
+        return view('assets.users-index', compact('users', 'workers'));
     }
 
     

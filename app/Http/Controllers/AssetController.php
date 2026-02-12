@@ -859,4 +859,88 @@ class AssetController extends Controller
 
         return back()->with('success', $message);
     }
+    
+    public function usersHistoryIndex()
+    {
+        $users = \App\Models\User::all();
+        $workers = \App\Models\Worker::all();
+        return view('assets.users-index', compact('users', 'workers'));
+    }
+
+    
+    public function userAssetHistory(Request $request, $id)
+    {
+        $recipient = \App\Models\User::findOrFail($id);
+        
+        $query = \App\Models\AssetAssignment::with(['asset', 'photos', 'creator'])
+            ->where('usuario_id', $recipient->id);
+
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $assignments = $query->orderBy('created_at', 'desc')->get();
+
+        return view('assets.user-history', compact('recipient', 'assignments'));
+    }
+
+    
+    public function workerAssetHistory(Request $request, $id)
+    {
+        $recipient = \App\Models\Worker::findOrFail($id);
+        
+        $query = \App\Models\AssetAssignment::with(['asset', 'photos', 'creator'])
+            ->where('worker_id', $recipient->id);
+
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $assignments = $query->orderBy('created_at', 'desc')->get();
+
+        return view('assets.user-history', compact('recipient', 'assignments'));
+    }
+    public function downloadUserHistoryPdf(Request $request, $id)
+    {
+        $recipient = ($request->type === 'worker') ? Worker::findOrFail($id) : User::findOrFail($id);
+        $generatedDate = now()->format('d/m/Y H:i');
+        
+        $query = AssetAssignment::with(['asset', 'creator'])
+            ->where(($request->type === 'worker' ? 'worker_id' : 'usuario_id'), $id);
+
+        $filtrosAplicados = [];
+        if ($request->filled('start_date')) {
+            $query->whereDate('fecha_entrega', '>=', $request->start_date);
+            $filtrosAplicados[] = "Desde: " . \Carbon\Carbon::parse($request->start_date)->format('d/m/Y');
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('fecha_entrega', '<=', $request->end_date);
+            $filtrosAplicados[] = "Hasta: " . \Carbon\Carbon::parse($request->end_date)->format('d/m/Y');
+        }
+
+        $assignments = $query->orderBy('fecha_entrega', 'desc')->get();
+
+        // Estadísticas detalladas
+        $stats = [
+            'total' => $assignments->count(),
+            'activas' => $assignments->where('fecha_devolucion', null)->count(),
+            'devueltas' => $assignments->where('fecha_devolucion', '!=', null)->count(),
+            'good' => $assignments->where('estado_devolucion', 'good')->count(),
+            'regular' => $assignments->where('estado_devolucion', 'regular')->count(),
+            'bad' => $assignments->where('estado_devolucion', 'bad')->count(),
+            'damaged' => $assignments->where('estado_devolucion', 'damaged')->count(),
+        ];
+
+        $pdf = Pdf::loadView('assets.pdf.user-history', compact(
+            'recipient', 'assignments', 'generatedDate', 'filtrosAplicados', 'stats'
+        ));
+
+        return $pdf->download('historial_uso_' . ($recipient->rut) . '.pdf');
+    }
 }

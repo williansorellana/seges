@@ -17,6 +17,13 @@
                     </svg>
                     {{ __('Papelera') }}
                 </a>
+                <a href="{{ route('vehicles.users-history-index') }}"
+                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-500 active:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{ __('Historial Usuarios') }}
+                </a>
                 <!-- Botón Solicitudes Pendientes -->
                 <div class="relative">
                     <button x-data="" @click="$dispatch('open-modal', 'maintenance-requests-modal')"
@@ -50,7 +57,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12"
+    
     <div class="py-12"
         x-data="{ 
             openModal: {{ $errors->any() ? 'true' : 'false' }}, 

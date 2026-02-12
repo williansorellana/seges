@@ -132,6 +132,7 @@
                         <th style="width: 25%">Solicitado Por</th>
                         <th style="width: 15%">Inicio</th>
                         <th style="width: 15%">Término</th>
+                        <th style="width: 18%">Origen</th>
                         <th style="width: 25%">Destino</th>
                         <th style="width: 20%">Estado</th>
                     </tr>
@@ -144,7 +145,14 @@
                             </td>
                             <td>{{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}</td>
                             <td>{{ $usage->end_date ? $usage->end_date->format('d/m/Y H:i') : '-' }}</td>
-                            <td>{{ ucfirst($usage->destination_type ?? 'General') }}</td>
+                            <td>{{ $usage->origin ?? '-' }}</td>
+                            <td>
+                                @if($usage->destination)
+                                    {{ $usage->destination }}
+                                @else
+                                    {{ $usage->destination_type === 'outside' ? 'Fuera de la ciudad' : 'Local' }}
+                                @endif
+                            </td>
                             <td>
                                 @switch($usage->status)
                                     @case('approved') <span class="badge bg-blue">En Curso</span> @break

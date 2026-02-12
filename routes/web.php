@@ -160,7 +160,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/assets/{id}/maintenance/finish', [\App\Http\Controllers\AssetController::class, 'finishMaintenance'])->name('assets.maintenance.finish');
     Route::post('/assets/{id}/write-off', [\App\Http\Controllers\AssetController::class, 'writeOff'])->name('assets.write-off');
 
-    Route::resource('assets', \App\Http\Controllers\AssetController::class);
+    Route::resource('assets', \App\Http\Controllers\AssetController::class)
+    ->except(['show']);
 
     // Trabajadores Externos
     Route::get('/workers/check-rut', [\App\Http\Controllers\WorkerController::class, 'checkRut'])->name('workers.check-rut');
@@ -192,6 +193,21 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
     Route::resource('users', UserController::class);
 
+
+    Route::get('/assets/users-history', [\App\Http\Controllers\AssetController::class, 'usersHistoryIndex'])
+        ->name('assets.users-history-index');
+
+    Route::get('/assets/users/{id}/history', [\App\Http\Controllers\AssetController::class, 'userAssetHistory'])
+        ->name('users.asset-history');
+
+    Route::get('/assets/workers/{id}/history', [\App\Http\Controllers\AssetController::class, 'workerAssetHistory'])
+        ->name('workers.asset-history');
+    Route::get('/assets/user-history/{id}/pdf', [\App\Http\Controllers\AssetController::class, 'downloadUserHistoryPdf'])->name('users.asset-history.pdf');
+
+    Route::get('/vehiculos/usuarios-historial', [VehicleController::class, 'usersHistoryIndex'])->name('vehicles.users-history-index');
+    Route::get('/vehiculos/usuarios/{id}/historial', [VehicleController::class, 'userUsageHistory'])->name('vehicles.user-usage-history');
+    Route::get('/vehiculos/conductores/{id}/historial', [VehicleController::class, 'workerUsageHistory'])->name('vehicles.worker-usage-history');
+    Route::get('/vehiculos/usuarios/{id}/pdf', [VehicleController::class, 'downloadUserHistoryPdf'])->name('vehicles.user-history.pdf');
 
 });
 

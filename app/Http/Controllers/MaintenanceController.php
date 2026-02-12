@@ -144,7 +144,7 @@ class MaintenanceController extends Controller
 
         // 2. Filtrar historial de uso/reservas (y devoluciones)
         $usageQuery = $vehicle->reservations()
-            ->with(['user', 'conductor', 'vehicleReturn', 'fuelLoads', 'completedBy'])
+            ->with(['user', 'conductor', 'vehicleReturn', 'fuelLoads', 'completedBy','companions.user'])
             ->orderBy('start_date', 'desc');
 
         if ($startDate) {
@@ -165,7 +165,7 @@ class MaintenanceController extends Controller
             });
         }
 
-        $usageHistory = $usageQuery->get();
+        $usageHistory = $usageQuery->get();;
 
         return view('vehicles.maintenance_history', compact('vehicle', 'requests', 'usageHistory'));
     }

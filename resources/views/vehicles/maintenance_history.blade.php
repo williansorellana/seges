@@ -372,12 +372,10 @@
                     <div x-show="activeTab === 'usage'" x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" style="display: none;">
                         @if($usageHistory->isEmpty())
-                             <!-- Empty State -->
-                             <div class="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-900 rounded-lg border border-dashed border-gray-700">
+                            <div class="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-900 rounded-lg border border-dashed border-gray-700">
                                 <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 <p class="text-lg font-medium">No hay registros de uso.</p>
                                 @if(request('start_date') || request('end_date')) <p class="text-sm text-gray-400 mt-2">Prueba cambiando los filtros de fecha.</p> @endif
-                                @if(request('has_damages')) <p class="text-sm text-gray-400 mt-2">El filtro de daños puede estar ocultando resultados sin reporte.</p> @endif
                             </div>
                         @else
                             <div class="bg-gray-900 rounded-lg shadow-xl border border-gray-700">
@@ -391,128 +389,138 @@
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Inicio</th>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Fecha Término</th>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Destino / Uso</th>
+                                                <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Acompañantes</th>
                                                 <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-gray-700 bg-transparent">
-                                            @foreach($usageHistory as $usage)
-                                                <tr class="hover:bg-gray-800/50 transition duration-150">
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        <div class="text-sm font-medium text-white">
-                                                            @if($usage->conductor)
-                                                                Conductor: {{ $usage->conductor->nombre }}
-                                                            @elseif($usage->user)
-                                                                {{ $usage->user->name }}
-                                                            @else
-                                                                Usuario Eliminado
-                                                            @endif
-                                                        </div>
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                        @if(!empty($usage->delivery_photos))
-                                                            <button @click="openDeliveryModal({
-                                                                    id: {{ $usage->id }},
-                                                                    comment: '{{ $usage->delivery_comment ?? '' }}',
-                                                                    photos: {{ json_encode($usage->delivery_photos ? array_map(fn($p) => asset('storage/'.$p), $usage->delivery_photos) : []) }},
-                                                                    date: '{{ $usage->created_at->format('d/m/Y H:i') }}',
-                                                                    conductor: '{{ $usage->conductor ? $usage->conductor->nombre : ($usage->user ? $usage->user->name : 'N/A') }}'
-                                                                })"
-                                                                class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-200 bg-indigo-900 hover:bg-indigo-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                </svg>
-                                                                {{ count($usage->delivery_photos) }}
-                                                            </button>
+                                        {{-- Usamos un tbody por cada iteración para que x-data se aisle correctamente --}}
+                                        @foreach($usageHistory as $usage)
+                                        <tbody class="divide-y divide-gray-700 bg-transparent" x-data="{ showCompanions: false }">
+                                            <tr class="hover:bg-gray-800/50 transition duration-150">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-white">
+                                                        @if($usage->conductor)
+                                                            Conductor: {{ $usage->conductor->nombre }}
+                                                        @elseif($usage->user)
+                                                            {{ $usage->user->name }}
                                                         @else
-                                                            <span class="text-xs text-gray-500 italic">-</span>
+                                                            Usuario Eliminado
                                                         @endif
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                        {{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                        {{ $usage->end_date ? $usage->end_date->format('d/m/Y H:i') : '-' }}
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                       {{ ucfirst($usage->destination_type ?? 'Uso General') }}
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                        @switch($usage->status)
-                                                            @case('in_trip') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">En Viaje</span> @break
-                                                            @case('approved') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Curso / Aprobado</span> @break
-                                                            @case('completed') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Finalizado</span> @break
-                                                            @case('pending') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
-                                                            @case('rejected') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rechazado</span> @break
-                                                            @case('cancelled') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Cancelado</span> @break
-                                                            @default <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-white">{{ ucfirst($usage->status) }}</span>
-                                                        @endswitch
-                                                        @if($usage->early_termination_reason)
-                                                            <div class="mt-2 text-center">
-                                                                <button @click="openTerminationModal('{{ addslashes($usage->early_termination_reason) }}', '{{ $usage->original_end_date ? $usage->original_end_date->format('d/m/Y') : '-' }}')"
-                                                                    class="inline-flex items-center px-2.5 py-1 rounded bg-red-900/30 text-red-300 border border-red-800 hover:bg-red-900/50 transition-colors text-xs">
-                                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                                    Ver motivo término
-                                                                </button>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                    @if(!empty($usage->delivery_photos))
+                                                        <button @click="openDeliveryModal({
+                                                                id: {{ $usage->id }},
+                                                                comment: '{{ $usage->delivery_comment ?? '' }}',
+                                                                photos: {{ json_encode($usage->delivery_photos ? array_map(fn($p) => asset('storage/'.$p), $usage->delivery_photos) : []) }},
+                                                                date: '{{ $usage->created_at->format('d/m/Y H:i') }}',
+                                                                conductor: '{{ $usage->conductor ? $usage->conductor->nombre : ($usage->user ? $usage->user->name : 'N/A') }}'
+                                                            })"
+                                                            class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-200 bg-indigo-900 border border-indigo-700 hover:bg-indigo-800 transition-colors">
+                                                            📸 {{ count($usage->delivery_photos) }}
+                                                        </button>
+                                                    @else
+                                                        <span class="text-xs text-gray-500 italic">-</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {{ $usage->end_date ? $usage->end_date->format('d/m/Y H:i') : '-' }}
+                                                </td>
+                                                <td class="px-6 py-4 text-sm text-gray-300">
+                                                    {{-- Lógica de Destino: Prioriza el destino escrito, sino traduce el tipo --}}
+                                                    @if($usage->destination)
+                                                        <span class="text-white font-medium">{{ $usage->destination }}</span>
+                                                        <div class="text-[10px] text-gray-500 italic">
+                                                            ({{ $usage->destination_type === 'outside' ? 'Fuera de la ciudad' : 'Local' }})
+                                                        </div>
+                                                    @else
+                                                        <span class="text-gray-300 font-medium">
+                                                            {{ $usage->destination_type === 'outside' ? 'Fuera de la ciudad' : 'Local' }}
+                                                        </span>
+                                                    @endif
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                    @if($usage->companions && $usage->companions->count() > 0)
+                                                        <button @click="showCompanions = !showCompanions" type="button"
+                                                            class="inline-flex items-center px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 transition-colors text-xs font-bold shadow-sm">
+                                                            <svg class="w-4 h-4 mr-1.5 text-indigo-400" :class="showCompanions ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                            </svg>
+                                                            {{ $usage->companions->count() }} <span class="ml-1 text-[10px] text-gray-400" x-text="showCompanions ? 'Cerrar' : 'Ver'"></span>
+                                                        </button>
+                                                    @else
+                                                        <span class="text-gray-600 text-xs italic">Solo</span>
+                                                    @endif
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                    @switch($usage->status)
+                                                        @case('in_trip') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">En Viaje</span> @break
+                                                        @case('approved') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Aprobado</span> @break
+                                                        @case('completed') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Finalizado</span> @break
+                                                        @case('pending') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
+                                                        @case('rejected') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rechazado</span> @break
+                                                        @case('cancelled') <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Cancelado</span> @break
+                                                        @default <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-white">{{ ucfirst($usage->status) }}</span>
+                                                    @endswitch
+                                                </td>
+                                            </tr>
+
+                                            <tr x-show="showCompanions" x-transition x-cloak class="bg-gray-900/50">
+                                                <td colspan="7" class="px-6 py-4 border-l-4 border-indigo-500">
+                                                    <div class="flex flex-wrap gap-2">
+                                                        @foreach($usage->companions as $companion)
+                                                            <div class="flex items-center bg-gray-800 border border-gray-700 rounded-full px-3 py-1.5 shadow-sm">
+                                                                <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white mr-2 uppercase">
+                                                                    {{ substr($companion->user ? $companion->user->name : $companion->external_name, 0, 1) }}
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span class="text-xs font-bold text-gray-200 leading-tight">
+                                                                        {{ $companion->user ? ($companion->user->name . ' ' . $companion->user->last_name) : $companion->external_name }}
+                                                                    </span>
+                                                                    <span class="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">
+                                                                        {{ $companion->user ? 'Interno' : 'Externo (' . ($companion->external_position ?? 'Visita') . ')' }}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                            @endforeach
+                                                        @endforeach
+                                                    </div>
+                                                </td>
+                                            </tr>
                                         </tbody>
+                                        @endforeach
                                     </table>
                                 </div>
 
                                 {{-- Vista Mobile (Tarjetas) --}}
                                 <div x-show="width < 768" class="space-y-4 p-4">
                                     @foreach($usageHistory as $usage)
-                                        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-sm">
-                                            {{-- Header --}}
+                                        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-sm" x-data="{ showCompanions: false }">
                                             <div class="flex justify-between items-start mb-3 border-b border-gray-700 pb-2">
                                                 <div class="text-sm font-bold text-white">
-                                                    @if($usage->conductor)
-                                                        {{ $usage->conductor->nombre }} (C)
-                                                    @elseif($usage->user)
-                                                        {{ $usage->user->name }}
-                                                    @else
-                                                        Usuario Eliminado
-                                                    @endif
+                                                    {{ $usage->conductor ? $usage->conductor->nombre : ($usage->user ? $usage->user->name : 'N/A') }}
                                                 </div>
-                                                <div>
-                                                    @switch($usage->status)
-                                                        @case('in_trip') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-100 text-indigo-800">En Viaje</span> @break
-                                                        @case('approved') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800">En Curso</span> @break
-                                                        @case('completed') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800">Finalizado</span> @break
-                                                        @case('pending') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">Pendiente</span> @break
-                                                        @case('rejected') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800">Rechazado</span> @break
-                                                        @case('cancelled') <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-800">Cancelado</span> @break
-                                                        @default <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-500 text-white">{{ ucfirst($usage->status) }}</span>
-                                                    @endswitch
-                                                </div>
+                                                <div class="text-[10px] font-medium text-indigo-400 uppercase tracking-wider">{{ $usage->status }}</div>
                                             </div>
-
-                                            {{-- Detalles --}}
                                             <div class="space-y-2 text-sm">
-                                                <div class="flex justify-between">
-                                                    <span class="text-gray-400">Inicio:</span>
-                                                    <span class="text-gray-200">{{ $usage->start_date ? $usage->start_date->format('d/m/Y H:i') : '-' }}</span>
-                                                </div>
-                                                <div class="flex justify-between">
-                                                    <span class="text-gray-400">Término:</span>
-                                                    <span class="text-gray-200">{{ $usage->end_date ? $usage->end_date->format('d/m/Y H:i') : '-' }}</span>
-                                                </div>
-                                                <div class="flex justify-between">
-                                                    <span class="text-gray-400">Destino:</span>
-                                                    <span class="text-gray-200">{{ ucfirst($usage->destination_type ?? 'Uso General') }}</span>
-                                                </div>
+                                                <div class="flex justify-between"><span class="text-gray-400">Inicio:</span><span class="text-gray-200">{{ $usage->start_date?->format('d/m/Y H:i') }}</span></div>
+                                                <div class="flex justify-between"><span class="text-gray-400">Término:</span><span class="text-gray-200">{{ $usage->end_date?->format('d/m/Y H:i') }}</span></div>
                                                 
-                                                @if($usage->early_termination_reason)
-                                                    <div class="pt-2 text-center">
-                                                        <button @click="openTerminationModal('{{ addslashes($usage->early_termination_reason) }}', '{{ $usage->original_end_date ? $usage->original_end_date->format('d/m/Y') : '-' }}')"
-                                                            class="w-full inline-flex justify-center items-center px-3 py-1.5 rounded bg-red-900/30 text-red-300 border border-red-800 hover:bg-red-900/50 transition-colors text-xs">
-                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                            Ver motivo término ant.
+                                                @if($usage->companions->count() > 0)
+                                                    <div class="pt-2">
+                                                        <button @click="showCompanions = !showCompanions" class="text-indigo-400 text-xs font-bold flex items-center">
+                                                            <span x-text="showCompanions ? 'Ocultar acompañantes' : 'Ver ' + {{ $usage->companions->count() }} + ' acompañantes'"></span>
                                                         </button>
+                                                        <div x-show="showCompanions" x-transition class="mt-2 space-y-1 pl-2 border-l border-indigo-500">
+                                                            @foreach($usage->companions as $companion)
+                                                                <p class="text-xs text-gray-300">• {{ $companion->user ? $companion->user->name : $companion->external_name }}</p>
+                                                            @endforeach
+                                                        </div>
                                                     </div>
                                                 @endif
                                             </div>
