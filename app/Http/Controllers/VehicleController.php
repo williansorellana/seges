@@ -294,6 +294,9 @@ class VehicleController extends Controller
         if ($request->filled('end_date')) {
             $query->whereDate('start_date', '<=', $request->end_date);
         }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
         $usageHistory = $query->get();
         return view('vehicles.user_usage_history', compact('recipient', 'usageHistory'));
@@ -320,7 +323,7 @@ class VehicleController extends Controller
     {
         $type = $request->input('type', 'user');
         $recipient = ($type === 'worker') ? \App\Models\Worker::findOrFail($id) : \App\Models\User::findOrFail($id);
-        
+
         $query = \App\Models\VehicleRequest::where(($type === 'worker' ? 'conductor_id' : 'user_id'), $id)
             ->with(['vehicle', 'vehicleReturn']);
 
@@ -332,6 +335,10 @@ class VehicleController extends Controller
         if ($request->filled('end_date')) {
             $query->whereDate('start_date', '<=', $request->end_date);
             $filters[] = "Hasta: " . \Carbon\Carbon::parse($request->end_date)->format('d/m/Y');
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+            $filters[] = "Estado: " . ucfirst($request->status);
         }
 
         $usageHistory = $query->orderBy('start_date', 'desc')->get();

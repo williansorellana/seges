@@ -59,33 +59,49 @@
                             <div>
                                 <label for="start_date" class="block text-xs text-gray-400 mb-1">Desde</label>
                                 <input type="date" id="start_date" name="start_date" value="{{ request('start_date') }}"
-                                    class="bg-gray-800 border-gray-700 text-white text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
+                                    class="bg-gray-800 border-gray-700 text-white text-sm rounded p-2 focus:ring-blue-500">
                             </div>
                             <div>
                                 <label for="end_date" class="block text-xs text-gray-400 mb-1">Hasta</label>
                                 <input type="date" id="end_date" name="end_date" value="{{ request('end_date') }}"
-                                    class="bg-gray-800 border-gray-700 text-white text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
+                                    class="bg-gray-800 border-gray-700 text-white text-sm rounded p-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="return_status" class="block text-xs text-gray-400 mb-1">Estado</label>
+                                <select id="return_status" name="return_status" class="bg-gray-800 border-gray-700 text-white text-sm rounded p-2 focus:ring-blue-500 w-full md:w-auto">
+                                    <option value="">Todos</option>
+                                    <option value="pending" {{ request('return_status') == 'pending' ? 'selected' : '' }}>En Uso (Pendiente)</option>
+                                    <option value="good" {{ request('return_status') == 'good' ? 'selected' : '' }}>Bueno</option>
+                                    <option value="regular" {{ request('return_status') == 'regular' ? 'selected' : '' }}>Regular</option>
+                                    <option value="bad" {{ request('return_status') == 'bad' ? 'selected' : '' }}>Malo</option>
+                                    <option value="damaged" {{ request('return_status') == 'damaged' ? 'selected' : '' }}>Dañado</option>
+                                </select>
                             </div>
                             <div class="flex gap-2">
                                 <button type="submit"
-                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors flex items-center h-[38px] mt-auto">
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded h-[38px] flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                                        </path>
+                                    </svg>
                                     Filtrar
                                 </button>
 
-                                <a href="{{ route('users.asset-history.pdf', ['id' => $recipient->id, 'type' => (isset($recipient->nombre) ? 'worker' : 'user'), 'start_date' => request('start_date'), 'end_date' => request('end_date')]) }}"
+                                <a href="{{ route('users.asset-history.pdf', ['id' => $recipient->id, 'type' => (isset($recipient->nombre) ? 'worker' : 'user'), 'start_date' => request('start_date'), 'end_date' => request('end_date'), 'return_status' => request('return_status')]) }}"
                                     target="_blank"
-                                    class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors flex items-center h-[38px] mt-auto"
+                                    class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded h-[38px] flex items-center"
                                     title="Exportar a PDF">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                         </path>
                                     </svg>
-                                    PDF
+                                    <span class="ml-1">PDF</span>
                                 </a>
 
                                 <a href="{{ url()->current() }}"
-                                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded transition-colors flex items-center h-[38px] mt-auto">
+                                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded h-[38px] flex items-center">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>

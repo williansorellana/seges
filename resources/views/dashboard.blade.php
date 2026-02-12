@@ -11,28 +11,56 @@
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl p-6 mb-12 border border-gray-700">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 divide-x-0 md:divide-x divide-gray-700">
                     <div class="text-center px-4">
-                        <a href="{{ route('vehicles.index', ['status' => 'available']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Disponibles</span>
-                            <span class="block text-4xl font-black text-emerald-500 group-hover:scale-110 transition-transform duration-200">{{ $countDisponible }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                            <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Disponibles</span>
+                                <span class="block text-4xl font-black text-emerald-500 transition-transform duration-200">{{ $countDisponible }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('vehicles.index', ['status' => 'available']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Disponibles</span>
+                                <span class="block text-4xl font-black text-emerald-500 group-hover:scale-110 transition-transform duration-200">{{ $countDisponible }}</span>
+                            </a>
+                        @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        <a href="{{ route('vehicles.index', ['status' => 'occupied']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Reservados</span>
-                            <span class="block text-4xl font-black text-blue-500 group-hover:scale-110 transition-transform duration-200">{{ $countAsignado }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                             <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Reservados</span>
+                                <span class="block text-4xl font-black text-blue-500 transition-transform duration-200">{{ $countAsignado }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('vehicles.index', ['status' => 'occupied']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Reservados</span>
+                                <span class="block text-4xl font-black text-blue-500 group-hover:scale-110 transition-transform duration-200">{{ $countAsignado }}</span>
+                            </a>
+                        @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        <a href="{{ route('vehicles.index', ['status' => 'out_of_service']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Fuera de Servicio</span>
-                            <span class="block text-4xl font-black text-red-500 group-hover:scale-110 transition-transform duration-200">{{ $countFueraDeServicio }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                             <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Fuera de Servicio</span>
+                                <span class="block text-4xl font-black text-red-500 transition-transform duration-200">{{ $countFueraDeServicio }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('vehicles.index', ['status' => 'out_of_service']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Fuera de Servicio</span>
+                                <span class="block text-4xl font-black text-red-500 group-hover:scale-110 transition-transform duration-200">{{ $countFueraDeServicio }}</span>
+                            </a>
+                        @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        <a href="{{ route('vehicles.index', ['status' => 'maintenance']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Mantenimiento</span>
-                            <span class="block text-4xl font-black text-amber-500 group-hover:scale-110 transition-transform duration-200">{{ $countMantenimiento }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                            <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Mantenimiento</span>
+                                <span class="block text-4xl font-black text-amber-500 transition-transform duration-200">{{ $countMantenimiento }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('vehicles.index', ['status' => 'maintenance']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Mantenimiento</span>
+                                <span class="block text-4xl font-black text-amber-500 group-hover:scale-110 transition-transform duration-200">{{ $countMantenimiento }}</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -117,6 +145,7 @@
                                         <span class="text-[10px] text-gray-600 italic">No Data</span>
                                     @endif
                                 </div>
+                                @if(Auth::user()->role !== 'viewer')
                                 <button @click="viewingVehicle = { 
                                     plate: '{{ $vehicle->plate }}', 
                                     brand: '{{ $vehicle->brand }}', 
@@ -129,6 +158,7 @@
                                 }; openViewModal = true" class="p-2 bg-gray-700 hover:bg-emerald-600 rounded-xl text-white transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </button>
+                                @endif
                             </div>
                         </div>
                     </div>

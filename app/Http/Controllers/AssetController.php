@@ -859,7 +859,7 @@ class AssetController extends Controller
 
         return back()->with('success', $message);
     }
-    
+
     public function usersHistoryIndex()
     {
         $users = \App\Models\User::all();
@@ -867,11 +867,11 @@ class AssetController extends Controller
         return view('assets.users-index', compact('users', 'workers'));
     }
 
-    
+
     public function userAssetHistory(Request $request, $id)
     {
         $recipient = \App\Models\User::findOrFail($id);
-        
+
         $query = \App\Models\AssetAssignment::with(['asset', 'photos', 'creator'])
             ->where('usuario_id', $recipient->id);
 
@@ -882,16 +882,25 @@ class AssetController extends Controller
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
+        if ($request->filled('return_status')) {
+            $status = $request->return_status;
+            if ($status === 'pending') {
+                $query->whereNull('fecha_devolucion');
+            } else {
+                $query->where('estado_devolucion', $status);
+            }
+        }
+
         $assignments = $query->orderBy('created_at', 'desc')->get();
 
         return view('assets.user-history', compact('recipient', 'assignments'));
     }
 
-    
+
     public function workerAssetHistory(Request $request, $id)
     {
         $recipient = \App\Models\Worker::findOrFail($id);
-        
+
         $query = \App\Models\AssetAssignment::with(['asset', 'photos', 'creator'])
             ->where('worker_id', $recipient->id);
 
@@ -902,6 +911,15 @@ class AssetController extends Controller
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
+        if ($request->filled('return_status')) {
+            $status = $request->return_status;
+            if ($status === 'pending') {
+                $query->whereNull('fecha_devolucion');
+            } else {
+                $query->where('estado_devolucion', $status);
+            }
+        }
+
         $assignments = $query->orderBy('created_at', 'desc')->get();
 
         return view('assets.user-history', compact('recipient', 'assignments'));
@@ -910,7 +928,7 @@ class AssetController extends Controller
     {
         $recipient = ($request->type === 'worker') ? Worker::findOrFail($id) : User::findOrFail($id);
         $generatedDate = now()->format('d/m/Y H:i');
-        
+
         $query = AssetAssignment::with(['asset', 'creator'])
             ->where(($request->type === 'worker' ? 'worker_id' : 'usuario_id'), $id);
 
@@ -922,6 +940,16 @@ class AssetController extends Controller
         if ($request->filled('end_date')) {
             $query->whereDate('fecha_entrega', '<=', $request->end_date);
             $filtrosAplicados[] = "Hasta: " . \Carbon\Carbon::parse($request->end_date)->format('d/m/Y');
+        }
+        if ($request->filled('return_status')) {
+            $status = $request->return_status;
+            if ($status === 'pending') {
+                $query->whereNull('fecha_devolucion');
+                $filtrosAplicados[] = "Estado: En Uso";
+            } else {
+                $query->where('estado_devolucion', $status);
+                $filtrosAplicados[] = "Estado: " . ucfirst($status);
+            }
         }
 
         $assignments = $query->orderBy('fecha_entrega', 'desc')->get();
@@ -938,7 +966,11 @@ class AssetController extends Controller
         ];
 
         $pdf = Pdf::loadView('assets.pdf.user-history', compact(
-            'recipient', 'assignments', 'generatedDate', 'filtrosAplicados', 'stats'
+            'recipient',
+            'assignments',
+            'generatedDate',
+            'filtrosAplicados',
+            'stats'
         ));
 
         return $pdf->download('historial_uso_' . ($recipient->rut) . '.pdf');

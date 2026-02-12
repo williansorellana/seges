@@ -37,7 +37,10 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'in:admin,supervisor,worker,viewer'],
+            'authorized_modules' => ['nullable', 'array'],
         ]);
+
+        $authorizedModules = $request->authorized_modules ?? ['all'];
 
         $user = User::create([
             'name' => $request->name,
@@ -47,6 +50,7 @@ class UserController extends Controller
             'role' => $request->role,
             'must_change_password' => true,
             'is_active' => true,
+            'authorized_modules' => $authorizedModules,
         ]);
 
         event(new Registered($user));
@@ -65,6 +69,7 @@ class UserController extends Controller
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['sometimes', 'required', 'in:admin,supervisor,worker,viewer'],
             'is_active' => ['sometimes', 'required', 'boolean'],
+            'authorized_modules' => ['nullable', 'array'],
         ]);
 
         $user->update($validated);
@@ -107,14 +112,14 @@ class UserController extends Controller
 
     public function assetHistory(Request $request, $id)
     {
-        
+
         $recipient = User::findOrFail($id);
 
-        
+
         $query = AssetAssignment::with(['asset', 'photos', 'creator'])
             ->where('user_id', $recipient->id);
 
-       
+
         if ($request->has('start_date') && $request->start_date) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
@@ -124,17 +129,17 @@ class UserController extends Controller
 
         $assignments = $query->orderBy('created_at', 'desc')->get();
 
-       
+
         return view('assets.user-history', compact('recipient', 'assignments'));
     }
 
     public function usersHistoryIndex()
     {
-        $users = \App\Models\User::all(); 
+        $users = \App\Models\User::all();
         $workers = \App\Models\Worker::all();
 
         return view('assets.users-index', compact('users', 'workers'));
     }
 
-    
+
 }

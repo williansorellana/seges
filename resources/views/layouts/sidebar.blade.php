@@ -54,169 +54,193 @@
             </a>
         @endif
 
-        <div>
-            <button
-                @click="if(!open) { open = true; setTimeout(() => vehicleMenu = true, 100); } else { vehicleMenu = !vehicleMenu; }"
-                class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
-                :class="{'justify-center': !open, 'bg-gray-800 text-white': vehicleMenu}">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+        @if(Auth::user()->hasModuleAccess('vehicles'))
+            <div>
+                <button
+                    @click="if(!open) { open = true; setTimeout(() => vehicleMenu = true, 100); } else { vehicleMenu = !vehicleMenu; }"
+                    class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
+                    :class="{'justify-center': !open, 'bg-gray-800 text-white': vehicleMenu}">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+                        </svg>
+                        <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo
+                            Vehículos</span>
+                    </div>
+                    <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': vehicleMenu}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                    <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo
-                        Vehículos</span>
+                </button>
+
+                <div x-show="open && vehicleMenu" x-collapse
+                    class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
+
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']))
+                        <a href="{{ route('dashboard') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('dashboard') ? "'text-white bg-gray-800'" : "''" }}">
+                            Dashboard
+                        </a>
+                    @endif
+
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+                        <a href="{{ route('vehicles.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('vehicles.*') ? "'text-white bg-gray-800'" : "''" }}">
+                            Gestión de Vehículos
+                        </a>
+                        <a href="{{ route('conductores.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('conductores.*') ? "'text-white bg-gray-800'" : "''" }}">
+                            Conductores
+                        </a>
+                    @endif
+
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker']))
+                        <a href="{{ route('requests.create') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('requests.create') ? "'text-white bg-gray-800'" : "''" }}">
+                            Solicitar Vehículo
+                        </a>
+                        <a href="{{ route('requests.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('requests.index') ? "'text-white bg-gray-800'" : "''" }}">
+                            Mis Reservas
+                        </a>
+                    @endif
+
+                    @if(in_array(Auth::user()->role, ['admin', 'secretaria', 'supervisor']))
+                        <a href="{{ route('external-people.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('external-people.*') ? "'text-white bg-gray-800'" : "''" }}">
+                            Personas Externas
+                        </a>
+                    @endif
                 </div>
-                <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': vehicleMenu}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-
-            <div x-show="open && vehicleMenu" x-collapse
-                class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
-                <a href="{{ route('dashboard') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('dashboard') ? "'text-white bg-gray-800'" : "''" }}">
-                    Dashboard
-                </a>
-                <a href="{{ route('vehicles.index') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('vehicles.*') ? "'text-white bg-gray-800'" : "''" }}">
-                    Gestión de Vehículos
-                </a>
-                <a href="{{ route('conductores.index') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('conductores.*') ? "'text-white bg-gray-800'" : "''" }}">
-                    Conductores
-                </a>
-                <a href="{{ route('requests.create') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('requests.create') ? "'text-white bg-gray-800'" : "''" }}">
-                    Solicitar Vehículo
-                </a>
-                <a href="{{ route('requests.index') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('requests.index') ? "'text-white bg-gray-800'" : "''" }}">
-                    Mis Reservas
-                </a>
-
-                @if(Auth::user()->role === 'admin' || Auth::user()->role === 'secretaria')
-                    <a href="{{ route('external-people.index') }}" wire:navigate
-                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                        :class="{{ request()->routeIs('external-people.*') ? "'text-white bg-gray-800'" : "''" }}">
-                        Personas Externas
-                    </a>
-                @endif
             </div>
-        </div>
+        @endif
 
-        <div>
-            <button
-                @click="if(!open) { open = true; setTimeout(() => roomMenu = true, 100); } else { roomMenu = !roomMenu; }"
-                class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
-                :class="{'justify-center': !open, 'bg-gray-800 text-white': roomMenu}">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 9h6m-6 3h6m-6 3h6M6.996 9h.01m-.01 3h.01m-.01 3h.01M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
+        @if(Auth::user()->hasModuleAccess('rooms'))
+            <div>
+                <button
+                    @click="if(!open) { open = true; setTimeout(() => roomMenu = true, 100); } else { roomMenu = !roomMenu; }"
+                    class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
+                    :class="{'justify-center': !open, 'bg-gray-800 text-white': roomMenu}">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 9h6m-6 3h6m-6 3h6M6.996 9h.01m-.01 3h.01m-.01 3h.01M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
+                        </svg>
+                        <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo
+                            Salas</span>
+                    </div>
+                    <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': roomMenu}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                    <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo
-                        Salas</span>
+                </button>
+
+                <div x-show="open && roomMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
+
+                    {{-- Todo el mundo puede ver el catálogo de salas --}}
+                    <a href="{{ route('reservations.catalog') }}" wire:navigate
+                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                        :class="{{ request()->routeIs('reservations.catalog') ? "'text-white bg-gray-800'" : "''" }}">
+                        Ver Salas
+                    </a>
+
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker']))
+                        <a href="{{ route('reservations.my_reservations') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('reservations.my_reservations') ? "'text-white bg-gray-800'" : "''" }}">
+                            Mis Reservas
+                        </a>
+                    @endif
+
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+
+                        <a href="{{ route('reservations.create_external') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
+                            :class="{{ request()->routeIs('reservations.create_external') ? "'text-white bg-gray-800'" : "'text-gray-400 hover:text-white hover:bg-gray-800'" }}">
+                            Hacer Reserva
+                        </a>
+
+                        <a href="{{ route('rooms.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('rooms.*') ? "'text-white bg-gray-800'" : "''" }}">
+                            Gestión de Salas
+                        </a>
+
+                        <a href="{{ route('rooms.history') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('rooms.history') ? "'text-white bg-gray-800'" : "''" }}">
+                            Historial de Reservas
+                        </a>
+
+                        <a href="{{ route('rooms.agenda') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800 transition-colors"
+                            :class="{{ request()->routeIs('rooms.agenda') ? "'text-white bg-gray-800'" : "''" }}">
+                            Gestión de Reservas
+                        </a>
+
+                    @endif
                 </div>
-                <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': roomMenu}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-
-            <div x-show="open && roomMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
-
-                <a href="{{ route('reservations.catalog') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('reservations.catalog') ? "'text-white bg-gray-800'" : "''" }}">
-                    Ver Salas
-                </a>
-
-                <a href="{{ route('reservations.my_reservations') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('reservations.my_reservations') ? "'text-white bg-gray-800'" : "''" }}">
-                    Mis Reservas
-                </a>
-
-                @if(Auth::user()->role === 'admin' || Auth::user()->role === 'supervisor')
-
-                    <a href="{{ route('reservations.create_external') }}" wire:navigate
-                        class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
-                        :class="{{ request()->routeIs('reservations.create_external') ? "'text-white bg-gray-800'" : "'text-gray-400 hover:text-white hover:bg-gray-800'" }}">
-                        Hacer Reserva
-                    </a>
-
-                    <a href="{{ route('rooms.index') }}" wire:navigate
-                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                        :class="{{ request()->routeIs('rooms.*') ? "'text-white bg-gray-800'" : "''" }}">
-                        Gestión de Salas
-                    </a>
-
-                    <a href="{{ route('rooms.history') }}" wire:navigate
-                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                        :class="{{ request()->routeIs('rooms.history') ? "'text-white bg-gray-800'" : "''" }}">
-                        Historial de Reservas
-                    </a>
-
-                    <a href="{{ route('rooms.agenda') }}" wire:navigate
-                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800 transition-colors"
-                        :class="{{ request()->routeIs('rooms.agenda') ? "'text-white bg-gray-800'" : "''" }}">
-                        Gestión de Reservas
-                    </a>
-
-                @endif
             </div>
-        </div>
+        @endif
 
         <!-- Módulo Activos -->
-        <div>
-            <button
-                @click="if(!open) { open = true; setTimeout(() => assetMenu = true, 100); } else { assetMenu = !assetMenu; }"
-                class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
-                :class="{'justify-center': !open, 'bg-gray-800 text-white': assetMenu}">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        <!-- Módulo Activos -->
+        @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']) && Auth::user()->hasModuleAccess('assets'))
+            <div>
+                <button
+                    @click="if(!open) { open = true; setTimeout(() => assetMenu = true, 100); } else { assetMenu = !assetMenu; }"
+                    class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
+                    :class="{'justify-center': !open, 'bg-gray-800 text-white': assetMenu}">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo
+                            Activos</span>
+                    </div>
+                    <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': assetMenu}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                    <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo
-                        Activos</span>
-                </div>
-                <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': assetMenu}"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
+                </button>
 
-            <div x-show="open && assetMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
-                <a href="{{ route('assets.dashboard') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('assets.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
-                    Dashboard
-                </a>
-                <a href="{{ route('assets.reports.index') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('assets.reports.*') ? "'text-white bg-gray-800'" : "''" }}">
-                    Reportes
-                </a>
-                <a href="{{ route('assets.index') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ (request()->routeIs('assets.*') && !request()->routeIs('assets.dashboard') && !request()->routeIs('assets.reports.*')) ? "'text-white bg-gray-800'" : "''" }}">
-                    Gestión de Activos
-                </a>
-                <a href="{{ route('workers.index') }}" wire:navigate
-                    class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                    :class="{{ request()->routeIs('workers.*') ? "'text-white bg-gray-800'" : "''" }}">
-                    Trabajadores
-                </a>
+                <div x-show="open && assetMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']))
+                        <a href="{{ route('assets.dashboard') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('assets.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
+                            Dashboard
+                        </a>
+                    @endif
+
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+                        <a href="{{ route('assets.reports.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('assets.reports.*') ? "'text-white bg-gray-800'" : "''" }}">
+                            Reportes
+                        </a>
+                        <a href="{{ route('assets.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ (request()->routeIs('assets.*') && !request()->routeIs('assets.dashboard') && !request()->routeIs('assets.reports.*')) ? "'text-white bg-gray-800'" : "''" }}">
+                            Gestión de Activos
+                        </a>
+                        <a href="{{ route('workers.index') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('workers.*') ? "'text-white bg-gray-800'" : "''" }}">
+                            Trabajadores
+                        </a>
+                    @endif
+                </div>
             </div>
-        </div>
+        @endif
 
 
 

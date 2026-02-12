@@ -17,9 +17,9 @@ Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-// Dashboard 
+// Dashboard - Accesible para Admin, Supervisor, Driver (Trabajador interno) y Viewer
 Route::get('/dashboard', [VehicleController::class, 'index'])
-    ->middleware(['auth', 'force.password.change'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
     ->name('dashboard');
 
 // Grupo de rutas para el perfil de usuario
@@ -28,44 +28,53 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Rutas de Vehículos (Papelera)
-    Route::get('papelera/vehiculos', [VehicleController::class, 'trash'])->name('vehicles.trash');
-    Route::put('papelera/vehiculos/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
-    Route::delete('papelera/vehiculos/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.force-delete');
-    Route::delete('papelera/vehiculos/empty', [VehicleController::class, 'emptyTrash'])->name('vehicles.empty-trash');
+    // Rutas de Vehículos (Papelera) - Solo Admin y Supervisor
+    Route::middleware(['role:admin,supervisor'])->group(function () {
+        Route::get('papelera/vehiculos', [VehicleController::class, 'trash'])->name('vehicles.trash');
+        Route::put('papelera/vehiculos/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
+        Route::delete('papelera/vehiculos/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.force-delete');
+        Route::delete('papelera/vehiculos/empty', [VehicleController::class, 'emptyTrash'])->name('vehicles.empty-trash');
 
-    // Recurso de Vehículos
-    Route::resource('vehiculos', VehicleController::class)
-        ->names([
-            'index' => 'vehicles.index',
-            'create' => 'vehicles.create',
-            'store' => 'vehicles.store',
-            'show' => 'vehicles.show',
-            'edit' => 'vehicles.edit',
-            'update' => 'vehicles.update',
-            'destroy' => 'vehicles.destroy',
-        ])
-        ->parameters(['vehiculos' => 'vehicle'])
-        ->except(['show']);
+        // Recurso de Vehículos
+        Route::resource('vehiculos', VehicleController::class)
+            ->names([
+                'index' => 'vehicles.index',
+                'create' => 'vehicles.create',
+                'store' => 'vehicles.store',
+                'show' => 'vehicles.show',
+                'edit' => 'vehicles.edit',
+                'update' => 'vehicles.update',
+                'destroy' => 'vehicles.destroy',
+            ])
+            ->parameters(['vehiculos' => 'vehicle'])
+            ->except(['show']);
 
-    // Rutas de Conductores
-    Route::get('/conductores/trash', [ConductorController::class, 'trash'])->name('conductores.trash');
-    Route::post('/conductores/{id}/restore', [ConductorController::class, 'restore'])->name('conductores.restore');
-    Route::delete('/conductores/{id}/force-delete', [ConductorController::class, 'forceDelete'])->name('conductores.force-delete');
+        // Rutas de Conductores
+        Route::get('/conductores/trash', [ConductorController::class, 'trash'])->name('conductores.trash');
+        Route::post('/conductores/{id}/restore', [ConductorController::class, 'restore'])->name('conductores.restore');
+        Route::delete('/conductores/{id}/force-delete', [ConductorController::class, 'forceDelete'])->name('conductores.force-delete');
 
-    Route::get('/conductores', [ConductorController::class, 'index'])->name('conductores.index');
-    Route::get('/conductores/nuevo', [ConductorController::class, 'create'])->name('conductores.create');
-    Route::post('/conductores', [ConductorController::class, 'store'])->name('conductores.store');
-    Route::get('/conductores/{conductor}/edit', [ConductorController::class, 'edit'])->name('conductores.edit');
-    Route::put('/conductores/{conductor}', [ConductorController::class, 'update'])->name('conductores.update');
-    Route::delete('/conductores/{conductor}', [ConductorController::class, 'destroy'])->name('conductores.destroy');
+        Route::get('/conductores', [ConductorController::class, 'index'])->name('conductores.index');
+        Route::get('/conductores/nuevo', [ConductorController::class, 'create'])->name('conductores.create');
+        Route::post('/conductores', [ConductorController::class, 'store'])->name('conductores.store');
+        Route::get('/conductores/{conductor}/edit', [ConductorController::class, 'edit'])->name('conductores.edit');
+        Route::put('/conductores/{conductor}', [ConductorController::class, 'update'])->name('conductores.update');
+        Route::delete('/conductores/{conductor}', [ConductorController::class, 'destroy'])->name('conductores.destroy');
+    });
+
+
 
     // Gestión de Salas 
+    // Gestión de Salas - Catálogo y Disponibilidad (Accesible para todos, incl. Viewer)
     Route::get('/reservar-sala', [RoomReservationController::class, 'index'])->name('reservations.catalog');
-    Route::post('/reservar-sala', [RoomReservationController::class, 'store'])->name('reservations.store');
-    Route::get('/mis-reservas-salas', [RoomReservationController::class, 'myReservations'])->name('reservations.my_reservations');
-    Route::put('/mis-reservas-salas/{id}/cancel', [RoomReservationController::class, 'cancel'])->name('reservations.cancel');
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
+
+    // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver) - NO Viewer
+    Route::middleware(['role:admin,supervisor,worker,driver'])->group(function () {
+        Route::post('/reservar-sala', [RoomReservationController::class, 'store'])->name('reservations.store');
+        Route::get('/mis-reservas-salas', [RoomReservationController::class, 'myReservations'])->name('reservations.my_reservations');
+        Route::put('/mis-reservas-salas/{id}/cancel', [RoomReservationController::class, 'cancel'])->name('reservations.cancel');
+    });
     //filtrado solo admin y supervisor
     Route::middleware(['role:admin,supervisor'])->group(function () {
 
@@ -140,42 +149,50 @@ Route::middleware('auth')->group(function () {
 
     // Gestión de Activos
     Route::get('/assets/dashboard', [\App\Http\Controllers\AssetController::class, 'dashboard'])->name('assets.dashboard');
-    Route::get('/assets/reports', [\App\Http\Controllers\AssetReportController::class, 'index'])->name('assets.reports.index');
-    Route::get('/assets/reports/export', [\App\Http\Controllers\AssetReportController::class, 'export'])->name('assets.reports.export');
-    Route::get('/assets/trash', [\App\Http\Controllers\AssetController::class, 'trash'])->name('assets.trash');
-    Route::put('/assets/{id}/restore', [\App\Http\Controllers\AssetController::class, 'restore'])->name('assets.restore');
-    Route::delete('/assets/{id}/force-delete', [\App\Http\Controllers\AssetController::class, 'forceDelete'])->name('assets.force-delete');
-    Route::delete('/assets/trash/empty', [\App\Http\Controllers\AssetController::class, 'emptyTrash'])->name('assets.empty-trash');
-    Route::get('/assets/{id}/barcode', [\App\Http\Controllers\AssetController::class, 'downloadBarcode'])->name('assets.barcode');
-    Route::post('/assets/barcodes/batch', [\App\Http\Controllers\AssetController::class, 'downloadBarcodes'])->name('assets.barcodes.batch');
-    Route::post('/assets/{id}/assign', [\App\Http\Controllers\AssetController::class, 'assign'])->name('assets.assign');
-    Route::put('/assets/{id}/cancel-assignment', [\App\Http\Controllers\AssetController::class, 'cancelAssignment'])->name('assets.cancel-assignment');
-    Route::put('/assets/{id}/assignment/update', [\App\Http\Controllers\AssetController::class, 'updateAssignment'])->name('assets.update-assignment');
-    Route::get('/assets/{id}/history', [\App\Http\Controllers\AssetController::class, 'history'])->name('assets.history');
-    Route::get('/assets/{id}/history/pdf', [\App\Http\Controllers\AssetController::class, 'downloadHistoryPdf'])->name('assets.history.pdf');
-    Route::get('/assets/export-pdf', [\App\Http\Controllers\AssetController::class, 'exportPdf'])->name('assets.export-pdf');
+    // Gestión de Activos - Admin y Supervisor
+    Route::middleware(['role:admin,supervisor'])->group(function () {
+        Route::get('/assets/reports', [\App\Http\Controllers\AssetReportController::class, 'index'])->name('assets.reports.index');
+        Route::get('/assets/reports/export', [\App\Http\Controllers\AssetReportController::class, 'export'])->name('assets.reports.export');
+        Route::get('/assets/trash', [\App\Http\Controllers\AssetController::class, 'trash'])->name('assets.trash');
+        Route::put('/assets/{id}/restore', [\App\Http\Controllers\AssetController::class, 'restore'])->name('assets.restore');
+        Route::delete('/assets/{id}/force-delete', [\App\Http\Controllers\AssetController::class, 'forceDelete'])->name('assets.force-delete');
+        Route::delete('/assets/trash/empty', [\App\Http\Controllers\AssetController::class, 'emptyTrash'])->name('assets.empty-trash');
+        Route::get('/assets/{id}/barcode', [\App\Http\Controllers\AssetController::class, 'downloadBarcode'])->name('assets.barcode');
+        Route::post('/assets/barcodes/batch', [\App\Http\Controllers\AssetController::class, 'downloadBarcodes'])->name('assets.barcodes.batch');
+        Route::post('/assets/{id}/assign', [\App\Http\Controllers\AssetController::class, 'assign'])->name('assets.assign');
+        Route::put('/assets/{id}/cancel-assignment', [\App\Http\Controllers\AssetController::class, 'cancelAssignment'])->name('assets.cancel-assignment');
+        Route::put('/assets/{id}/assignment/update', [\App\Http\Controllers\AssetController::class, 'updateAssignment'])->name('assets.update-assignment');
+        Route::get('/assets/{id}/history', [\App\Http\Controllers\AssetController::class, 'history'])->name('assets.history');
+        Route::get('/assets/{id}/history/pdf', [\App\Http\Controllers\AssetController::class, 'downloadHistoryPdf'])->name('assets.history.pdf');
+        Route::get('/assets/export-pdf', [\App\Http\Controllers\AssetController::class, 'exportPdf'])->name('assets.export-pdf');
 
-    // Rutas para resolver alertas de daños y mantenciones
-    Route::post('/assets/{id}/maintenance', [\App\Http\Controllers\AssetController::class, 'sendToMaintenance'])->name('assets.maintenance.send');
-    Route::post('/assets/{id}/maintenance/finish', [\App\Http\Controllers\AssetController::class, 'finishMaintenance'])->name('assets.maintenance.finish');
-    Route::post('/assets/{id}/write-off', [\App\Http\Controllers\AssetController::class, 'writeOff'])->name('assets.write-off');
+        // Rutas para resolver alertas de daños y mantenciones
+        Route::post('/assets/{id}/maintenance', [\App\Http\Controllers\AssetController::class, 'sendToMaintenance'])->name('assets.maintenance.send');
+        Route::post('/assets/{id}/maintenance/finish', [\App\Http\Controllers\AssetController::class, 'finishMaintenance'])->name('assets.maintenance.finish');
+        Route::post('/assets/{id}/write-off', [\App\Http\Controllers\AssetController::class, 'writeOff'])->name('assets.write-off');
 
-    Route::resource('assets', \App\Http\Controllers\AssetController::class)
-    ->except(['show']);
+        Route::resource('assets', \App\Http\Controllers\AssetController::class)
+            ->except(['show']);
 
-    // Trabajadores Externos
-    Route::get('/workers/check-rut', [\App\Http\Controllers\WorkerController::class, 'checkRut'])->name('workers.check-rut');
-    Route::get('/workers/trash', [\App\Http\Controllers\WorkerController::class, 'trash'])->name('workers.trash');
-    Route::post('/workers/{id}/restore', [\App\Http\Controllers\WorkerController::class, 'restore'])->name('workers.restore');
-    Route::delete('/workers/{id}/force-delete', [\App\Http\Controllers\WorkerController::class, 'forceDelete'])->name('workers.force-delete');
-    Route::resource('workers', \App\Http\Controllers\WorkerController::class);
+        // Trabajadores Externos
+        Route::get('/workers/check-rut', [\App\Http\Controllers\WorkerController::class, 'checkRut'])->name('workers.check-rut');
+        Route::get('/workers/trash', [\App\Http\Controllers\WorkerController::class, 'trash'])->name('workers.trash');
+        Route::post('/workers/{id}/restore', [\App\Http\Controllers\WorkerController::class, 'restore'])->name('workers.restore');
+        Route::delete('/workers/{id}/force-delete', [\App\Http\Controllers\WorkerController::class, 'forceDelete'])->name('workers.force-delete');
+        Route::resource('workers', \App\Http\Controllers\WorkerController::class);
 
-    // Personas Externas Frecuentes
-    Route::get('/external-people/trash', [\App\Http\Controllers\FrequentExternalPersonController::class, 'trash'])->name('external-people.trash');
-    Route::post('/external-people/{id}/restore', [\App\Http\Controllers\FrequentExternalPersonController::class, 'restore'])->name('external-people.restore');
-    Route::delete('/external-people/{id}/force-delete', [\App\Http\Controllers\FrequentExternalPersonController::class, 'forceDelete'])->name('external-people.force-delete');
-    Route::delete('/external-people/empty-trash', [\App\Http\Controllers\FrequentExternalPersonController::class, 'emptyTrash'])->name('external-people.empty-trash');
-    Route::resource('external-people', \App\Http\Controllers\FrequentExternalPersonController::class);
+        // Personas Externas Frecuentes
+        Route::get('/external-people/trash', [\App\Http\Controllers\FrequentExternalPersonController::class, 'trash'])->name('external-people.trash');
+        Route::post('/external-people/{id}/restore', [\App\Http\Controllers\FrequentExternalPersonController::class, 'restore'])->name('external-people.restore');
+        Route::delete('/external-people/{id}/force-delete', [\App\Http\Controllers\FrequentExternalPersonController::class, 'forceDelete'])->name('external-people.force-delete');
+        Route::delete('/external-people/empty-trash', [\App\Http\Controllers\FrequentExternalPersonController::class, 'emptyTrash'])->name('external-people.empty-trash');
+        Route::resource('external-people', \App\Http\Controllers\FrequentExternalPersonController::class);
+    });
+
+    // Dashboard Activos - Accesible por Admin, Supervisor y Visualizador
+    Route::middleware(['role:admin,supervisor,viewer'])->group(function () {
+        Route::get('/assets/dashboard', [\App\Http\Controllers\AssetController::class, 'dashboard'])->name('assets.dashboard');
+    });
 });
 
 // Rutas de cambio de contraseña forzado 
@@ -188,10 +205,12 @@ Route::middleware(['auth'])->group(function () {
 
 //
 Route::middleware(['auth', 'force.password.change'])->group(function () {
-    //gestion de usuarios
-    Route::put('users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
-    Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
-    Route::resource('users', UserController::class);
+    //gestion de usuarios - Solo Admin
+    Route::middleware(['role:admin'])->group(function () {
+        Route::put('users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+        Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])->name('users.force-delete');
+        Route::resource('users', UserController::class);
+    });
 
 
     Route::get('/assets/users-history', [\App\Http\Controllers\AssetController::class, 'usersHistoryIndex'])

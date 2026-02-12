@@ -12,28 +12,56 @@
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl p-6 mb-12 border border-gray-700">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 divide-x-0 md:divide-x divide-gray-700">
                     <div class="text-center px-4">
-                        <a href="{{ route('assets.index', ['estado' => 'available']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Disponibles</span>
-                            <span class="block text-4xl font-black text-emerald-500 group-hover:scale-110 transition-transform duration-200">{{ $countDisponible }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                            <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Disponibles</span>
+                                <span class="block text-4xl font-black text-emerald-500 transition-transform duration-200">{{ $countDisponible }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('assets.index', ['estado' => 'available']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Disponibles</span>
+                                <span class="block text-4xl font-black text-emerald-500 group-hover:scale-110 transition-transform duration-200">{{ $countDisponible }}</span>
+                            </a>
+                        @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        <a href="{{ route('assets.index', ['estado' => 'assigned']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Asignados</span>
-                            <span class="block text-4xl font-black text-blue-500 group-hover:scale-110 transition-transform duration-200">{{ $countAsignado }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                            <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Asignados</span>
+                                <span class="block text-4xl font-black text-blue-500 transition-transform duration-200">{{ $countAsignado }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('assets.index', ['estado' => 'assigned']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Asignados</span>
+                                <span class="block text-4xl font-black text-blue-500 group-hover:scale-110 transition-transform duration-200">{{ $countAsignado }}</span>
+                            </a>
+                        @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        <a href="{{ route('assets.index', ['estado' => 'written_off']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Dados de Baja</span>
-                            <span class="block text-4xl font-black text-red-500 group-hover:scale-110 transition-transform duration-200">{{ $countBaja }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                             <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Dados de Baja</span>
+                                <span class="block text-4xl font-black text-red-500 transition-transform duration-200">{{ $countBaja }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('assets.index', ['estado' => 'written_off']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Dados de Baja</span>
+                                <span class="block text-4xl font-black text-red-500 group-hover:scale-110 transition-transform duration-200">{{ $countBaja }}</span>
+                            </a>
+                        @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        <a href="{{ route('assets.index', ['estado' => 'maintenance']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
-                            <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Mantención</span>
-                            <span class="block text-4xl font-black text-amber-500 group-hover:scale-110 transition-transform duration-200">{{ $countMantenimiento }}</span>
-                        </a>
+                        @if(Auth::user()->role === 'viewer')
+                             <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Mantención</span>
+                                <span class="block text-4xl font-black text-amber-500 transition-transform duration-200">{{ $countMantenimiento }}</span>
+                            </div>
+                        @else
+                            <a href="{{ route('assets.index', ['estado' => 'maintenance']) }}" class="block group hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 transition duration-200">
+                                <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Mantención</span>
+                                <span class="block text-4xl font-black text-amber-500 group-hover:scale-110 transition-transform duration-200">{{ $countMantenimiento }}</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -46,7 +74,11 @@
                     @endphp
                     <div class="bg-gray-800 border border-gray-700 rounded-3xl overflow-hidden hover:ring-2 hover:ring-indigo-500 transition-all duration-300 group shadow-2xl relative">
                         <!-- Clickable Area for Card (except buttons) -->
-                        <div class="cursor-pointer" @click="viewingAsset = {{ Js::from($asset) }}; viewingAsset.imageUrl = '{{ $asset->foto_path ? Storage::url($asset->foto_path) : '' }}'; viewingAsset.categoryName = '{{ $asset->category->nombre ?? 'N/A' }}'; openViewModal = true">
+                        <div class="cursor-pointer" 
+                            @if(Auth::user()->role !== 'viewer')
+                                @click="viewingAsset = {{ Js::from($asset) }}; viewingAsset.imageUrl = '{{ $asset->foto_path ? Storage::url($asset->foto_path) : '' }}'; viewingAsset.categoryName = '{{ $asset->category->nombre ?? 'N/A' }}'; openViewModal = true"
+                            @endif
+                            >
                             <div class="relative h-48 bg-gray-900 overflow-hidden">
                                 @if($asset->foto_path)
                                     <img src="{{ Storage::url($asset->foto_path) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
@@ -150,6 +182,7 @@
                         </div>
                     </div>
                     <div class="mt-8 flex justify-end gap-3">
+                        @if(Auth::user()->role !== 'viewer')
                         <a :href="`{{ route('assets.index') }}?search=${viewingAsset.codigo_interno}`" 
                             class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition uppercase text-xs tracking-widest flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,6 +190,7 @@
                             </svg>
                             Ver Detalles Completos
                         </a>
+                        @endif
                         <button @click="openViewModal = false" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition uppercase text-xs tracking-widest">Cerrar</button>
                     </div>
                 </div>
