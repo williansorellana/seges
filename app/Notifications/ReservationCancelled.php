@@ -26,10 +26,12 @@ class ReservationCancelled extends Notification
 
     public function toMail($notifiable)
     {
+        $firstName = explode(' ', trim($notifiable->name))[0];
+        $firstLastName = explode(' ', trim($notifiable->last_name))[0];
         return (new MailMessage)
                     ->error()
                     ->subject('❌ Reserva Cancelada')
-                    ->greeting('Hola ' . $notifiable->name . ',')
+                    ->greeting('Hola ' . $firstName . ' ' . $firstLastName . ',')
                     ->line('Lamentamos informarte que tu reserva en ' . $this->reservation->meetingRoom->name . ' ha sido cancelada.')
                     ->line('Motivo de la cancelación: ' . $this->reason)
                     ->action('Revisar estado', route('reservations.my_reservations'))

@@ -158,25 +158,48 @@
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     
                     <div x-show="openRoomModal" 
-                         x-transition.opacity
-                         class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" 
-                         @click="openRoomModal = false"></div>
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" 
+                        @click="openRoomModal = false"></div>
 
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
                     <div x-show="openRoomModal" 
-                         x-transition.scale
-                         class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-200 dark:border-gray-700 relative z-50">
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-200 dark:border-gray-700 relative z-50">
                         
                         <div class="bg-gray-800 px-4 py-3 sm:px-6 border-b border-gray-700 flex justify-between items-center">
                             <h3 class="text-lg leading-6 font-medium text-white">Detalles de la Sala</h3>
-                            <button @click="openRoomModal = false" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                            <button @click="openRoomModal = false" class="text-gray-400 hover:text-white transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
                         </div>
 
                         <div class="px-4 py-5 sm:p-6 text-gray-100">
                             <div class="mb-4 flex justify-center">
-                                <template x-if="selectedRoom.image"><img :src="selectedRoom.image" class="w-full h-48 object-cover rounded-lg border border-gray-600 shadow-md"></template>
-                                <template x-if="!selectedRoom.image"><div class="w-full h-48 bg-gray-700 rounded-lg flex flex-col items-center justify-center text-gray-500 border border-gray-600"><svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span>Sin imagen disponible</span></div></template>
+                                <template x-if="selectedRoom.image">
+                                    <img :src="selectedRoom.image" class="w-full h-48 object-cover rounded-lg border border-gray-600 shadow-md">
+                                </template>
+                                <template x-if="!selectedRoom.image">
+                                    <div class="w-full h-48 bg-gray-700 rounded-lg flex flex-col items-center justify-center text-gray-500 border border-gray-600">
+                                        <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span>Sin imagen disponible</span>
+                                    </div>
+                                </template>
                             </div>
                             <div class="space-y-4">
                                 <div><label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Nombre</label><p class="text-lg font-bold text-white" x-text="selectedRoom.name"></p></div>
@@ -189,7 +212,7 @@
                         </div>
 
                         <div class="bg-gray-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-700">
-                            <button type="button" class="w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-gray-700 text-base font-medium text-white hover:bg-gray-600 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm" @click="openRoomModal = false">Cerrar</button>
+                            <button type="button" class="w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-gray-700 text-base font-medium text-white hover:bg-gray-600 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition-colors" @click="openRoomModal = false">Cerrar</button>
                         </div>
                     </div>
                 </div>
@@ -201,19 +224,29 @@
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                     
                     <div x-show="openCancelModal" 
-                         x-transition.opacity 
-                         class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" 
-                         @click="openCancelModal = false"></div>
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" 
+                        @click="openCancelModal = false">
+                    </div>
 
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
                     <div x-show="openCancelModal" 
-                         x-transition.scale
-                         class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border-2 border-red-500 relative z-50">
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                        class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border-2 border-red-800 relative z-50">
                         
                         <div class="bg-red-600 px-4 py-3 sm:px-6 flex items-center">
-                            <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            <h3 class="text-lg font-bold text-white">Cancelar Reserva</h3>
+                            <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <h3 class="text-lg font-bold text-white uppercase tracking-wider">Cancelar Reserva</h3>
                         </div>
 
                         <div class="px-6 py-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
@@ -222,15 +255,15 @@
                             </p>
                         </div>
 
-                        <div class="bg-gray-5 dark:bg-gray-700/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                            <form :action="cancelUrl" method="POST">
+                        <div class="bg-gray-50 dark:bg-gray-700/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                            <form :action="cancelUrl" method="POST" class="w-full sm:w-auto">
                                 @csrf
                                 @method('PUT')
-                                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm transition-all">
                                     Sí, Cancelar Reserva
                                 </button>
                             </form>
-                            <button type="button" @click="openCancelModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            <button type="button" @click="openCancelModal = false" class="mt-3 sm:mt-0 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none sm:w-auto sm:text-sm transition-all">
                                 No, Volver
                             </button>
                         </div>

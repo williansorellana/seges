@@ -27,12 +27,17 @@ class ReservationConfirmed extends Notification
     
     public function toMail($notifiable)
     {
+        $firstName = explode(' ', trim($notifiable->name))[0];
+        $firstLastName = explode(' ', trim($notifiable->last_name))[0];
         return (new MailMessage)
                     ->subject('✅ Reserva Confirmada')
-                    ->greeting('¡Hola ' . $notifiable->name . '!')
+                    ->greeting('¡Hola ' . $firstName . ' ' . $firstLastName . '!')
                     ->line('Tu reserva en ' . $this->reservation->meetingRoom->name . ' ha sido confirmada exitosamente.')
-                    ->line('Fecha: ' . $this->reservation->start_time->format('d/m/Y H:i'))
+                    ->line('Detalles del horario:')
+                    ->line('Inicio: ' . $this->reservation->start_time->format('d/m/Y H:i'))
+                    ->line('Fin:    ' . $this->reservation->end_time->format('d/m/Y H:i'))
                     ->action('Ver mis reservas', route('reservations.my_reservations'))
+                    ->line('Te recomendamos llegar puntual a la sala.')
                     ->salutation('Atte, Equipo Dimak');
                     
     }

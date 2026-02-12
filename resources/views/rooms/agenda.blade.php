@@ -220,11 +220,18 @@
         <template x-teleport="body">
             <div x-show="modalRes" x-cloak class="fixed inset-0 z-[9999] overflow-y-auto" role="dialog" aria-modal="true">
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                    <div x-show="modalRes" x-transition.opacity class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" @click="modalRes = false"></div>
+                    
+                    <div x-show="modalRes" 
+                        x-transition.opacity 
+                        class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" 
+                        @click="modalRes = false">
+                    </div>
+
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+                    
                     <div x-show="modalRes" x-transition.scale class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-200 dark:border-gray-700 relative z-50">
                         
-                        <div class="bg-green-600 px-4 py-3 border-b border-green-500 flex justify-between items-center">
+                        <div class="bg-green-800 px-4 py-3 border-b border-emerald-900 flex justify-between items-center">
                             <h3 class="text-lg leading-6 font-medium text-white">Detalles de Reserva</h3>
                             <span x-show="data.is_finished" class="px-2 py-1 bg-gray-800 text-white text-xs rounded uppercase font-bold tracking-wider">Finalizada</span>
                             <span x-show="!data.is_finished" class="px-2 py-1 bg-green-800 text-white text-xs rounded uppercase font-bold tracking-wider">En Curso</span>
@@ -279,9 +286,29 @@
         <template x-teleport="body">
             <div x-show="modalCancel" x-cloak class="fixed inset-0 z-[9999] overflow-y-auto" role="dialog" aria-modal="true">
                 <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                    <div x-show="modalCancel" x-transition.opacity class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" @click="modalCancel = false"></div>
+                    
+                    <div x-show="modalCancel" 
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" 
+                        @click="modalCancel = false">
+                    </div>
+
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-                    <div x-show="modalCancel" x-transition.scale class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border-2 border-red-500 relative z-50">
+                    
+                    <div x-show="modalCancel" 
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border-2 border-red-500 relative z-50">
+                        
                         <form method="POST" :action="cancelUrl">
                             @csrf @method('PUT')
                             <div class="bg-red-600 px-4 py-3 sm:px-6 flex items-center">
