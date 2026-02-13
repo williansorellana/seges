@@ -229,13 +229,88 @@
         </div>
 
         <x-modal name="create-room-modal" :show="$errors->any()" focusable>
-            <form method="POST" action="{{ route('rooms.store') }}" class="p-6 bg-gray-800 text-gray-100" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('rooms.store') }}" class="p-6 bg-gray-800 text-gray-100" 
+                enctype="multipart/form-data"
+                x-data="{
+                    photoPreview: null,
+                    isCompressing: false,
+                    async compressImage(file) {
+                        this.isCompressing = true;
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (event) => {
+                                const img = new Image();
+                                img.src = event.target.result;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    const MAX_WIDTH = 1200; // Ajuste para salas
+                                    let width = img.width;
+                                    let height = img.height;
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    canvas.toBlob((blob) => {
+                                        resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                                        this.isCompressing = false;
+                                    }, 'image/jpeg', 0.7);
+                                };
+                            };
+                        });
+                    }
+                }">
                 @csrf
-                <h2 class="text-lg font-medium text-gray-100 mb-4">{{ __('Nueva Sala') }}</h2>
+                <h2 class="text-xl font-bold text-white mb-6 border-b border-gray-700 pb-2">
+                    {{ __('Nueva Sala de Reuniones') }}
+                </h2>
+
+                <div class="mb-6 bg-gray-900 border border-gray-700 rounded-xl p-4">
+                    <x-input-label for="room_image" :value="__('Imagen de la Sala')" class="text-gray-300 mb-2" />
+                    
+                    <div class="mt-2 mb-4">
+                        <template x-if="photoPreview">
+                            <div class="relative inline-block w-full">
+                                <img :src="photoPreview" class="w-full h-48 object-cover rounded-lg border-2 border-indigo-500 shadow-md">
+                                <button type="button" @click="photoPreview = null; $refs.imageInput.value = ''" 
+                                    class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        </template>
+                        <template x-if="!photoPreview">
+                            <div @click="$refs.imageInput.click()" class="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-gray-800 transition group">
+                                <svg class="w-12 h-12 text-gray-500 group-hover:text-indigo-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <p class="text-sm text-gray-400 group-hover:text-indigo-300">Haz clic para subir una foto</p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <input type="file" id="room_image" name="image" class="hidden" x-ref="imageInput" accept="image/*"
+                        @change="
+                            const file = $event.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => { photoPreview = e.target.result; };
+                                reader.readAsDataURL(file);
+                                compressImage(file).then(comp => {
+                                    const dt = new DataTransfer();
+                                    dt.items.add(comp);
+                                    $refs.imageInput.files = dt.files;
+                                });
+                            }
+                        ">
+                    <x-input-error :messages="$errors->get('image')" class="mt-2" />
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <x-input-label for="name" :value="__('Nombre de la Sala')" class="text-gray-300" />
-                        <x-text-input id="name" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="text" name="name" :value="old('name')" required autofocus />
+                        <x-text-input id="name" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="text" name="name" :value="old('name')" required />
                         <x-input-error :messages="$errors->get('name')" class="mt-2" />
                     </div>
                     <div>
@@ -245,35 +320,126 @@
                     </div>
                     <div class="md:col-span-2">
                         <x-input-label for="location" :value="__('Ubicación')" class="text-gray-300" />
-                        <x-text-input id="location" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="text" name="location" :value="old('location')" />
+                        <x-text-input id="location" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="text" name="location" :value="old('location')" placeholder="Ej: Piso 2, Ala Norte" />
                     </div>
                     <div class="md:col-span-2">
-                        <x-input-label for="description" :value="__('Descripción')" class="text-gray-300" />
-                        <textarea id="description" name="description" rows="3" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm">{{ old('description') }}</textarea>
+                        <x-input-label for="description" :value="__('Descripción y Equipamiento')" class="text-gray-300" />
+                        <textarea id="description" name="description" rows="3" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Ej: Aire acondicionado, Proyector, Pizarra blanca...">{{ old('description') }}</textarea>
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <x-input-label for="status" :value="__('Estado Inicial')" class="text-gray-300" />
                         <select name="status" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm">
-                            <option value="active">Activa</option>
-                            <option value="maintenance">Mantenimiento</option>
+                            <option value="active">Activa / Disponible</option>
+                            <option value="maintenance">Fuera de Servicio / Mantenimiento</option>
                         </select>
                     </div>
-                    <div>
-                        <x-input-label for="image" :value="__('Foto (Opcional)')" class="text-gray-300" />
-                        <input type="file" name="image" class="block w-full text-sm text-gray-400 bg-gray-900 border border-gray-700 rounded-md mt-1" accept="image/*">
-                    </div>
                 </div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <x-secondary-button x-on:click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">{{ __('Cancelar') }}</x-secondary-button>
-                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent">{{ __('Guardar Sala') }}</x-primary-button>
+
+                <div class="mt-8 flex justify-end space-x-3 border-t border-gray-700 pt-4">
+                    <x-secondary-button x-on:click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                        {{ __('Cancelar') }}
+                    </x-secondary-button>
+                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent shadow-lg shadow-blue-900/20" ::disabled="isCompressing">
+                        <span x-show="!isCompressing">{{ __('Guardar Sala') }}</span>
+                        <span x-show="isCompressing">{{ __('Procesando...') }}</span>
+                    </x-primary-button>
                 </div>
             </form>
         </x-modal>
 
         <x-modal name="edit-room-modal" :show="false" focusable>
-            <form method="POST" :action="editAction" enctype="multipart/form-data" class="p-6 bg-gray-800 text-gray-100">
+            <form method="POST" :action="editAction" enctype="multipart/form-data" class="p-6 bg-gray-800 text-gray-100"
+                x-data="{
+                    photoPreview: null,
+                    isCompressing: false,
+                    async compressImage(file) {
+                        this.isCompressing = true;
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (event) => {
+                                const img = new Image();
+                                img.src = event.target.result;
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    const MAX_WIDTH = 1200;
+                                    let width = img.width;
+                                    let height = img.height;
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    canvas.toBlob((blob) => {
+                                        resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                                        this.isCompressing = false;
+                                    }, 'image/jpeg', 0.7);
+                                };
+                            };
+                        });
+                    }
+                }">
                 @csrf @method('PUT')
-                <h2 class="text-lg font-medium text-gray-100 mb-4">{{ __('Editar Sala') }}</h2>
+                
+                <h2 class="text-xl font-bold text-white mb-6 border-b border-gray-700 pb-2">
+                    {{ __('Editar Sala de Reuniones') }}
+                </h2>
+
+                <div class="mb-6 bg-gray-900 border border-gray-700 rounded-xl p-4 text-center">
+                    <x-input-label for="edit_room_image" :value="__('Imagen de la Sala')" class="text-gray-300 mb-2 text-left" />
+                    
+                    <div class="mt-2 mb-4">
+                        <template x-if="photoPreview">
+                            <div class="relative inline-block w-full">
+                                <img :src="photoPreview" class="w-full h-48 object-cover rounded-lg border-2 border-blue-500 shadow-md">
+                                <button type="button" @click="photoPreview = null; $refs.editImageInput.value = ''" 
+                                    class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition shadow-lg">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        </template>
+
+                        <template x-if="!photoPreview">
+                            <div class="relative w-full">
+                                <template x-if="editingRoom.image_url">
+                                    <img :src="editingRoom.image_url" class="w-full h-48 object-cover rounded-lg border border-gray-600 grayscale-[0.3]">
+                                </template>
+                                <template x-if="!editingRoom.image_url">
+                                    <div class="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center text-gray-500">
+                                        <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <span class="text-sm">Sin imagen actual</span>
+                                    </div>
+                                </template>
+                                
+                                <div class="mt-4">
+                                    <button type="button" @click="$refs.editImageInput.click()" 
+                                        class="inline-flex items-center px-4 py-2 bg-gray-700 border border-gray-600 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 transition">
+                                        {{ __('Cambiar Foto') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <input type="file" id="edit_room_image" name="image" class="hidden" x-ref="editImageInput" accept="image/*"
+                        @change="
+                            const file = $event.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => { photoPreview = e.target.result; };
+                                reader.readAsDataURL(file);
+                                compressImage(file).then(comp => {
+                                    const dt = new DataTransfer();
+                                    dt.items.add(comp);
+                                    $refs.editImageInput.files = dt.files;
+                                });
+                            }
+                        ">
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <x-input-label for="edit_name" :value="__('Nombre')" class="text-gray-300" />
@@ -291,21 +457,23 @@
                         <x-input-label for="edit_description" :value="__('Descripción')" class="text-gray-300" />
                         <textarea id="edit_description" name="description" rows="3" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm" x-model="editingRoom.description"></textarea>
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <x-input-label for="edit_status" :value="__('Estado')" class="text-gray-300" />
                         <select name="status" x-model="editingRoom.status" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm">
                             <option value="active">Activa</option>
                             <option value="maintenance">Mantenimiento</option>
                         </select>
                     </div>
-                    <div>
-                        <x-input-label for="edit_image" :value="__('Actualizar Foto (Opcional)')" class="text-gray-300" />
-                        <input type="file" name="image" class="block w-full text-sm text-gray-400 bg-gray-900 border border-gray-700 rounded-md mt-1" accept="image/*">
-                    </div>
                 </div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">{{ __('Cancelar') }}</x-secondary-button>
-                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent">{{ __('Actualizar') }}</x-primary-button>
+
+                <div class="mt-6 flex justify-end space-x-3 border-t border-gray-700 pt-4">
+                    <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                        {{ __('Cancelar') }}
+                    </x-secondary-button>
+                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent" ::disabled="isCompressing">
+                        <span x-show="!isCompressing">{{ __('Actualizar Sala') }}</span>
+                        <span x-show="isCompressing">{{ __('Comprimiendo...') }}</span>
+                    </x-primary-button>
                 </div>
             </form>
         </x-modal>

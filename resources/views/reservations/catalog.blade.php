@@ -20,14 +20,30 @@
 
 
             @if($errors->any())
-                <div class="mb-6 bg-red-900 border border-red-500 text-red-200 px-4 py-3 rounded relative">
-                    <strong class="font-bold">¡Atención!</strong>
-                    <ul class="list-disc list-inside">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+                <x-modal name="error-validation-modal" :show="true" focusable>
+                    <div class="p-6 bg-gray-800 text-gray-100">
+                        <div class="flex items-center mb-4 text-red-500">
+                            <svg class="w-8 h-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold">Error al realizar la reserva</h2>
+                        </div>
+                        
+                        <div class="bg-red-900/20 border border-red-500/50 rounded-lg p-4 mb-6">
+                            <ul class="list-disc list-inside text-red-200 space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li class="text-sm">{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <x-secondary-button x-on:click="$dispatch('close')" class="bg-gray-700 hover:bg-gray-600 border-gray-600 text-white px-6">
+                                Entendido
+                            </x-secondary-button>
+                        </div>
+                    </div>
+                </x-modal>
             @endif
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

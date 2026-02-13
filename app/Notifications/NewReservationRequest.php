@@ -25,17 +25,22 @@ class NewReservationRequest extends Notification
 
     public function toMail($notifiable)
     {
+        $firstNameNotifiable = explode(' ', trim($notifiable->name))[0];
+        $firstLastNameNotifiable = explode(' ', trim($notifiable->last_name))[0];
+
+        $firstNameUser = explode(' ', trim($this->reservation->user->name))[0];
+        $firstLastNameUser = explode(' ', trim($this->reservation->user->last_name))[0];
         return (new MailMessage)
                     ->subject('🔔 Nueva Solicitud de Sala')
-                    ->greeting('Hola ' . $notifiable->name . ',')
+                    ->greeting('Hola ' . $firstNameNotifiable . ' ' . $firstLastNameNotifiable . ',')
                     ->line('Se ha recibido una nueva solicitud de reserva.')
                     ->line('Sala: ' . $this->reservation->meetingRoom->name)
-                    ->line('Solicitante: ' . $this->reservation->user->name) 
+                    ->line('Solicitante: ' . $firstNameUser . ' ' . $firstLastNameUser)
                     ->line('Inicio: ' . $this->reservation->start_time->format('d/m/Y H:i'))
                     ->line('Fin:    ' . $this->reservation->end_time->format('d/m/Y H:i'))
                     ->action('Gestionar Solicitudes', route('rooms.index'))
                     ->line('Por favor, revisa la solicitud lo antes posible.')
-                    ->salutation('Gestion de Reservas');
+                    ->salutation('Gestión de Reservas');
     }
 
     public function toArray($notifiable)
