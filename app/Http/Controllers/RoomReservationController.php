@@ -90,8 +90,22 @@ class RoomReservationController extends Controller
             'status' => 'pending' 
         ]);
 
-        $admins = User::where('role', ['admin', 'supervisor'])->get(); 
-        Notification::send($admins, new NewReservationRequest($reservation));
+        $recipients = User::where('is_active', true)
+            ->where(function($query) {
+                $query->where('role', 'admin') // Admins siempre reciben
+                    ->orWhere(function($q) {
+                        $q->where('role', 'supervisor')
+                            ->where(function($sq) {
+                                // Filtra supervisores que tengan 'all' o 'salas'
+                                $sq->whereJsonContains('authorized_modules', 'all')
+                                ->orWhereJsonContains('authorized_modules', 'salas');
+                            });
+                    });
+            })->get();
+
+        if ($recipients->count() > 0) {
+            Notification::send($recipients, new NewReservationRequest($reservation));
+        }
 
         return redirect()->route('reservations.my_reservations')->with('success', 'Solicitud enviada correctamente.');
     }
