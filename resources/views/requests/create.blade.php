@@ -234,7 +234,7 @@
                         </div>
 
                         <!-- PASO 3: Conductor (Opcional - Admin) -->
-                        @if(Auth::user()->role === 'admin')
+                        @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
                             <div class="space-y-6 pt-8">
                                 <div class="flex items-center space-x-3 border-b border-gray-200 dark:border-gray-700 pb-4">
                                     <div
