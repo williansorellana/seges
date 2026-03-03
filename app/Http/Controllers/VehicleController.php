@@ -170,9 +170,16 @@ class VehicleController extends Controller
             'fuel_type' => 'required|string|in:diesel,gasoline,electric,hybrid',
             'image' => 'nullable|image|max:2048',
             'status' => 'required|string',
+            // Validaciones agregadas para la documentación
+            'soap_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'soap_expires_at' => 'nullable|date',
+            'permit_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'permit_expires_at' => 'nullable|date',
+            'technical_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'technical_expires_at' => 'nullable|date',
         ]);
 
-        $data = $request->except(['image']);
+        $data = $request->except(['image', 'soap_file', 'soap_expires_at', 'permit_file', 'permit_expires_at', 'technical_file', 'technical_expires_at']);
 
         if ($request->hasFile('image')) {
             // Eliminar imagen anterior si existe
@@ -185,7 +192,12 @@ class VehicleController extends Controller
 
         $vehicle->update($data);
 
-        return redirect()->back()->with('success', 'Vehículo actualizado exitosamente.');
+        // Actualizar documentos (fechas y/o archivos)
+        $this->updateDocument($vehicle, $request, 'soap_file', 'insurance', 'soap_expires_at');
+        $this->updateDocument($vehicle, $request, 'permit_file', 'permit', 'permit_expires_at');
+        $this->updateDocument($vehicle, $request, 'technical_file', 'technical_review', 'technical_expires_at');
+
+        return redirect()->back()->with('success', 'Vehículo y documentación actualizados exitosamente.');
     }
 
     /**
@@ -261,7 +273,7 @@ class VehicleController extends Controller
         return redirect()->route('vehicles.trash')->with('success', 'Papelera vaciada.');
     }
 
-    // Helper para guardar documentos
+    // Helper para guardar documentos (creación)
     private function storeDocument($vehicle, $request, $fileInputName, $type, $expiresAt)
     {
         if ($request->hasFile($fileInputName)) {
@@ -271,6 +283,48 @@ class VehicleController extends Controller
                 'type' => $type,
                 'file_path' => $path,
                 'expires_at' => $expiresAt,
+            ]);
+        }
+    }
+
+    // Helper para actualizar documentos (edición): actualiza fecha y/o archivo
+    private function updateDocument($vehicle, $request, $fileInputName, $type, $expiresAtField)
+    {
+        $document = $vehicle->documents()->where('type', $type)->first();
+
+        $newExpiresAt = $request->filled($expiresAtField) ? $request->input($expiresAtField) : null;
+        $hasNewFile = $request->hasFile($fileInputName);
+
+        // Si no hay nada nuevo que guardar, no hacemos nada
+        if (!$newExpiresAt && !$hasNewFile) {
+            return;
+        }
+
+        if ($document) {
+            // Actualizar fecha si se proporcionó
+            if ($newExpiresAt) {
+                $document->expires_at = $newExpiresAt;
+            }
+
+            // Reemplazar archivo si se subió uno nuevo
+            if ($hasNewFile) {
+                if ($document->file_path) {
+                    Storage::disk('public')->delete($document->file_path);
+                }
+                $document->file_path = $request->file($fileInputName)->store('vehicle_documents', 'public');
+            }
+
+            $document->save();
+        } else {
+            // El documento no existía aún — crearlo
+            $filePath = $hasNewFile
+                ? $request->file($fileInputName)->store('vehicle_documents', 'public')
+                : null;
+
+            $vehicle->documents()->create([
+                'type' => $type,
+                'file_path' => $filePath,
+                'expires_at' => $newExpiresAt,
             ]);
         }
     }

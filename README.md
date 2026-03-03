@@ -1,59 +1,111 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Plataforma de Gestión - Secretaría y Gerencia
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web integral desarrollado para la centralización y administración operativa. Permite la gestión eficiente y auditada de la **flota de vehículos**, **solicitudes de recursos**, **activos e inventario** corporativo, y **salas de reuniones**, con un potente sistema de roles y reportes en PDF.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Módulos y Características Principales
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🚙 Gestión de Vehículos y Flota
+* **Catálogo de Vehículos**: Registro completo, información de patentes, modelos y estado general. Incluye papelera de reciclaje (Soft Deletes).
+* **Reservas y Solicitudes**: Flujo de aprobación para solicitudes de vehículos (locales o fuera de la ciudad), con registro de acompañantes y justificación.
+* **Mantenimiento**: Control de estado mecánico, ingreso a taller, historial de mantenimientos y alertas.
+* **Combustible**: Registro detallado de cargas de combustible para control de consumo y eficiencia.
+* **Documentación y Hojas de Ruta**: Archivo fotográfico de entrega y devolución del vehículo (Check-in/Check-out).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 💻 Gestión de Activos (Equipos)
+* **Inventario Centralizado**: Registro de activos por categoría, con panel de control (Dashboard) dinámico.
+* **Asignaciones**: Entrega de equipos a personal interno (Usuarios) o externo (Trabajadores), registrando actas de entrega en PDF y respaldos fotográficos.
+* **Etiquetado e Identificación**: Generación nativa de hojas con **Códigos de Barras** para trazabilidad física de los equipos.
+* **Bajas y Daños**: Reporte fotográfico de activos en mal estado y proceso de dar de baja equipos obsoletos.
 
-## Learning Laravel
+### 🏢 Gestión de Salas de Reuniones
+* **Catálogo de Salas**: Visualización rápida de las capacidades y disponibilidad de salas de reunión.
+* **Sistema de Agenda**: Agenda y reserva para personal de planta o solicitudes externas.
+* **Reportes Mensuales**: Exportación de reportes de uso y ocupación de las instalaciones.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 🛡️ Roles y Accesos (RBAC)
+Sistema de múltiples niveles de autorización:
+* **Admin**: Acceso y control total del sistema, auditorías, restauraciones de papelera y configuraciones críticas.
+* **Supervisor**: Capacidad para aprobar o rechazar solicitudes operativas (vehículos, salas).
+* **Driver / Worker**: Empleados regulares que pueden ver disponibilidad, solicitar vehículos, adjudicarse activos y revisar su *"Mis Reservas"*.
+* **Viewer**: Modo de sólo vista para visualizar el estado general operativo.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 🛠️ Stack Tecnológico
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+El proyecto está construido sobre un ecosistema moderno y robusto enfocado en la velocidad y escalabilidad.
 
-### Premium Partners
+* **Backend:** PHP 8.2+ / [Laravel 12.x](https://laravel.com/)
+* **Frontend:** Blade Templates y [Livewire 4](https://livewire.laravel.com/) para interacciones dinámicas en tiempo real sin recargar página.
+* **Base de Datos:** MySQL / MariaDB (o SQLite para entorno de desarrollo local).
+* **Dependencias Clave:**
+  * `barryvdh/laravel-dompdf`: Generación de actas, historiales y reportes en formato PDF.
+  * `intervention/image`: Manipulación, optimización y recorte de fotografías subidas.
+  * `picqer/php-barcode-generator`: Creación de códigos de barra para inventariado.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## ⚙️ Instrucciones de Instalación (Entorno Local)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Para ejecutar este proyecto en tu computadora, asegúrate de tener instalado PHP 8.2+, Composer, Node.js y un motor de base de datos.
 
-## Code of Conduct
+1. **Clonar el repositorio y entrar al directorio:**
+   ```bash
+   git clone <url-del-repositorio>
+   cd secretaria-gerencia
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. **Instalar dependencias de PHP y Node:**
+   ```bash
+   composer install
+   npm install
+   ```
 
-## Security Vulnerabilities
+3. **Configurar el entorno:**
+   Copia el archivo de ejemplo para crear tu propio `.env`.
+   ```bash
+   cp .env.example .env
+   ```
+   *Edita el archivo `.env` agregado tus credenciales de base de datos locales (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).*
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4. **Generar la llave de la aplicación:**
+   ```bash
+   php artisan key:generate
+   ```
 
-## License
+5. **Preparar la base de datos y Storage:**
+   Ejecuta las migraciones y activa el enlace simbólico para poder ver las fotografías subidas.
+   ```bash
+   php artisan migrate --seed
+   php artisan storage:link
+   ```
+   *(El flag `--seed` poblará la base de datos con categorías y datos de prueba si están disponibles).*
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+6. **Ejecutar el servidor de desarrollo:**
+   Necesitarás dos consolas. Una para el servidor PHP y otra para compilar los recursos visuales Vite.
+   ```bash
+   # Consola 1:
+   php artisan serve
+
+   # Consola 2:
+   npm run dev
+   ```
+   El sitio estará disponible en [http://localhost:8000](http://localhost:8000).
+
+---
+
+## ⏰ Tareas Programadas (Cron Jobs)
+
+El sistema incluye comandos automatizados que revisan proactivamente las fechas importantes y envían alertas (Ej: *Vencimiento de Licencias de Conducir, Alertas de Mantenimiento, Expiración de Documentación de Vehículos*). 
+
+En el servidor de producción, se debe añadir la siguiente línea al Crontab del usuario del sistema para que se ejecuten automáticamente:
+
+```bash
+* * * * * cd /ruta-a-tu-proyecto && php artisan schedule:run >> /dev/null 2>&1
+```
+
+---
+
+*Desarrollado para el departamento de Secretaría y Gerencia.*
