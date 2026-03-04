@@ -21,5 +21,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Categorías de activos (necesarias para el módulo de inventario)
+        $this->call([
+            AssetCategorySeeder::class,
+        ]);
     }
 }
