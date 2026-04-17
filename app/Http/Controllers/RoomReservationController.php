@@ -94,11 +94,11 @@ class RoomReservationController extends Controller
         ]);
 
         //vamos a dejar que solo los supervisores con modulo rooms les lleguen las notificaciones.
-        $recipients = User::where('is_active', true)
+        $recipients = User::where('is_active', 1)
             ->where('role', 'supervisor')
             ->where(function($sq) {
-                $sq->whereJsonContains('authorized_modules', 'all')
-                   ->orWhereJsonContains('authorized_modules', 'rooms');
+                $sq->whereJsonContains('authorized_modules', 'rooms')
+                   ->orWhereJsonContains('authorized_modules', 'all');
                 })
             ->get();
 
