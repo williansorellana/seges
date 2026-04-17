@@ -53,10 +53,12 @@ class RoomReservationController extends Controller
         ]);
         $timezone = 'America/Santiago';
 
+        //parsea en horario local
         $start = Carbon::parse($request->start_time, $timezone);
         $end = Carbon::parse($request->end_time, $timezone);
         $now = Carbon::now($timezone);
 
+        //no modificaremos $now pero añadiremos una función que permite comprobar mejor la fecha
         if ($start->lt($now->subMinute())) {
             return back()->withErrors(['start_time' => '⚠️ No puedes reservar en una fecha u hora pasada (Hora actual: ' . $now->format('H:i') . ').']);
         }
@@ -65,6 +67,7 @@ class RoomReservationController extends Controller
             return back()->withErrors(['end_time' => '⚠️ La hora de término debe ser después del inicio.']);
         }
         
+        //verificación de solapamiento (todo en horario local)
         $exists = RoomReservation::where('meeting_room_id', $request->meeting_room_id)
             ->where('status', 'approved')
             ->where(function ($query) use ($start, $end) {
@@ -78,7 +81,7 @@ class RoomReservationController extends Controller
             return back()->withErrors(['error' => '⚠️ Lo sentimos, ya existe una reserva en ese intervalo de horario. Por favor revisa la disponibilidad.']);
         }
 
-      
+        //creamos la reserva (guarda en horario local)
         $reservation = RoomReservation::create([
             'user_id' => Auth::id(),
             'meeting_room_id' => $request->meeting_room_id,
@@ -90,18 +93,14 @@ class RoomReservationController extends Controller
             'status' => 'pending' 
         ]);
 
+        //vamos a dejar que solo los supervisores con modulo rooms les lleguen las notificaciones.
         $recipients = User::where('is_active', true)
-            ->where(function($query) {
-                $query->where('role', 'admin') // Admins siempre reciben
-                    ->orWhere(function($q) {
-                        $q->where('role', 'supervisor')
-                            ->where(function($sq) {
-                                // Filtra supervisores que tengan 'all' o 'salas'
-                                $sq->whereJsonContains('authorized_modules', 'all')
-                                ->orWhereJsonContains('authorized_modules', 'salas');
-                            });
-                    });
-            })->get();
+            ->where('role', 'supervisor')
+            ->where(function($sq) {
+                $sq->whereJsonContains('authorized_modules', 'all')
+                   ->orWhereJsonContains('authorized_modules', 'rooms');
+                })
+            ->get();
 
         if ($recipients->count() > 0) {
             Notification::send($recipients, new NewReservationRequest($reservation));
@@ -182,27 +181,47 @@ class RoomReservationController extends Controller
 
         return redirect()->back()->with('success', 'Reserva cancelada correctamente.');
     }
-
-    public function availability(MeetingRoom $room)
+    //actualizacion de disponibilidad de salas, porque cuando se hacia una reserva de varios días esta no se reflejaba en la agenda.
+    public function availability(Request $request,MeetingRoom $room)
     {
-        
-        $reservations = $room->reservations()
-            ->whereIn('status', ['approved'])
-            ->where('start_time', '>=', now()->startOfMonth()->subDays(7))
-            ->get() 
-            ->map(function ($res) {
-                return [
-                    
-                    'day' => (int)$res->start_time->format('d'),
-                    'month' => (int)$res->start_time->format('m') - 1, 
-                    'year' => (int)$res->start_time->format('Y'),
-                    'start_time' => $res->start_time->format('H:i'),
-                    'end_time' => $res->end_time->format('H:i'),
-                    'status' => $res->status
-                ];
-            });
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year', now()->year);
 
-        return response()->json($reservations);
+        $startOfMonth =\Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+        $endOfMonth = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
+
+        $reservations = $room -> reservations()
+            ->where('status', 'approved')
+            ->where(function ($query) use ($startOfMonth, $endOfMonth) {
+                $query->where('start_time', '<=', $endOfMonth)
+                      ->where('end_time', '>=', $startOfMonth);
+            })
+            ->get();
+        
+        $expanded = collect();
+        foreach ($reservations as $res) {
+            if(!$res->star_time || !$res->end_time){
+                continue;
+            }
+
+            $start = $res->start_time->copy()->startOfDay();
+            $end = $res->end_time->copy()->startOfDay();
+
+            for($date = $start->copy(); $date->lte($end); $date->addDay()){
+                if($date->between($startOfMonth, $endOfMonth)){
+                    $expanded->push([
+                        'day'        => (int) $date->format('d'),
+                        'month'      => (int) $date->format('m') - 1,
+                        'year'       => (int) $date->format('Y'),
+                        'start_time' => $res->start_time->format('H:i'),
+                        'end_time'   => $res->end_time->format('H:i'),
+                        'status'     => $res->status,
+                    ]);
+                }
+            }
+        }
+
+        return response()->json($expanded);
     }
 
     public function history()
@@ -221,18 +240,37 @@ class RoomReservationController extends Controller
         $month = $request->input('month', now()->month);
         $year  = $request->input('year', now()->year);
 
-        
-        $reservations = RoomReservation::with(['user', 'meetingRoom'])
-            ->where('status', 'approved')
-            ->whereMonth('start_time', $month)
-            ->whereYear('start_time', $year)
-            ->orderBy('start_time', 'asc') 
-            ->get()
-            ->groupBy(function($val) {
-                
-                return $val->start_time->format('Y-m-d');
-            });
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfMonth();
+        $endOfMonth = Carbon::create($year, $month, 1)->endOfMonth();
 
+        $reservationsRaw = RoomReservation::with(['user','meetingRoom'])
+            ->where('status', 'approved')
+            ->where(function ($query) use ($startOfMonth, $endOfMonth) {
+                $query->where('start_time', '<=', $endOfMonth)
+                      ->where('end_time', '>=', $startOfMonth);
+            })
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        $reservations = collect();
+        
+        foreach ($reservationsRaw as $reservation){
+            $start = \Carbon\Carbon::parse($reservation->start_time)->startOfDay();
+            $end = \Carbon\Carbon::parse($reservation->end_time)->startOfDay();
+            for ($date = $start->copy(); $date->lte($end); $date->addDay()){
+                if ($date->between($startOfMonth, $endOfMonth)){
+                     
+                    $key = $date ->format('Y-m-d');
+
+                    if(!reservations->has($key)){
+                        $reservations->put($key, collect());
+                    }
+
+                    $reservations[$key]->push($reservation);
+                }
+            }
+        }
+        
         return view('rooms.agenda', compact('reservations', 'month', 'year'));
     }
     public function cancelByAdmin(Request $request, $id)
