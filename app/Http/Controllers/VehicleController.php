@@ -102,13 +102,18 @@ class VehicleController extends Controller
      */
     public function store(Request $request)
     {
+        //conversión de kilometraje recogida desde el input, corrección de formato de número con comas o puntos.
+        $request ->merge([
+            'mileage' => str_replace(',', '.', $request->mileage),
+        ])
+
         $request->validate([
             'plate' => 'required|string|unique:vehicles,plate|max:10',
             'serial_number' => 'nullable|string|max:50',
             'brand' => 'required|string|max:50',
             'model' => 'required|string|max:50',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
-            'mileage' => 'required|numeric|min:0',
+            'mileage' => 'required|integer|min:0', //para mayor compatibilidad cambiamos a integer.
             'fuel_type' => 'required|string|in:diesel,gasoline,electric,hybrid',
             'image' => 'nullable|image|max:2048', // 2MB Max
             // Documentos opcionales al crear
@@ -160,13 +165,18 @@ class VehicleController extends Controller
      */
     public function update(Request $request, Vehicle $vehicle)
     {
+        //aquí también convertimos el kilometraje para evitar problemas de formato al editar.
+        $request ->merge([
+            'mileage' => str_replace(',', '.', $request->mileage),
+        ]);
+
         $request->validate([
             'plate' => ['required', 'string', 'max:10', Rule::unique('vehicles')->ignore($vehicle->id)],
             'serial_number' => 'nullable|string|max:50',
             'brand' => 'required|string|max:50',
             'model' => 'required|string|max:50',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
-            'mileage' => 'required|numeric|min:0',
+            'mileage' => 'required|integer|min:0', //seguimos usando integer para evitar problemas de formato, aunque podríamos considerar decimal si es necesario.
             'fuel_type' => 'required|string|in:diesel,gasoline,electric,hybrid',
             'image' => 'nullable|image|max:2048',
             'status' => 'required|string',
