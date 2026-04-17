@@ -199,9 +199,15 @@ class VehicleRequestController extends Controller
             }
         }
 
-        // Notificar a administradores
-        $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new NewVehicleRequestNotification($vehicleRequest));
+        // Notificar a supervisores
+        $recipients = User::where('is_active', 1)
+            ->where('role','supervisor')
+            ->where(function($q){
+                $q->whereJsonContains('authorized_modules', 'vehicles')
+                    ->orWhereJsonContains('authorized_modules', 'all');
+            })
+            ->get();
+        Notification::send($recipients, new NewVehicleRequestNotification($vehicleRequest));
 
         return redirect()->route('requests.create')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
     }
@@ -241,6 +247,9 @@ class VehicleRequestController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $reason
         ]);
+
+        //liberar el vehiculo si estaba ocupado por esta solicitud (en caso de que se aprobara antes y luego se decidiera rechazar, aunque no es el flujo típico).
+        $request->vehicle->update(['status' => 'available']);
 
         // Notificar usuario
         $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'rejected', $reason));
@@ -342,7 +351,7 @@ class VehicleRequestController extends Controller
 
         // Validar que sea el usuario correcto o admin (asumimos lógica similar a complete o approve)
         // Por seguridad, si no es admin, debería ser el dueño de la request
-        if (Auth::user()->role !== 'admin' && $vehicleRequest->user_id !== Auth::id()) {
+        if (Auth::user()->role !== 'supervisor' && $vehicleRequest->user_id !== Auth::id()) {
             abort(403, 'No autorizado para finalizar esta asignación.');
         }
 
