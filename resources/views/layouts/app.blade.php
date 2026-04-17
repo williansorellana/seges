@@ -45,6 +45,25 @@
     </div>
     <x-toast />
     @livewireScripts
+    <script>
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+
+            // Evita ejecutar dos veces
+            if (form.dataset.submitted === "true") {
+                e.preventDefault();
+                return;
+            }
+
+            form.dataset.submitted = "true";
+
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Procesando...';
+            }
+        });
+    </script>
 </body>
 
 </html>
