@@ -12,6 +12,30 @@ use App\Http\Controllers\VehicleReturnController;
 use App\Http\Controllers\MeetingRoomController;
 use App\Http\Controllers\RoomReservationController;
 
+//*RUTAS PARA EL MODULO DE RENDICIONES FASE 1, ACTIVAR CUANDO LAS DEMAS FASES ESTEN LISTAS*//
+// use App\Livewire\DashboardRendiciones;
+// use App\Livewire\CrearPlanificacion;
+// use App\Livewire\AprobacionFinanzas;
+// use App\Livewire\CrearRendicion;
+
+//Route::middleware(['auth'])->group(function () {
+
+//    Route::prefix('rendiciones')->group(function () {
+
+//        Route::get('/', DashboardRendiciones::class)->name('rendiciones.dashboard');
+
+//        Route::get('/planificacion', CrearPlanificacion::class)->name('rendiciones.planificacion');
+
+//        Route::get('/aprobaciones', AprobacionFinanzas::class)->name('rendiciones.aprobaciones');
+
+//        Route::get('/rendir', CrearRendicion::class)->name('rendiciones.rendir');
+
+//    });
+
+//}); 
+
+
+
 // Página de inicio
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
