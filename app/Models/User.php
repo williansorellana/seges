@@ -13,6 +13,11 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 
+    //Aquí implementamos la notificación personalizada para verificación de email.
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\VerifyEmailCustom);
+    }
     /**
      * Los atributos que se pueden asignar de forma masiva.
      *
