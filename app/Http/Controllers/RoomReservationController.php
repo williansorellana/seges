@@ -200,7 +200,7 @@ class RoomReservationController extends Controller
         
         $expanded = collect();
         foreach ($reservations as $res) {
-            if(!$res->star_time || !$res->end_time){
+            if(!$res->start_time || !$res->end_time){
                 continue;
             }
 
@@ -216,6 +216,7 @@ class RoomReservationController extends Controller
                         'start_time' => $res->start_time->format('H:i'),
                         'end_time'   => $res->end_time->format('H:i'),
                         'status'     => $res->status,
+                        'purpose'    => $res->purpose,
                     ]);
                 }
             }

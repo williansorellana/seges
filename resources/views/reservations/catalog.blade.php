@@ -255,7 +255,10 @@
                             <template x-for="evt in dayEvents">
                                 <div
                                     class="flex justify-between items-center bg-gray-900/50 p-2 rounded text-sm border border-gray-600">
-                                    <span class="text-white" x-text="evt.time"></span>
+                                    <div>
+                                        <span class="text-white" x-text="evt.time"></span>
+                                        <span class="text-gray-400" x-text="evt.purpose"></span>
+                                    </div>
                                     <span class="text-xs px-2 py-0.5 rounded bg-red-900 text-red-200">OCUPADO</span>
                                 </div>
                             </template>
@@ -375,7 +378,8 @@
                             date: e.day,
                             month: e.month,
                             year: e.year,
-                            time: e.start_time + ' - ' + e.end_time
+                            time: e.start_time + ' - ' + e.end_time,
+                            purpose: e.purpose
                         }));
                     } catch (err) { console.error(err); }
                 },
