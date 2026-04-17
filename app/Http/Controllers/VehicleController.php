@@ -104,7 +104,7 @@ class VehicleController extends Controller
     {
         //conversión de kilometraje recogida desde el input, corrección de formato de número con comas o puntos.
         $request ->merge([
-            'mileage' => str_replace(',', '.', $request->mileage),
+            'mileage' => str_replace('.', '', $request->mileage),
         ])
 
         $request->validate([
@@ -167,7 +167,7 @@ class VehicleController extends Controller
     {
         //aquí también convertimos el kilometraje para evitar problemas de formato al editar.
         $request ->merge([
-            'mileage' => str_replace(',', '.', $request->mileage),
+            'mileage' => str_replace('.', '', $request->mileage),
         ]);
 
         $request->validate([
