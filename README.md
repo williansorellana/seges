@@ -68,7 +68,8 @@ Para ejecutar este proyecto en tu computadora, asegúrate de tener instalado PHP
    ```bash
    cp .env.example .env
    ```
-   *Edita el archivo `.env` agregado tus credenciales de base de datos locales (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).*
+   *Edita el archivo `.env` agregado tus credenciales de base de datos locales (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+   además en la configuracion de EMAIL agregamos MAIL_ENCRYPTION=null*
 
 4. **Generar la llave de la aplicación:**
    ```bash
