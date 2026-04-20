@@ -103,9 +103,9 @@ class VehicleController extends Controller
     public function store(Request $request)
     {
         //conversión de kilometraje recogida desde el input, corrección de formato de número con comas o puntos.
-        $request ->merge([
+        $request->merge([
             'mileage' => str_replace('.', '', $request->mileage),
-        ])
+        ]);
 
         $request->validate([
             'plate' => 'required|string|unique:vehicles,plate|max:10',

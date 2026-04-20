@@ -219,15 +219,17 @@ class VehicleRequestController extends Controller
     {
         $request = VehicleRequest::findOrFail($id);
 
-        // Verificar conflicto nuevamente por seguridad
-        if (!$request->vehicle->isAvailable($request->start_date, $request->end_date)) {
-            return back()->with('error', 'No se puede aprobar: Existe conflicto de fechas con otra reserva aprobada.');
+        // actualizado para validar que solo se puedan aprobar solicitudes pendientes, evitando conflictos de estado
+        if ($request->status !== 'pending') {
+        return back()->with('error', 'Esta solicitud ya fue procesada.');
+        }
+        
+         if (!$request->vehicle->isAvailable($request->start_date, $request->end_date)) {
+        return back()->with('error', 'No se puede aprobar: Existe conflicto de fechas con otra reserva aprobada.');
         }
 
         $request->update(['status' => 'approved']);
-
         $request->vehicle->update(['status' => 'occupied']);
-
         // Notificar usuario
         $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'approved'));
 
@@ -240,21 +242,23 @@ class VehicleRequestController extends Controller
     public function reject(Request $req, $id)
     {
         $request = VehicleRequest::findOrFail($id);
+        
+        if ($request->status !== 'pending') {
+        return back()->with('error', 'Esta solicitud ya fue procesada.');
+
+        }
 
         $reason = $req->input('rejection_reason');
 
         $request->update([
-            'status' => 'rejected',
-            'rejection_reason' => $reason
+        'status' => 'rejected',
+        'rejection_reason' => $reason
         ]);
 
-        //liberar el vehiculo si estaba ocupado por esta solicitud (en caso de que se aprobara antes y luego se decidiera rechazar, aunque no es el flujo típico).
         $request->vehicle->update(['status' => 'available']);
-
-        // Notificar usuario
         $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'rejected', $reason));
-
         return back()->with('success', 'Reserva rechazada.');
+
     }
 
     /**

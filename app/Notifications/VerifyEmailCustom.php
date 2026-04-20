@@ -16,7 +16,7 @@ class VerifyEmailCustom extends VerifyEmail
             ->greeting('¡Hola!')
             ->line('Por favor, haz clic en el botón para verificar tu cuenta.')
             ->action('Verificar Correo', $verificationUrl)
-            ->line('Si no creaste esta cuenta, puedes ignorar este mensaje.');
+            ->line('Si no creaste esta cuenta, puedes ignorar este mensaje.')
             ->salutation('App de Secretaría y Gerencia');
 
 
