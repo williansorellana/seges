@@ -6,7 +6,7 @@
 
 <aside x-data="{ 
         open: true, 
-        vehicleMenu: {{ request()->routeIs('dashboard', 'vehicles.*', 'conductores.*', 'requests.*', 'admin.returns.*') ? 'true' : 'false' }}, 
+        vehicleMenu: {{ request()->routeIs('vehicles.*', 'conductores.*', 'requests.*', 'admin.returns.*') ? 'true' : 'false' }},
         roomMenu: {{ request()->routeIs('rooms.*', 'reservations.*') ? 'true' : 'false' }},
         assetMenu: {{ request()->routeIs('assets.*', 'workers.*') ? 'true' : 'false' }}
     }" :class="{
@@ -78,17 +78,17 @@
                     class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
 
                     @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']))
-                        <a href="{{ route('dashboard') }}" wire:navigate
+                        <a href="{{ route('vehicles.dashboard') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                            :class="{{ request()->routeIs('dashboard') ? "'text-white bg-gray-800'" : "''" }}">
-                            Dashboard
+                            :class="{{ request()->routeIs('vehicles.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
+                            Panel de Vehículos
                         </a>
                     @endif
 
                     @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
                         <a href="{{ route('vehicles.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                            :class="{{ request()->routeIs('vehicles.*') ? "'text-white bg-gray-800'" : "''" }}">
+                            :class="{{ request()->routeIs('vehicles.index') ? "'text-white bg-gray-800'" : "''" }}">
                             Gestión de Vehículos
                         </a>
                         <a href="{{ route('conductores.index') }}" wire:navigate
@@ -164,7 +164,7 @@
                         <a href="{{ route('reservations.create_external') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
                             :class="{{ request()->routeIs('reservations.create_external') ? "'text-white bg-gray-800'" : "'text-gray-400 hover:text-white hover:bg-gray-800'" }}">
-                            Hacer Reserva
+                            Reseva Manual
                         </a>
 
                         <a href="{{ route('rooms.index') }}" wire:navigate
@@ -217,7 +217,7 @@
                         <a href="{{ route('assets.dashboard') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('assets.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
-                            Dashboard
+                            Panel de Activos
                         </a>
                     @endif
 

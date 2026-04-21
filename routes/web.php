@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ConductorController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\MaintenanceController;
@@ -11,16 +12,35 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleReturnController;
 use App\Http\Controllers\MeetingRoomController;
 use App\Http\Controllers\RoomReservationController;
+use App\Http\Controllers\AssetController;
 
 // Página de inicio
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-// Dashboard - Accesible para Admin, Supervisor, Driver (Trabajador interno) y Viewer
-Route::get('/dashboard', [VehicleController::class, 'index'])
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
     ->name('dashboard');
+
+    // Panel de Vehiculos
+Route::get('/vehicles/dashboard', [VehicleController::class, 'index'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
+    ->name('vehicles.dashboard');
+
+    // Gestión de Activos
+Route::get('/assets/dashboard', [AssetController::class, 'dashboard'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->name('assets.dashboard');
+
+    // Gestion de Salas
+Route::get('/salas/dashboard', [RoomReservationController::class, 'index'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->name('salas.dashboard');
+
+Route::get('/reservar-sala', function () {
+    return redirect()->route('salas.dashboard');
+});
 
 // Grupo de rutas para el perfil de usuario
 Route::middleware('auth')->group(function () {
@@ -61,8 +81,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/conductores/{conductor}', [ConductorController::class, 'update'])->name('conductores.update');
         Route::delete('/conductores/{conductor}', [ConductorController::class, 'destroy'])->name('conductores.destroy');
     });
-
-
 
     // Gestión de Salas 
     // Gestión de Salas - Catálogo y Disponibilidad (Accesible para todos, incl. Viewer)
@@ -147,8 +165,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::post('/notifications/mark-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAll');
 
-    // Gestión de Activos
-    Route::get('/assets/dashboard', [\App\Http\Controllers\AssetController::class, 'dashboard'])->name('assets.dashboard');
     // Gestión de Activos - Admin y Supervisor
     Route::middleware(['role:admin,supervisor'])->group(function () {
         Route::get('/assets/reports', [\App\Http\Controllers\AssetReportController::class, 'index'])->name('assets.reports.index');
