@@ -62,8 +62,8 @@ class VehicleController extends Controller
             ->get();
 
         // Si la ruta es dashboard
-        if ($request->routeIs('dashboard')) {
-            return view('dashboard', compact(
+        if ($request->routeIs('vehicles.dashboard')) {
+            return view('vehicles.dashboard', compact(
                 'vehicles',
                 'totalVehicles',
                 'countDisponible',
@@ -105,7 +105,7 @@ class VehicleController extends Controller
         //conversión de kilometraje recogida desde el input, corrección de formato de número con comas o puntos.
         $request ->merge([
             'mileage' => str_replace('.', '', $request->mileage),
-        ])
+        ]);
 
         $request->validate([
             'plate' => 'required|string|unique:vehicles,plate|max:10',
