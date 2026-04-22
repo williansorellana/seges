@@ -191,16 +191,6 @@
         @endif
 
         <!-- Módulo Activos -->
-
-        <!-- Sidebar del modulo de rendiciones, ver donde ponerlo entre todo esto XD
-        <li>
-            <a href="{{ route('rendiciones.dashboard') }}">
-                    Rendiciones
-            </a>
-        </li>
-        me sorprende que no tira nada, lo detecta como documentado, osea lo es, pero XD-->
-
-        <!-- Módulo Activos -->
         @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']) && Auth::user()->hasModuleAccess('assets'))
             <div>
                 <button
