@@ -263,7 +263,7 @@ class RoomReservationController extends Controller
                      
                     $key = $date ->format('Y-m-d');
 
-                    if(!reservations->has($key)){
+                    if(!$reservations->has($key)){
                         $reservations->put($key, collect());
                     }
 
