@@ -75,7 +75,7 @@ class VehicleRequestController extends Controller
 
         $vehicles = Vehicle::whereNotIn('status', ['maintenance', 'out_of_service'])->get();
 
-        $conductors = ($user->role === 'admin') ? \App\Models\Conductor::all() : collect([]);
+        $conductors = in_array($user->role, ['admin', 'supervisor']) ? \App\Models\Conductor::all() : collect([]);
 
         // Obtener usuarios activos para acompañantes
         $users = \App\Models\User::where('is_active', true)
@@ -158,11 +158,11 @@ class VehicleRequestController extends Controller
             'destination_type' => $request->destination_type,
             'origin' => $request->origin,
             'destination' => $request->destination,
-            'conductor_id' => ($user->role === 'admin' && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
+            'conductor_id' => (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
         ]);
 
         // Manejo de nuevo conductor si se solicita
-        if ($user->role === 'admin' && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
+        if (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
 
             // Verificar si se debe guardar permanentemente
             if ($request->has('save_conductor_permanently') && $request->save_conductor_permanently) {
@@ -230,7 +230,7 @@ class VehicleRequestController extends Controller
             ->get();
         Notification::send($recipients, new NewVehicleRequestNotification($vehicleRequest));
 
-        return redirect()->route('requests.create')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
+        return redirect()->route('requests.index')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
     }
 
     /**
