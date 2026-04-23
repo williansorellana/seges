@@ -12,27 +12,6 @@ use App\Http\Controllers\VehicleReturnController;
 use App\Http\Controllers\MeetingRoomController;
 use App\Http\Controllers\RoomReservationController;
 
-//*RUTAS PARA EL MODULO DE RENDICIONES FASE 1, ACTIVAR CUANDO LAS DEMAS FASES ESTEN LISTAS*//
-// use App\Livewire\DashboardRendiciones;
-// use App\Livewire\CrearPlanificacion;
-// use App\Livewire\AprobacionFinanzas;
-// use App\Livewire\CrearRendicion;
-
-//Route::middleware(['auth'])->group(function () {
-
-//    Route::prefix('rendiciones')->group(function () {
-
-//        Route::get('/', DashboardRendiciones::class)->name('rendiciones.dashboard');
-
-//        Route::get('/planificacion', CrearPlanificacion::class)->name('rendiciones.planificacion');
-
-//        Route::get('/aprobaciones', AprobacionFinanzas::class)->name('rendiciones.aprobaciones');
-
-//        Route::get('/rendir', CrearRendicion::class)->name('rendiciones.rendir');
-
-//    });
-
-//}); 
 
 
 
@@ -136,6 +115,7 @@ Route::middleware('auth')->group(function () {
 
     // Rutas de Solicitudes de Vehículos (Reservas)
     Route::get('/solicitar-vehiculo', [VehicleRequestController::class, 'create'])->name('requests.create');
+    Route::get('/solicitar-vehiculo/disponibilidad', [VehicleRequestController::class, 'availability'])->name('requests.availability');
     Route::post('/solicitar-vehiculo', [VehicleRequestController::class, 'store'])->name('requests.store');
     Route::post('/requests/{id}/approve', [VehicleRequestController::class, 'approve'])->name('requests.approve');
     Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');

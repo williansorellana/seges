@@ -27,21 +27,65 @@
                     <div x-data="{ 
                         selectedId: '{{ old('vehicle_id') }}', 
                         search: '',
-                        vehicles: {{ $vehicles->map(function ($vehicle) {
-    return [
-        'id' => $vehicle->id,
-        'label' => $vehicle->brand . ' ' . $vehicle->model,
-        'plate' => $vehicle->plate,
-        'image' => $vehicle->image_path ? asset('storage/' . $vehicle->image_path) : null,
-        'year' => $vehicle->year,
-    ];
-})->toJson() }},
+                        startDate: '{{ old('start_date') }}',
+                        endDate: '{{ old('end_date') }}',
+                      vehicles: {{ $vehicles->map(function ($vehicle) {
+                        return [
+                            'id' => $vehicle->id,
+                            'label' => $vehicle->brand . ' ' . $vehicle->model,
+                            'plate' => $vehicle->plate,
+                            'image' => $vehicle->image_path ? asset('storage/' . $vehicle->image_path) : null,
+                            'year' => $vehicle->year,
+                            'available' => true,
+                            'availabilityChecked' => false,
+                        ];
+                        })->toJson() }},
                         get filteredVehicles() {
                             if (this.search === '') return this.vehicles;
                             return this.vehicles.filter(vehicle => {
                                 return vehicle.label.toLowerCase().includes(this.search.toLowerCase()) || 
                                        vehicle.plate.toLowerCase().includes(this.search.toLowerCase());
                             });
+                        },
+                        async checkAvailability() {
+                            // No consultar si aún faltan fechas
+                            if (!this.startDate || !this.endDate) return;
+
+                            try {
+                                //Armamos parámetros para enviarlos al endpoint
+                                const params = new URLSearchParams({
+                                    start_date: this.startDate,
+                                    end_date: this.endDate
+                                });
+
+                                //Llamamos a la ruta que creamos en web.php
+                                const response = await fetch(`{{ url('/requests/availability') }}?${params.toString()}`);
+
+                                // Convertimos la respuesta a JSON
+                                const data = await response.json();
+
+                                //Recorremos los vehículos actuales y les inyectamos disponibilidad
+                                this.vehicles = this.vehicles.map(vehicle => {
+                                    const match = data.find(v => v.id === vehicle.id);
+
+                                    return {
+                                        ...vehicle,
+                                        available: match ? match.available : true,
+                                        availabilityChecked: true 
+                                    };
+                                });
+
+                                // 6) Si el vehículo seleccionado quedó no disponible, lo desmarcamos
+                                if (this.selectedId) {
+                                    const selectedVehicle = this.vehicles.find(v => v.id == this.selectedId);
+                                    if (selectedVehicle && !selectedVehicle.available) {
+                                        this.selectedId = '';
+                                    }
+                                }
+                            } catch (error) {
+                                // Si algo falla, lo mostramos en consola para depuración
+                                console.error('Error checking availability:', error);
+                            }
                         }
                     }">
 
@@ -163,7 +207,8 @@
                                         <div class="relative">
                                             <x-input-label for="start_date" :value="__('Retiro')" class="mb-1.5" />
                                             <input type="datetime-local" id="start_date" name="start_date"
-                                                :value="'{{ old('start_date') }}'" required
+                                                x-model="startDate" @change="checkAvailability()"
+                                                required
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
                                         </div>
 
@@ -177,7 +222,8 @@
                                         <div class="relative">
                                             <x-input-label for="end_date" :value="__('Devolución')" class="mb-1.5" />
                                             <input type="datetime-local" id="end_date" name="end_date"
-                                                :value="'{{ old('end_date') }}'" required
+                                                x-model="endDate" @change="checkAvailability()"
+                                                required
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
                                         </div>
                                     </div>

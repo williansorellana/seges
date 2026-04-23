@@ -73,9 +73,7 @@ class VehicleRequestController extends Controller
                 ->with('error', 'Su Licencia de Conducir está vencida. Por favor actualice el documento para continuar.');
         }
 
-        $vehicles = Vehicle::all()->filter(function ($vehicle) {
-            return $vehicle->display_status === 'available';
-        });
+        $vehicles = Vehicle::whereNotIn('status', ['maintenance', 'out_of_service'])->get();
 
         $conductors = ($user->role === 'admin') ? \App\Models\Conductor::all() : collect([]);
 
@@ -89,6 +87,27 @@ class VehicleRequestController extends Controller
 
         return view('requests.create', compact('vehicles', 'conductors', 'users', 'frequentExternalPersons'));
     }
+    /**
+    * Consulta disponibilidad visual de vehículos según rango de fechas.
+    */
+    public function availability(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            ]);
+        
+        $vehicles = Vehicle::whereNotIn('status', ['maintenance', 'out_of_service'])->get()
+        ->map(function ($vehicle) use ($request) {
+            return [
+                'id' => $vehicle->id,
+                'available' => $vehicle->isAvailable($request->start_date, $request->end_date),
+            ];
+        });
+
+    return response()->json($vehicles);
+}
+
 
     /**
      * Almacena una nueva solicitud de reserva.
@@ -125,7 +144,9 @@ class VehicleRequestController extends Controller
         $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
         if (!$vehicle->isAvailable($request->start_date, $request->end_date)) {
-            return back()->withErrors(['vehicle_id' => 'El vehículo no está disponible en las fechas seleccionadas.'])->withInput();
+            return back()->withErrors([
+                'vehicle_id' => 'El vehículo ya está reservado en el rango de fechas seleccionado.'
+                ])->withInput();
         }
 
         $vehicleRequest = VehicleRequest::create([
@@ -277,7 +298,7 @@ class VehicleRequestController extends Controller
 
         $request->validate([
             'return_mileage' => 'required|integer|min:' . $vehicleRequest->vehicle->mileage,
-            'fuel_level' => 'required|in:1/4,1/2,3/4,full,casi_lleno,lleno',
+            'fuel_level' => 'required|in:1/4,1/2,3/4,full',
             'tire_status_front' => 'required|in:good,fair,poor',
             'tire_status_rear' => 'required|in:good,fair,poor',
             'cleanliness' => 'required|in:clean,dirty,very_dirty',
@@ -299,6 +320,7 @@ class VehicleRequestController extends Controller
         }
 
         // Crear registro de devolución
+
         VehicleReturn::create([
             'vehicle_request_id' => $vehicleRequest->id,
             'return_mileage' => $request->return_mileage,
