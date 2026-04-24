@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
+use Exception;
 use App\Models\Vehicle;
 use App\Models\VehicleRequest;
 use App\Models\VehicleReturn;
@@ -148,90 +149,99 @@ class VehicleRequestController extends Controller
                 'vehicle_id' => 'El vehículo ya está reservado en el rango de fechas seleccionado.'
                 ])->withInput();
         }
+        try {
+            $vehicleRequest = VehicleRequest::create([
+                'user_id' => Auth::id(),
+                'vehicle_id' => $vehicle->id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'status' => 'pending',
+                'destination_type' => $request->destination_type,
+                'origin' => $request->origin,
+                'destination' => $request->destination,
+                'conductor_id' => (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
+            ]);
 
-        $vehicleRequest = VehicleRequest::create([
-            'user_id' => Auth::id(),
-            'vehicle_id' => $vehicle->id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'status' => 'pending',
-            'destination_type' => $request->destination_type,
-            'origin' => $request->origin,
-            'destination' => $request->destination,
-            'conductor_id' => (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
-        ]);
+            // Manejo de nuevo conductor si se solicita
+            if (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
 
-        // Manejo de nuevo conductor si se solicita
-        if (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
-
-            // Verificar si se debe guardar permanentemente
-            if ($request->has('save_conductor_permanently') && $request->save_conductor_permanently) {
-                // Guardar en tabla de conductores permanentemente
-                $conductor = \App\Models\Conductor::create([
-                    'nombre' => $request->input('new_conductor_name'),
-                    'rut' => $request->input('new_conductor_rut'), // Puede ser nulo
-                    'cargo' => 'Externo', // Valor por defecto
-                    'departamento' => 'Externo',
-                    'fecha_licencia' => now()->addYear(), // Valor por defecto para evitar error SQL
-                ]);
-
-                $vehicleRequest->update(['conductor_id' => $conductor->id]);
-            } else {
-                // Guardar solo para este viaje (temporal)
-                $vehicleRequest->update([
-                    'temporary_conductor_name' => $request->input('new_conductor_name'),
-                    'temporary_conductor_rut' => $request->input('new_conductor_rut'),
-                ]);
-            }
-        }
-
-        // Guardar acompañantes si existen
-        if ($request->has('companions') && is_array($request->companions)) {
-            foreach ($request->companions as $companionData) {
-                // Validar que tenga al menos un user_id o un external_name
-                if (!empty($companionData['user_id']) || !empty($companionData['external_name'])) {
-                    \App\Models\VehicleRequestCompanion::create([
-                        'vehicle_request_id' => $vehicleRequest->id,
-                        'user_id' => $companionData['user_id'] ?? null,
-                        'external_name' => $companionData['external_name'] ?? null,
-                        'external_rut' => $companionData['external_rut'] ?? null,
-                        'external_position' => $companionData['external_position'] ?? null,
-                        'external_department' => $companionData['external_department'] ?? null,
+                // Verificar si se debe guardar permanentemente
+                if ($request->has('save_conductor_permanently') && $request->save_conductor_permanently) {
+                    // Guardar en tabla de conductores permanentemente
+                    $conductor = \App\Models\Conductor::create([
+                        'nombre' => $request->input('new_conductor_name'),
+                        'rut' => $request->input('new_conductor_rut'), // Puede ser nulo
+                        'cargo' => 'Externo', // Valor por defecto
+                        'departamento' => 'Externo',
+                        'fecha_licencia' => now()->addYear(), // Valor por defecto para evitar error SQL
                     ]);
 
-                    // Si es persona externa y se marcó "guardar como frecuente"
-                    if (
-                        !empty($companionData['external_name']) &&
-                        isset($companionData['save_as_frequent']) &&
-                        $companionData['save_as_frequent']
-                    ) {
+                    $vehicleRequest->update(['conductor_id' => $conductor->id]);
+                } else {
+                    // Guardar solo para este viaje (temporal)
+                    $vehicleRequest->update([
+                        'temporary_conductor_name' => $request->input('new_conductor_name'),
+                        'temporary_conductor_rut' => $request->input('new_conductor_rut'),
+                    ]);
+                }
+            }
 
-                        // Verificar que no exista ya con ese nombre
-                        $existingPerson = \App\Models\FrequentExternalPerson::where('name', $companionData['external_name'])->first();
+            // Guardar acompañantes si existen
+            if ($request->has('companions') && is_array($request->companions)) {
+                foreach ($request->companions as $companionData) {
+                    // Validar que tenga al menos un user_id o un external_name
+                    if (!empty($companionData['user_id']) || !empty($companionData['external_name'])) {
+                        \App\Models\VehicleRequestCompanion::create([
+                            'vehicle_request_id' => $vehicleRequest->id,
+                            'user_id' => $companionData['user_id'] ?? null,
+                            'external_name' => $companionData['external_name'] ?? null,
+                            'external_rut' => $companionData['external_rut'] ?? null,
+                            'external_position' => $companionData['external_position'] ?? null,
+                            'external_department' => $companionData['external_department'] ?? null,
+                        ]);
 
-                        if (!$existingPerson) {
-                            \App\Models\FrequentExternalPerson::create([
-                                'name' => $companionData['external_name'],
-                                'rut' => $companionData['external_rut'] ?? null,
-                            ]);
+                        // Si es persona externa y se marcó "guardar como frecuente"
+                        if (
+                            !empty($companionData['external_name']) &&
+                            isset($companionData['save_as_frequent']) &&
+                            $companionData['save_as_frequent']
+                        ) {
+
+                            // Verificar que no exista ya con ese nombre
+                            $existingPerson = \App\Models\FrequentExternalPerson::where('name', $companionData['external_name'])->first();
+
+                            if (!$existingPerson) {
+                                \App\Models\FrequentExternalPerson::create([
+                                    'name' => $companionData['external_name'],
+                                    'rut' => $companionData['external_rut'] ?? null,
+                                ]);
+                            }
                         }
                     }
                 }
             }
+
+            // Notificar a supervisores
+            $recipients = User::where('is_active', 1)
+                ->where('role','supervisor')
+                ->where(function($q){
+                    $q->whereJsonContains('authorized_modules', 'vehicles')
+                        ->orWhereJsonContains('authorized_modules', 'all');
+                })
+                ->get();
+            Notification::send($recipients, new NewVehicleRequestNotification($vehicleRequest));
+
+            return redirect()->route('requests.index')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
+    
+            } catch (Exception $e) {
+                Log::error('Error al crear solicitud de vehículo', [
+                    'user_id' => Auth::id(),
+                    'vehicle_id' => $request->vehicle_id,
+                    'error' => $e->getMessage(),
+                ]);
+                return back()->with('error', 'Ocurrió un error al procesar su solicitud. Por favor intente nuevamente.')->withInput();
+            }
         }
-
-        // Notificar a supervisores
-        $recipients = User::where('is_active', 1)
-            ->where('role','supervisor')
-            ->where(function($q){
-                $q->whereJsonContains('authorized_modules', 'vehicles')
-                    ->orWhereJsonContains('authorized_modules', 'all');
-            })
-            ->get();
-        Notification::send($recipients, new NewVehicleRequestNotification($vehicleRequest));
-
-        return redirect()->route('requests.index')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
-    }
 
     /**
      * Aprueba una solicitud de reserva (Admin).
