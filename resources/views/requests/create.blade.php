@@ -70,7 +70,8 @@
 
                                     return {
                                         ...vehicle,
-                                        available: match ? match.available : true,
+                                        available: match ? match.available : false,
+                                        status_label: match ? match.status_label : 'No disponible',
                                         availabilityChecked: true 
                                     };
                                 });
@@ -122,9 +123,22 @@
                             <div class="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-2">
                                     <template x-for="vehicle in filteredVehicles" :key="vehicle.id">
-                                        <div @click="selectedId = vehicle.id"
+                                        <div @click="vehicle.available ? selectedId = vehicle.id : selectedId = ''"
                                             class="group relative cursor-pointer rounded-2xl border-2 transition-all duration-200 ease-in-out overflow-hidden hover:shadow-lg"
-                                            :class="selectedId == vehicle.id ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-1 ring-indigo-600' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-indigo-300'">
+                                            :class="[
+                                                selectedId == vehicle.id
+                                                    ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-1 ring-indigo-600'
+                                                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-indigo-300',
+                                                vehicle.availabilityChecked && !vehicle.available 
+                                                    ? 'opacity-50 cursor-not-allowed'
+                                                    : 'cursor-pointer'
+                                            ]">
+                                                <!-- Availability Badge -->
+                                            </div x-show="vehicle.availabilityChecked"
+                                                class="absolute top-3 left-3 z-10 px-2 py-1 text-xs font-bold rounded text-white shadow"
+                                                :class="vehicle.available ? 'bg-green-600' : 'bg-red-600'">
+                                                <span x-text="vehicle.status_label"></span>
+                                            </div>
 
                                             <!-- Checkmark Badge -->
                                             <div x-show="selectedId == vehicle.id"

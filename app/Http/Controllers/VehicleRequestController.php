@@ -96,13 +96,26 @@ class VehicleRequestController extends Controller
         $request->validate([
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            ]);
+        ]);
         
-        $vehicles = Vehicle::whereNotIn('status', ['maintenance', 'out_of_service'])->get()
+        $vehicles = Vehicle::whereNotIn('status', ['maintenance', 'out_of_service'])
+        ->get()
         ->map(function ($vehicle) use ($request) {
+
+            $conflict = VehicleRequest::where('vehicle_id', $vehicle->id)
+                ->whereIn('status', ['approved', 'in_trip'])
+                ->where(function ($query) use ($request) {
+                    $query->where('start_date', '<', $request->end_date)
+                          ->where('end_date', '>', $request->start_date);
+                })
+                ->first();
+
             return [
                 'id' => $vehicle->id,
-                'available' => $vehicle->isAvailable($request->start_date, $request->end_date),
+                'available' => !$conflict,
+                'status_label' => !$conflict 
+                ? 'Disponible' 
+                : ($conflict->status === 'in_trip' ? 'En viaje' : 'Reservado'),
             ];
         });
 
@@ -330,50 +343,64 @@ class VehicleRequestController extends Controller
         }
 
         // Crear registro de devolución
+        // TrY catch para manejo de errores
+        Try {
 
-        VehicleReturn::create([
-            'vehicle_request_id' => $vehicleRequest->id,
-            'return_mileage' => $request->return_mileage,
-            'fuel_level' => $request->fuel_level,
-            'tire_status_front' => $request->tire_status_front,
-            'tire_status_rear' => $request->tire_status_rear,
-            'cleanliness' => $request->cleanliness,
-            'body_damage_reported' => $request->has('body_damage_reported'),
-            'comments' => $request->comments,
-            'photos_paths' => $photoPaths, // Casted to array in model
-        ]);
+            VehicleReturn::create([
+                'vehicle_request_id' => $vehicleRequest->id,
+                'return_mileage' => $request->return_mileage,
+                'fuel_level' => $request->fuel_level,
+                'tire_status_front' => $request->tire_status_front,
+                'tire_status_rear' => $request->tire_status_rear,
+                'cleanliness' => $request->cleanliness,
+                'body_damage_reported' => $request->has('body_damage_reported'),
+                'comments' => $request->comments,
+                'photos_paths' => $photoPaths, // Casted to array in model
+            ]);
 
-        // Actualizar vehículo
-        $vehicleRequest->vehicle->update([
-            'mileage' => $request->return_mileage,
-            'status' => 'available'
-        ]);
+            // Actualizar vehículo
+            $vehicleRequest->vehicle->update([
+                'mileage' => $request->return_mileage,
+                'status' => 'available'
+            ]);
 
-        // Actualizar estado de mantenimiento del vehículo (Neumáticos)
-        // Buscamos o creamos el estado de mantenimiento
-        $maintenanceState = VehicleMaintenanceState::firstOrCreate(
-            ['vehicle_id' => $vehicleRequest->vehicle_id]
-        );
+            // Actualizar estado de mantenimiento del vehículo (Neumáticos)
+            // Buscamos o creamos el estado de mantenimiento
+            $maintenanceState = VehicleMaintenanceState::firstOrCreate(
+                ['vehicle_id' => $vehicleRequest->vehicle_id]
+            );
 
-        $maintenanceState->update([
-            'tire_status_front' => $request->tire_status_front,
-            'tire_status_rear' => $request->tire_status_rear,
-        ]);
+            $maintenanceState->update([
+                'tire_status_front' => $request->tire_status_front,
+                'tire_status_rear' => $request->tire_status_rear,
+            ]);
 
-        // Finalizar solicitud
-        $vehicleRequest->update([
-            'status' => 'completed',
-            'return_mileage' => $request->return_mileage
-        ]);
+            // Finalizar solicitud
+            $vehicleRequest->update([
+                'status' => 'completed',
+                'return_mileage' => $request->return_mileage
+            ]);
 
-        // Detectar si hubo daños reportados
-        $hasDamage = $request->has('body_damage_reported') && $request->body_damage_reported;
+            // Detectar si hubo daños reportados
+            $hasDamage = $request->has('body_damage_reported') && $request->body_damage_reported;
 
-        // Notificar a administradores
-        $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new VehicleReturnedNotification($vehicleRequest, $hasDamage));
+            // Notificar a administradores
+            $admins = User::where('role', 'admin')->get();
+            Notification::send($admins, new VehicleReturnedNotification($vehicleRequest, $hasDamage));
 
-        return back()->with('success', 'Devolución registrada correctamente. Historial actualizado.');
+            return back()->with('success', 'Devolución registrada correctamente. Historial actualizado.');
+        
+            } catch (Exception $e) {
+                \Log::error('Error devolución de vehículo', [
+                    'user_id' => Auth::id(),
+                    'vehicle_request_id' => $vehicleRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+                return back()
+                ->with('error','No se pudo completar la devolución. Verifique combustible, kilometraje y datos requeridos.')
+                ->withInput();
+            }
+
     }
 
     /**

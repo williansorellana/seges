@@ -19,6 +19,13 @@
                         </div>
                     @endif
 
+                    @if (session('error'))
+                        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                            {{ session('error') }}
+                        </div> 
+                        
+                    @endif
+
                     <div x-init="
                         const highlightId = '{{ request('highlight_id') }}';
                         if (highlightId) {
