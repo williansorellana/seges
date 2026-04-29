@@ -272,8 +272,12 @@ class VehicleRequestController extends Controller
         return back()->with('error', 'No se puede aprobar: Existe conflicto de fechas con otra reserva aprobada.');
         }
 
-        $request->update(['status' => 'approved']);
-        $request->vehicle->update(['status' => 'occupied']);
+        $request->update([
+            'status' => 'approved']);
+        // El vehiculo solo deberia de verse cuando esta ocupado, solo cuando la fecha actual esta dentro del rango de la reserva o
+        // o cuando la solicitud esta en estado in_trip.
+       
+
         // Notificar usuario
         $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'approved'));
 
@@ -299,7 +303,10 @@ class VehicleRequestController extends Controller
         'rejection_reason' => $reason
         ]);
 
-        $request->vehicle->update(['status' => 'available']);
+        $request->vehicle->update([
+            'status' => 'rejected',
+            'rejection_reason' => $reason
+            ]);
         $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'rejected', $reason));
         return back()->with('success', 'Reserva rechazada.');
 
@@ -344,7 +351,7 @@ class VehicleRequestController extends Controller
 
         // Crear registro de devolución
         // TrY catch para manejo de errores
-        Try {
+        try {
 
             VehicleReturn::create([
                 'vehicle_request_id' => $vehicleRequest->id,
@@ -475,7 +482,7 @@ class VehicleRequestController extends Controller
     public function history(Request $request)
     {
         $query = VehicleRequest::with(['user', 'vehicle', 'conductor', 'vehicleReturn'])
-            ->whereIn('status', ['completed', 'approved']) // Solo completadas y en uso
+            ->whereIn('status', ['completed', 'approved', 'in_trip']) // Solo completadas y en uso, y ahora muestra los vehiculos en viaje 
             ->orderBy('start_date', 'desc');
 
         // Filtro por rango de fechas (día, mes, año)
@@ -740,6 +747,9 @@ class VehicleRequestController extends Controller
         // }
 
         $vehicleRequest->update(['status' => 'in_trip']);
+        
+        $vehicleRequest->vehicle->update([
+            'status' => 'occupied',]);
 
         return back()->with('success', 'Viaje iniciado correctamente. ¡Buen viaje!');
     }
