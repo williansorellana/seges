@@ -26,6 +26,18 @@
                         
                     @endif
 
+                    @if ($errors->any())
+                        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                            <strong> Revisa los siguientes campos </strong>
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        
+                    @endif
+
                     <div x-init="
                         const highlightId = '{{ request('highlight_id') }}';
                         if (highlightId) {
@@ -457,7 +469,7 @@
                                         <x-input-label for="fuel_level" :value="__('Nivel de Combustible')" />
                                         <select id="fuel_level" name="fuel_level" required
                                             class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                            <option value="" disabled selected>Seleccione...</option>
+                                            <option value="">Seleccione...</option>
                                             <option value="1/4">1/4 de Estanque</option>
                                             <option value="1/2">1/2 Estanque</option>
                                             <option value="3/4">3/4 Estanque</option>

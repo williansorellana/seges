@@ -31,8 +31,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Rutas de Vehículos (Papelera) - Solo Admin y Supervisor
-    Route::middleware(['role:admin,supervisor'])->group(function () {
+    // Rutas de Vehículos (Papelera) - Solo Supervisor
+    Route::middleware(['role:supervisor'])->group(function () {
         Route::get('papelera/vehiculos', [VehicleController::class, 'trash'])->name('vehicles.trash');
         Route::put('papelera/vehiculos/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
         Route::delete('papelera/vehiculos/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.force-delete');
@@ -117,8 +117,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/solicitar-vehiculo', [VehicleRequestController::class, 'create'])->name('requests.create');
     Route::get('/solicitar-vehiculo/disponibilidad', [VehicleRequestController::class, 'availability'])->name('requests.availability');
     Route::post('/solicitar-vehiculo', [VehicleRequestController::class, 'store'])->name('requests.store');
-    Route::post('/requests/{id}/approve', [VehicleRequestController::class, 'approve'])->name('requests.approve');
-    Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');
+
+    // CONTROL DEL MODULO DE VEHICULOS - Solo Supervisor
+    Route::middleware(['role:supervisor'])->group(function () {
+        Route::post('/requests/{id}/approve', [VehicleRequestController::class, 'approve'])->name('requests.approve');
+        Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');
+    });
+
     Route::get('/mis-reservas', [VehicleRequestController::class, 'index'])->name('requests.index');
     Route::post('/requests/{id}/complete', [VehicleRequestController::class, 'complete'])->name('requests.complete');
     Route::post('/requests/{id}/finish-early', [VehicleRequestController::class, 'finishEarly'])->name('requests.finish-early');

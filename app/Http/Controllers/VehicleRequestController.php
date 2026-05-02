@@ -248,7 +248,7 @@ class VehicleRequestController extends Controller
     
             } catch (Exception $e) {
                 Log::error('Error al crear solicitud de vehículo', [
-                    'user_id' => Auth::id(),
+                    'user_id' => \Auth::id(),
                     'vehicle_id' => $request->vehicle_id,
                     'error' => $e->getMessage(),
                 ]);
@@ -261,6 +261,10 @@ class VehicleRequestController extends Controller
      */
     public function approve($id)
     {
+        if (auth()->user()->role !== 'supervisor') {
+            abort(403, 'No autorizado para aprobar esta solicitud.');
+        }
+
         $request = VehicleRequest::findOrFail($id);
 
         // actualizado para validar que solo se puedan aprobar solicitudes pendientes, evitando conflictos de estado
@@ -288,28 +292,39 @@ class VehicleRequestController extends Controller
      * Rechaza una solicitud de reserva (Admin).
      */
     public function reject(Request $req, $id)
-    {
-        $request = VehicleRequest::findOrFail($id);
-        
-        if ($request->status !== 'pending') {
-        return back()->with('error', 'Esta solicitud ya fue procesada.');
-
+    {   
+        if (auth()->user()->role !== 'supervisor') {
+            abort(403, 'No autorizado para rechazar esta solicitud.');
         }
 
-        $reason = $req->input('rejection_reason');
+        try{
+            $request = VehicleRequest::findOrFail($id);
+            
+            if ($request->status !== 'pending') {
+            return back()->with('error', 'Esta solicitud ya fue procesada.');
 
-        $request->update([
-        'status' => 'rejected',
-        'rejection_reason' => $reason
-        ]);
+            }
 
-        $request->vehicle->update([
-            'status' => 'rejected',
-            'rejection_reason' => $reason
+            $reason = $req->input('rejection_reason');
+
+            $request->update([
+                'status' => 'rejected',
+                'rejection_reason' => $reason
             ]);
-        $request->user->notify(new \App\Notifications\VehicleRequestStatusNotification($request, 'rejected', $reason));
-        return back()->with('success', 'Reserva rechazada.');
 
+            $request->user->notify(
+                new \App\Notifications\VehicleRequestStatusNotification($request, 'rejected', $reason)
+            );
+            return back()->with('success', 'Reserva rechazada.');
+
+        } catch (Exception $e) {
+            Log::error('Error al rechazar solicitud de vehículo', [
+                'user_id' => \Auth::id(),
+                'vehicle_request_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Ocurrió un error al procesar su solicitud. Por favor intente nuevamente.')->withInput();
+        }
     }
 
     /**
@@ -391,22 +406,46 @@ class VehicleRequestController extends Controller
             // Detectar si hubo daños reportados
             $hasDamage = $request->has('body_damage_reported') && $request->body_damage_reported;
 
-            // Notificar a administradores
-            $admins = User::where('role', 'admin')->get();
-            Notification::send($admins, new VehicleReturnedNotification($vehicleRequest, $hasDamage));
+            try {
+                // Notificar a Usuarios 
+                $vehicleRequest->user->notify(
+                    new VehicleReturnedNotification($vehicleRequest)
+                );
+                //Notificar a Supervisores autorizados
+                $supervisors = User::where('is_active', 1)
+                    ->where('role','supervisor')
+                    ->where(function($q){
+                        $q->whereJsonContains('authorized_modules', 'vehicles')
+                            ->orWhereJsonContains('authorized_modules', 'all');
 
-            return back()->with('success', 'Devolución registrada correctamente. Historial actualizado.');
+                    })
+                    ->get();
+                Notification::send(
+                    $supervisors, 
+                    new VehicleReturnedNotification($vehicleRequest));
+
+            } catch (Exception $e) {
+                Log::error('Error al enviar notificaciones de devolución de vehículo', [
+                    'user_id' => Auth::id(),
+                    'vehicle_request_id' => $vehicleRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+                 // Continuar sin interrumpir el proceso principal
+                 // Se podría agregar un mensaje flash para informar que hubo un error con las notificaciones, pero la devolución se completó
+            }
+            return back()->with('success', 'Devolución completada, Historial actualizado')->withInput();
         
             } catch (Exception $e) {
-                \Log::error('Error devolución de vehículo', [
+                \Log::error('Error al completar devolución de vehículo', [
                     'user_id' => Auth::id(),
                     'vehicle_request_id' => $vehicleRequest->id,
                     'error' => $e->getMessage(),
                 ]);
                 return back()
-                ->with('error','No se pudo completar la devolución. Verifique combustible, kilometraje y datos requeridos.')
-                ->withInput();
+                ->with('error', 'No se pudo completar la devolución. Verifique combustible, kilometraje y datos requeridos.')
+                ->withInput($request->all());
             }
+            
 
     }
 
@@ -466,9 +505,18 @@ class VehicleRequestController extends Controller
         // Liberar vehículo
         $vehicleRequest->vehicle->update(['status' => 'available']);
 
-        // Notificar a administradores (sin daños reportados por defecto en termino anticipado)
-        $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new VehicleReturnedNotification($vehicleRequest, false));
+        // Notificar a Usuarios y Supervisores autorizados
+        $vehicleRequest->user->notify(new VehicleReturnedNotification($vehicleRequest, false)
+        );
+
+        $supervisors = User::where('is_active', 1)
+            ->where('role','supervisor')
+            ->where(function($q){
+                $q->whereJsonContains('authorized_modules', 'vehicles')
+                    ->orWhereJsonContains('authorized_modules', 'all');
+            })
+            ->get();
+        Notification::send($supervisors, new VehicleReturnedNotification($vehicleRequest, false));
 
         // Notificar al usuario afectado sobre el término anticipado
         $vehicleRequest->user->notify(new \App\Notifications\VehicleEarlyTerminationNotification($vehicleRequest));

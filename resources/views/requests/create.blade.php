@@ -124,7 +124,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-2">
                                     <template x-for="vehicle in filteredVehicles" :key="vehicle.id">
                                         <div @click="vehicle.available ? selectedId = vehicle.id : selectedId = ''"
-                                            class="group relative cursor-pointer rounded-2xl border-2 transition-all duration-200 ease-in-out overflow-hidden hover:shadow-lg"
+                                            class="group relative min-h-[260px] rounded-2xl border-2 transition-all duration-200 ease-in-out overflow-hidden hover:shadow-lg"
                                             :class="[
                                                 selectedId == vehicle.id
                                                     ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-1 ring-indigo-600'
@@ -134,7 +134,7 @@
                                                     : 'cursor-pointer'
                                             ]">
                                                 <!-- Availability Badge -->
-                                            </div x-show="vehicle.availabilityChecked"
+                                            <div x-show="vehicle.availabilityChecked"
                                                 class="absolute top-3 left-3 z-10 px-2 py-1 text-xs font-bold rounded text-white shadow"
                                                 :class="vehicle.available ? 'bg-green-600' : 'bg-red-600'">
                                                 <span x-text="vehicle.status_label"></span>
@@ -157,7 +157,7 @@
                                             <div
                                                 class="aspect-w-16 aspect-h-9 w-full bg-gray-200 dark:bg-gray-700 h-40 overflow-hidden relative">
                                                 <template x-if="vehicle.image">
-                                                    <img :src="vehicle.image"
+                                                    <img x-bin:src="vehicle.image"
                                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                                 </template>
                                                 <template x-if="!vehicle.image">
