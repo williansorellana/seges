@@ -343,7 +343,7 @@ class VehicleRequestController extends Controller
 
         $request->validate([
             'return_mileage' => 'required|integer|min:' . $vehicleRequest->vehicle->mileage,
-            'fuel_level' => 'required|in:1/4,1/2,3/4,full',
+            'fuel_level' => 'required|in:1/4,1/2,3/4,casi_lleno,lleno,full',
             'tire_status_front' => 'required|in:good,fair,poor',
             'tire_status_rear' => 'required|in:good,fair,poor',
             'cleanliness' => 'required|in:clean,dirty,very_dirty',
@@ -783,22 +783,39 @@ class VehicleRequestController extends Controller
      */
     public function startTrip($id)
     {
-        $vehicleRequest = VehicleRequest::where('user_id', Auth::id())->findOrFail($id);
+        try {
 
-        if ($vehicleRequest->status !== 'approved') {
-            return back()->with('error', 'No se puede iniciar el viaje en el estado actual.');
+            $vehicleRequest = VehicleRequest::with('vehicle')
+                ->where('user_id', Auth::id())
+                ->findOrFail($id);
+
+            if ($vehicleRequest->status !== 'approved') {
+                return back()->with('error', 'No se puede iniciar el viaje en el estado actual.');
+            }
+
+            if (!$vehicleRequest->vehicle ) {
+                return back()->with('error', 'No se encontró el vehículo asociado a esta solicitud.');
+            }
+
+            // Validar que existan fotos de entrega (Opcional según requerimiento)
+            // if (empty($vehicleRequest->delivery_photos)) {
+            //     return back()->with('error', 'Debe subir fotos de recepción antes de comenzar el viaje.');
+            // }
+
+            $vehicleRequest->update(['status' => 'in_trip']);
+            
+            $vehicleRequest->vehicle->update([
+                'status' => 'occupied',]);
+
+            return back()->with('success', 'Viaje iniciado correctamente. ¡Buen viaje!');
+
+        } catch (Exception $e) {
+            Log::error('Error al iniciar viaje', [
+                'user_id' => Auth::id(),
+                'vehicle_request_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Ocurrió un error al iniciar el viaje. Por favor intente nuevamente.');
         }
-
-        // Validar que existan fotos de entrega (Opcional según requerimiento)
-        // if (empty($vehicleRequest->delivery_photos)) {
-        //     return back()->with('error', 'Debe subir fotos de recepción antes de comenzar el viaje.');
-        // }
-
-        $vehicleRequest->update(['status' => 'in_trip']);
-        
-        $vehicleRequest->vehicle->update([
-            'status' => 'occupied',]);
-
-        return back()->with('success', 'Viaje iniciado correctamente. ¡Buen viaje!');
     }
 }

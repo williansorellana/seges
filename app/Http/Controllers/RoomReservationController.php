@@ -356,7 +356,7 @@ class RoomReservationController extends Controller
         }
         
         $exists = RoomReservation::where('meeting_room_id', $request->meeting_room_id)
-            ->where('status', 'approved')
+            ->where('status', 'pending')
             ->where(function ($query) use ($start, $end) {
                 $query->where('start_time', '<', $end)
                       ->where('end_time', '>', $start);
