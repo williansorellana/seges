@@ -379,7 +379,9 @@
                                     </div>
 
                                     {{-- Footer con Acciones --}}
-                                    @if($request->status === 'approved' || $request->status === 'in_trip')
+                                    
+                                    @if(($request->status === 'approved' || $request->status === 'in_trip') && auth()->user()->role === 'supervisor') 
+                                    {{-- SOLO EL SUPERVISOR VERA LOS BOTONES--}}
                                         <div class="px-4 py-3 bg-gray-900/50 border-t border-gray-700">
                                             @if($request->vehicle)
                                                 <div class="flex flex-col gap-2">

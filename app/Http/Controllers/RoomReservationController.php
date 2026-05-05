@@ -291,28 +291,31 @@ class RoomReservationController extends Controller
 
         return redirect()->back()->with('success', 'Reserva cancelada y usuario notificado.');
     }
-    public function downloadMonthlyReport(\Illuminate\Http\Request $request)
+    public function downloadMonthlyReport(Request $request)
     {
-        
-        $month = $request->input('month', now()->month);
-        $year = $request->input('year', now()->year);
-        
-        $dateObj = \Carbon\Carbon::createFromDate($year, $month, 1);
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
 
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+    
         $reservations = RoomReservation::with(['user', 'meetingRoom'])
-            ->whereMonth('start_time', $month)
-            ->whereYear('start_time', $year)
             ->where('status', '!=', 'cancelled')
+            ->whereBetween('start_time', [$startDate, $endDate])
             ->orderBy('start_time', 'asc')
             ->get();
 
         $pdf = Pdf::loadView('pdf.monthly_occupancy', [
             'reservations' => $reservations,
-            'month' => $dateObj->locale('es')->monthName,
-            'year' => $year
+            'month' => $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'),
+            'year' => '',
         ]);
 
-        return $pdf->download('informe_ocupacion_' . $dateObj->format('m_Y') . '.pdf');
+        return $pdf->download(
+            'informe_ocupacion_' . $startDate->format('d_m_Y') . '_al_' . $endDate->format('d_m_Y') . '.pdf'
+        );
     }
 
     public function createExternal()
