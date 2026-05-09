@@ -21,6 +21,12 @@ return [
     'image' => 'El campo :attribute debe ser una imagen válida.',
     'boolean' => 'El campo :attribute debe ser verdadero o falso.',
 
+    'custom' => [
+    'return_mileage' => [
+        'min' => 'El kilometraje de devolución debe ser mayor al kilometraje actual del vehículo.',
+    ],
+    ],
+
     'attributes' => [
         'vehicle_id' => 'vehículo',
         'start_date' => 'fecha de inicio',

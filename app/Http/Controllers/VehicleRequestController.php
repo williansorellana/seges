@@ -342,7 +342,11 @@ class VehicleRequestController extends Controller
         }
 
         $request->validate([
-            'return_mileage' => 'required|integer|min:' . $vehicleRequest->vehicle->mileage,
+            'return_mileage' => [
+                'required',
+                'integer',
+                'min:' . $vehicleRequest->vehicle->mileage,
+            ],
             'fuel_level' => 'required|in:1/4,1/2,3/4,casi_lleno,lleno,full',
             'tire_status_front' => 'required|in:good,fair,poor',
             'tire_status_rear' => 'required|in:good,fair,poor',
@@ -351,6 +355,9 @@ class VehicleRequestController extends Controller
             'photos' => 'nullable|array|max:5',
             'photos.*' => 'image|max:10240', // Max 10MB per photo
             'comments' => 'nullable|string|max:1000',
+        ], [
+
+            'return_mileage.min' => 'El kilometraje de devolución debe ser mayor al kilometraje actual del vehículo (' . number_format($vehicleRequest->vehicle->mileage, 0, ',', '.') . ' KM).',
         ]);
 
         // Procesar fotos si existen
