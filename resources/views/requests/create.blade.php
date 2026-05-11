@@ -27,21 +27,67 @@
                     <div x-data="{ 
                         selectedId: '{{ old('vehicle_id') }}', 
                         search: '',
-                        vehicles: {{ $vehicles->map(function ($vehicle) {
-    return [
-        'id' => $vehicle->id,
-        'label' => $vehicle->brand . ' ' . $vehicle->model,
-        'plate' => $vehicle->plate,
-        'image' => $vehicle->image_path ? asset('storage/' . $vehicle->image_path) : null,
-        'year' => $vehicle->year,
-    ];
-})->toJson() }},
+                        startDate: '{{ old('start_date') }}',
+                        endDate: '{{ old('end_date') }}',
+                      vehicles: {{ $vehicles->map(function ($vehicle) {
+                        return [
+                            'id' => $vehicle->id,
+                            'label' => $vehicle->brand . ' ' . $vehicle->model,
+                            'plate' => $vehicle->plate,
+                            'image' => $vehicle->image_path ? asset('storage/' . $vehicle->image_path) : null,
+                            'year' => $vehicle->year,
+                            'available' => false,
+                            'availabilityChecked' => false,
+                            'status_label' => 'Selecciona fechas',
+                        ];
+                        })->toJson() }},
                         get filteredVehicles() {
                             if (this.search === '') return this.vehicles;
                             return this.vehicles.filter(vehicle => {
                                 return vehicle.label.toLowerCase().includes(this.search.toLowerCase()) || 
                                        vehicle.plate.toLowerCase().includes(this.search.toLowerCase());
                             });
+                        },
+                        async checkAvailability() {
+                            // No consultar si aún faltan fechas
+                            if (!this.startDate || !this.endDate) return;
+
+                            try {
+                                //Armamos parámetros para enviarlos al endpoint
+                                const params = new URLSearchParams({
+                                    start_date: this.startDate,
+                                    end_date: this.endDate
+                                });
+
+                                //Llamamos a la ruta que creamos en web.php
+                                const response = await fetch(`{{ url('/requests/availability') }}?${params.toString()}`);
+
+                                // Convertimos la respuesta a JSON
+                                const data = await response.json();
+
+                                //Recorremos los vehículos actuales y les inyectamos disponibilidad
+                                this.vehicles = this.vehicles.map(vehicle => {
+                                    const match = data.find(v => v.id === vehicle.id);
+
+                                    return {
+                                        ...vehicle,
+                                        available: match ? match.available : false,
+                                        status_label: match ? match.status_label : 'No disponible',
+                                        availabilityChecked: true 
+                                    };
+                                });
+
+                                // 6) Si el vehículo seleccionado quedó no disponible, lo desmarcamos
+                                if (this.selectedId) {
+                                    const selectedVehicle = this.vehicles.find(v => v.id == this.selectedId);
+                                    if (selectedVehicle && !selectedVehicle.available) {
+                                        this.selectedId = '';
+                                    }
+                                }
+                            } catch (error) {
+                                // Si algo falla, lo mostramos en consola para depuración
+                                console.error('Error checking availability:', error);
+                            }
                         }
                     }">
 
@@ -78,9 +124,26 @@
                             <div class="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-2">
                                     <template x-for="vehicle in filteredVehicles" :key="vehicle.id">
-                                        <div @click="selectedId = vehicle.id"
-                                            class="group relative cursor-pointer rounded-2xl border-2 transition-all duration-200 ease-in-out overflow-hidden hover:shadow-lg"
-                                            :class="selectedId == vehicle.id ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-1 ring-indigo-600' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-indigo-300'">
+                                        <div @click="!vehicle.availabilityChecked || vehicle.available ? selectedId = vehicle.id : selectedId = ''"
+                                            class="group relative min-h-[260px] rounded-2xl border-2 transition-all duration-200 ease-in-out overflow-hidden hover:shadow-lg"
+                                            :class="[
+                                                selectedId == vehicle.id
+                                                    ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-1 ring-indigo-600'
+                                                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-indigo-300',
+                                                vehicle.availabilityChecked && !vehicle.available 
+                                                    ? 'opacity-50 cursor-not-allowed'
+                                                    : 'cursor-pointer'
+                                            ]">
+                                                <!-- Availability Badge -->
+                                            <div 
+                                                class="absolute top-3 left-3 z-10 px-2 py-1 text-xs font-bold rounded text-white shadow"
+                                                :class="{
+                                                    'bg-green-600': vehicle.available && vehicle.availabilityChecked,
+                                                    'bg-red-600': !vehicle.available && vehicle.availabilityChecked,
+                                                    'bg-gray-500': !vehicle.availabilityChecked
+                                                }">
+                                                <span x-text="vehicle.status_label"></span>
+                                            </div>
 
                                             <!-- Checkmark Badge -->
                                             <div x-show="selectedId == vehicle.id"
@@ -99,7 +162,7 @@
                                             <div
                                                 class="aspect-w-16 aspect-h-9 w-full bg-gray-200 dark:bg-gray-700 h-40 overflow-hidden relative">
                                                 <template x-if="vehicle.image">
-                                                    <img :src="vehicle.image"
+                                                    <img x-bind:src="vehicle.image"
                                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                                 </template>
                                                 <template x-if="!vehicle.image">
@@ -163,7 +226,8 @@
                                         <div class="relative">
                                             <x-input-label for="start_date" :value="__('Retiro')" class="mb-1.5" />
                                             <input type="datetime-local" id="start_date" name="start_date"
-                                                :value="'{{ old('start_date') }}'" required
+                                                x-model="startDate" @change="checkAvailability()"
+                                                required
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
                                         </div>
 
@@ -177,7 +241,8 @@
                                         <div class="relative">
                                             <x-input-label for="end_date" :value="__('Devolución')" class="mb-1.5" />
                                             <input type="datetime-local" id="end_date" name="end_date"
-                                                :value="'{{ old('end_date') }}'" required
+                                                x-model="endDate" @change="checkAvailability()"
+                                                required
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
                                         </div>
                                     </div>

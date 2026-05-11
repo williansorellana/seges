@@ -77,15 +77,15 @@
                 <div x-show="open && vehicleMenu" x-collapse
                     class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']))
-                        <a href="{{ route('vehicles.dashboard') }}" wire:navigate
+                    @if(in_array(Auth::user()->role, ['supervisor', 'viewer']))
+                        <a href="{{ route('dashboard') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('vehicles.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
                             Panel de Vehículos
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+                    @if(Auth::user()->role === 'supervisor')
                         <a href="{{ route('vehicles.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('vehicles.index') ? "'text-white bg-gray-800'" : "''" }}">
@@ -111,7 +111,7 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'secretaria', 'supervisor']))
+                    @if(Auth::user()->role === 'supervisor')
                         <a href="{{ route('external-people.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('external-people.*') ? "'text-white bg-gray-800'" : "''" }}">
@@ -159,7 +159,7 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+                    @if(Auth::user()->role === 'supervisor')
 
                         <a href="{{ route('reservations.create_external') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
@@ -189,7 +189,8 @@
                 </div>
             </div>
         @endif
-
+        
+        
         <!-- Módulo Activos -->
         @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']) && Auth::user()->hasModuleAccess('assets'))
             <div>

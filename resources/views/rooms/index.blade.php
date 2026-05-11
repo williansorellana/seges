@@ -32,17 +32,19 @@
                     </svg>
                     Historial
                 </a>
-
-                <button x-data="" @click="$dispatch('open-modal', 'room-requests-modal')" 
-                    class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600 focus:bg-yellow-600 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                    </svg>
-                    Solicitudes
-                    @if(isset($pendingReservations) && $pendingReservations->count() > 0)
-                        <span class="ml-2 px-1.5 py-0.5 bg-white text-yellow-600 rounded-full text-[10px] font-bold">{{ $pendingReservations->count() }}</span>
-                    @endif
-                </button>
+                
+                @if(strtolower(trim(auth()->user()->role)) === 'supervisor')
+                    <button x-data="" @click="$dispatch('open-modal', 'room-requests-modal')" 
+                        class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600 focus:bg-yellow-600 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        Solicitudes
+                        @if(isset($pendingReservations) && $pendingReservations->count() > 0)
+                            <span class="ml-2 px-1.5 py-0.5 bg-white text-yellow-600 rounded-full text-[10px] font-bold">{{ $pendingReservations->count() }}</span>
+                        @endif
+                    </button>
+                @endif
 
                 <button x-data="" @click="$dispatch('open-modal', 'create-room-modal')"
                     class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">

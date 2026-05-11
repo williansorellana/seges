@@ -62,8 +62,8 @@ class Vehicle extends Model
                 $query->whereBetween('start_date', [$startDate, $endDate])
                     ->orWhereBetween('end_date', [$startDate, $endDate])
                     ->orWhere(function ($q) use ($startDate, $endDate) {
-                        $q->where('start_date', '<', $startDate)
-                            ->where('end_date', '>', $endDate);
+                        $q->where('start_date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
                     });
             })
             ->exists();
