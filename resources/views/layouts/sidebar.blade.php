@@ -159,7 +159,7 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+                    @if(Auth::user()->role === 'supervisor')
 
                         <a href="{{ route('reservations.create_external') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
