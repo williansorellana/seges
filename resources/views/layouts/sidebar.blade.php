@@ -78,7 +78,7 @@
                     class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
 
                     @if(in_array(Auth::user()->role, ['supervisor', 'viewer']))
-                        <a href="{{ route('dashboard') }}" wire:navigate
+                        <a href="{{ route('vehicles.dashboard') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('vehicles.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
                             Panel de Vehículos
