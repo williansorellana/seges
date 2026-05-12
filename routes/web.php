@@ -14,27 +14,52 @@ use App\Http\Controllers\MeetingRoomController;
 use App\Http\Controllers\RoomReservationController;
 use App\Http\Controllers\AssetController;
 
-//*RUTAS PARA EL MODULO DE RENDICIONES FASE 1, ACTIVAR CUANDO LAS DEMAS FASES ESTEN LISTAS*//
-// use App\Livewire\DashboardRendiciones;
-// use App\Livewire\CrearPlanificacion;
-// use App\Livewire\AprobacionFinanzas;
-// use App\Livewire\CrearRendicion;
+use App\Http\Controllers\RoutePlanningController;
+use App\Http\Controllers\RenditionController;
 
-//Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'force.password.change'])->group(function () {
+    // Rutas de Planificación de Ruta
+    Route::prefix('planificaciones')->name('route-plannings.')->group(function () {
+        Route::get('/', [RoutePlanningController::class, 'index'])->name('index');
+        Route::get('/crear', [RoutePlanningController::class, 'create'])->name('create');
+        Route::post('/', [RoutePlanningController::class, 'store'])->name('store');
+        
+        // Acciones de Jefatura
+        Route::post('/{planning}/approve-jefatura', [RoutePlanningController::class, 'approveByJefatura'])->name('approve-jefatura');
+        Route::post('/{planning}/reject-jefatura', [RoutePlanningController::class, 'rejectByJefatura'])->name('reject-jefatura');
+        
+        // Acciones de Controlling
+        Route::post('/{planning}/approve-controlling', [RoutePlanningController::class, 'approveByControlling'])->name('approve-controlling');
+        Route::post('/{planning}/reject-controlling', [RoutePlanningController::class, 'rejectByControlling'])->name('reject-controlling');
+        
+        // Acciones de Finanzas
+        Route::post('/{planning}/approve-finances', [RoutePlanningController::class, 'approveByFinances'])->name('approve-finances');
+        Route::post('/{planning}/reject-finances', [RoutePlanningController::class, 'rejectByFinances'])->name('reject-finances');
+    });
 
-//    Route::prefix('rendiciones')->group(function () {
-
-//        Route::get('/', DashboardRendiciones::class)->name('rendiciones.dashboard');
-
-//        Route::get('/planificacion', CrearPlanificacion::class)->name('rendiciones.planificacion');
-
-//        Route::get('/aprobaciones', AprobacionFinanzas::class)->name('rendiciones.aprobaciones');
-
-//        Route::get('/rendir', CrearRendicion::class)->name('rendiciones.rendir');
-
-//    });
-
-//}); 
+    // Rutas de Rendiciones
+    Route::prefix('rendiciones')->name('renditions.')->group(function () {
+        Route::get('/', [RenditionController::class, 'index'])->name('index');
+        Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
+        Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
+        Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');
+        Route::get('/{rendition}/pdf', [RenditionController::class, 'downloadPdf'])->name('pdf');
+        
+        // Paneles específicos por rol/departamento
+        Route::get('/aprobaciones-jefatura', [RenditionController::class, 'approvals'])->name('approvals');
+        Route::get('/finanzas', [RenditionController::class, 'finances'])->name('finances');
+        Route::get('/controlling', [RenditionController::class, 'controlling'])->name('controlling');
+        Route::get('/historial', [RenditionController::class, 'history'])->name('history');
+        
+        // Acciones sobre Rendiciones
+        Route::post('/{rendition}/approve-jefatura', [RenditionController::class, 'approveByJefatura'])->name('approve-jefatura-rendition');
+        Route::post('/{rendition}/reject-jefatura', [RenditionController::class, 'rejectByJefatura'])->name('reject-jefatura-rendition');
+        Route::post('/{rendition}/approve-controlling', [RenditionController::class, 'approveByControlling'])->name('approve-controlling-rendition');
+        Route::post('/{rendition}/reject-controlling', [RenditionController::class, 'rejectByControlling'])->name('reject-controlling-rendition');
+        Route::post('/{rendition}/approve-finances', [RenditionController::class, 'approveByFinances'])->name('approve-finances-rendition');
+        Route::post('/{rendition}/reject-finances', [RenditionController::class, 'rejectByFinances'])->name('reject-finances-rendition');
+    });
+});
 
 
 

@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'must_change_password',
         'is_active',
         'authorized_modules',
+        'jefatura_id',
     ];
 
     /**
@@ -114,5 +115,15 @@ class User extends Authenticatable implements MustVerifyEmail
         $firstLastName = explode(' ', $this->last_name ?? '')[0];
 
         return trim("$firstName $firstLastName");
+    }
+
+    public function jefatura()
+    {
+        return $this->belongsTo(User::class, 'jefatura_id');
+    }
+
+    public function subordinados()
+    {
+        return $this->hasMany(User::class, 'jefatura_id');
     }
 }

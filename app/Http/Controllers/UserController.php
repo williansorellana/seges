@@ -23,7 +23,8 @@ class UserController extends Controller
         } else {
             $users = User::all();
         }
-        return view('users.index', compact('users'));
+        $jefaturas = User::where('role', 'jefatura')->get();
+        return view('users.index', compact('users', 'jefaturas'));
     }
 
     /**
@@ -36,8 +37,10 @@ class UserController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,supervisor,worker,viewer'],
+            'role' => ['required', 'in:admin,supervisor,worker,viewer,jefatura'],
             'authorized_modules' => ['nullable', 'array'],
+            'departamento' => ['nullable', 'string', 'max:255'],
+            'jefatura_id' => ['nullable', 'exists:users,id'],
         ]);
 
         $authorizedModules = $request->authorized_modules ?? ['all'];
@@ -51,6 +54,8 @@ class UserController extends Controller
             'must_change_password' => true,
             'is_active' => true,
             'authorized_modules' => $authorizedModules,
+            'departamento' => $request->departamento,
+            'jefatura_id' => $request->jefatura_id,
         ]);
 
         event(new Registered($user));
@@ -67,9 +72,11 @@ class UserController extends Controller
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'last_name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['sometimes', 'required', 'in:admin,supervisor,worker,viewer'],
+            'role' => ['sometimes', 'required', 'in:admin,supervisor,worker,viewer,jefatura'],
             'is_active' => ['sometimes', 'required', 'boolean'],
             'authorized_modules' => ['nullable', 'array'],
+            'departamento' => ['nullable', 'string', 'max:255'],
+            'jefatura_id' => ['nullable', 'exists:users,id'],
         ]);
 
         $user->update($validated);

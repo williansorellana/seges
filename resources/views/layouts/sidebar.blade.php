@@ -8,7 +8,8 @@
         open: true, 
         vehicleMenu: {{ request()->routeIs('vehicles.*', 'conductores.*', 'requests.*', 'admin.returns.*') ? 'true' : 'false' }},
         roomMenu: {{ request()->routeIs('rooms.*', 'reservations.*') ? 'true' : 'false' }},
-        assetMenu: {{ request()->routeIs('assets.*', 'workers.*') ? 'true' : 'false' }}
+        assetMenu: {{ request()->routeIs('assets.*', 'workers.*') ? 'true' : 'false' }},
+        renditionMenu: {{ request()->routeIs('route-plannings.*', 'renditions.*') ? 'true' : 'false' }}
     }" :class="{
         'w-64': open, 
         'w-20': !open,
@@ -241,7 +242,74 @@
             </div>
         @endif
 
+        <!-- Módulo Rendiciones -->
+        @if(Auth::user()->hasModuleAccess('renditions') || in_array(Auth::user()->role, ['admin']))
+            <div>
+                <button
+                    @click="if(!open) { open = true; setTimeout(() => renditionMenu = true, 100); } else { renditionMenu = !renditionMenu; }"
+                    class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
+                    :class="{'justify-center': !open, 'bg-gray-800 text-white': renditionMenu}">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo Rendiciones</span>
+                    </div>
+                    <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': renditionMenu}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
 
+                <div x-show="open && renditionMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
+                    <a href="{{ route('route-plannings.create') }}" wire:navigate
+                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                        :class="{{ request()->routeIs('route-plannings.create') ? "'text-white bg-gray-800'" : "''" }}">
+                        Crear planificación
+                    </a>
+                    <a href="{{ route('route-plannings.index') }}" wire:navigate
+                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                        :class="{{ request()->routeIs('route-plannings.index') ? "'text-white bg-gray-800'" : "''" }}">
+                        Mis solicitudes
+                    </a>
+                    <a href="{{ route('renditions.index') }}" wire:navigate
+                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                        :class="{{ request()->routeIs('renditions.index') ? "'text-white bg-gray-800'" : "''" }}">
+                        Mis rendiciones
+                    </a>
+                    
+                    @if(in_array(Auth::user()->role, ['admin', 'jefatura']))
+                        <a href="{{ route('renditions.approvals') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('renditions.approvals') ? "'text-white bg-gray-800'" : "''" }}">
+                            Aprobaciones jefatura
+                        </a>
+                    @endif
+                    
+                    @if(in_array(Auth::user()->role, ['admin']) || Auth::user()->departamento === 'Finanzas')
+                        <a href="{{ route('renditions.finances') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('renditions.finances') ? "'text-white bg-gray-800'" : "''" }}">
+                            Panel Finanzas
+                        </a>
+                    @endif
+                    
+                    @if(in_array(Auth::user()->role, ['admin']) || Auth::user()->departamento === 'Controlling')
+                        <a href="{{ route('renditions.controlling') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('renditions.controlling') ? "'text-white bg-gray-800'" : "''" }}">
+                            Panel Controlling
+                        </a>
+                    @endif
+                    
+                    <a href="{{ route('renditions.history') }}" wire:navigate
+                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                        :class="{{ request()->routeIs('renditions.history') ? "'text-white bg-gray-800'" : "''" }}">
+                        Historial
+                    </a>
+                </div>
+            </div>
+        @endif
 
     </nav>
 </aside>
