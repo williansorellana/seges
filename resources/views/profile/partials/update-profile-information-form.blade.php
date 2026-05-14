@@ -300,9 +300,33 @@
                 <!-- Phone -->
                 <div>
                     <x-input-label for="phone" :value="__('Teléfono')" />
-                    <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $user->phone)"
-                        placeholder="+56 9 1234 5678" />
+
+                    <div class="mt-1 flex rounded-md shadow-sm">
+                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm">
+                            +56
+                        </span>
+
+                        <input
+                            id="phone"
+                            name="phone"
+                            type="text"
+                            value="{{ old('phone', $user->phone) }}"
+                            maxlength="9"
+                            pattern="9\d{8}"
+                            inputmode="numeric"
+                            placeholder="912345678"
+                            class="mt-1 block w-full rounded-r-md border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-300"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,9)"
+                        >
+
+                    </div>
+
+                    <p p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Ingrese un numero telefoníco válido de 9 dígitos.
+                    </p>
+
                     <x-input-error class="mt-2" :messages="$errors->get('phone')" />
+
                 </div>
 
                 <!-- Address (full width) -->

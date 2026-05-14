@@ -531,6 +531,35 @@ class VehicleRequestController extends Controller
         return back()->with('success', 'Asignación finalizada anticipadamente y devolución registrada.');
     }
 
+    /**FUNCION PARA CANCELAR SOLICITUDES */
+    public function cancel($id)
+    {
+    try {
+        $vehicleRequest = VehicleRequest::where('user_id', Auth::id())
+            ->findOrFail($id);
+
+        if (!in_array($vehicleRequest->status, ['pending', 'approved'])) {
+            return back()->with('error', 'Esta solicitud ya no puede ser cancelada.');
+        }
+
+        $vehicleRequest->update([
+            'status' => 'cancelled',
+        ]);
+
+        return back()->with('success', 'Solicitud cancelada correctamente.');
+
+    } catch (Exception $e) {
+        Log::error('Error al cancelar solicitud de vehículo', [
+            'user_id' => Auth::id(),
+            'vehicle_request_id' => $id,
+            'error' => $e->getMessage(),
+        ]);
+
+        return back()->with('error', 'No se pudo cancelar la solicitud. Intente nuevamente.');
+    }
+    }
+
+
     /**
      * Muestra el historial de uso de vehículos con filtros.
      */

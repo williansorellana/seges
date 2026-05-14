@@ -18,11 +18,15 @@
     class="fixed inset-y-0 left-0 z-50 flex-shrink-0 h-screen bg-gray-900 border-r border-gray-800 transition-all duration-300 ease-in-out flex flex-col pt-0 md:sticky md:top-0 md:translate-x-0">
 
     <div class="h-16 flex items-center justify-between px-4 bg-gray-900 border-b border-gray-800">
-        <div class="flex items-center space-x-2" :class="{'justify-center w-full': !open}">
+        <div class="flex flex-col items-start overflow-hidden" :class="{'items-center': !open}">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center justify-center overflow-hidden">
                 <img src="{{ asset('images/dimak-logo.png') }}" alt="Dimak Logo"
                     class="object-contain transition-all duration-300" :class="open ? 'h-10' : 'h-8'" />
             </a>
+            <!-- Version Info, LUEGO MAS ADELANTE COMBIENE CAMBIARLO A CONFIG/APP, PERO AHORA ES SEGURO DEJARLO ACA. -->
+            <span x-show="open" class="mt-0.5 text-[11px] text-gray-500 tracking-wide">
+                Sistema v{{ env('APP_VERSION', '1.7') }}
+            </span>
         </div>
         <button @click="open = !open" x-show="open" class="text-gray-400 hover:text-white focus:outline-none">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -57,8 +57,38 @@
 
             <div>
                 <x-input-label for="phone" :value="__('Teléfono')" />
-                <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', auth()->user()->phone)" placeholder="+56 9 1234 5678" required />
-                <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+
+                    <div class="mt-1 flex rounded-md shadow-sm">
+                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-700 text-sm font-semibold">
+                           🇨🇱 (+56)
+                        </span>
+
+                        <input
+                            id="phone"
+                            name="phone"
+                            type="text"
+                            value="{{ old('phone', auth()->user()->phone) }}"
+                            maxlength="9"
+                            pattern="9\d{8}"
+                            inputmode="numeric"
+                            placeholder="9 8765 4321"
+                            required
+                            class="block w-full rounded-r-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,9)"
+                        >
+
+                    </div>
+
+                    <p p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Ingrese solo los 9 dígitos del celular. El prefijo +56 se agrega automáticamente.
+                    </p>
+
+                    @if ($errors->has('phone'))
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ $errors->first('phone') }}
+                        </p>
+                    @endif
+
             </div>
 
             <div>
