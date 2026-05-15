@@ -21,7 +21,7 @@ class ForceChangePasswordController extends Controller
         $request->validate([
             'password' => ['required', 'confirmed', Password::defaults()],
             'rut' => ['required', 'string', 'max:12', 'unique:users,rut,' . $request->user()->id],
-            'phone' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'regex:/^9\d{8}$/'],
             'address' => ['required', 'string', 'max:255'],
         ]);
 

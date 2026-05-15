@@ -69,7 +69,7 @@ class RoomReservationController extends Controller
         
         //verificación de solapamiento (todo en horario local)
         $exists = RoomReservation::where('meeting_room_id', $request->meeting_room_id)
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'pending'])
             ->where(function ($query) use ($start, $end) {
                 $query->where('start_time', '<', $end)
                       ->where('end_time', '>', $start);
@@ -101,9 +101,15 @@ class RoomReservationController extends Controller
                    ->orWhereJsonContains('authorized_modules', 'all');
                 })
             ->get();
-
-        if ($recipients->count() > 0) {
-            Notification::send($recipients, new NewReservationRequest($reservation));
+        try {
+            if ($recipients->count() > 0) {
+                Notification::send($recipients, new NewReservationRequest($reservation));
+            }
+        } catch (\Exception $e) {
+           \Log::error('Error al enviar notificación de reserva de sala', [
+                'reservation_id' => $reservation->id,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return redirect()->route('reservations.my_reservations')->with('success', 'Solicitud enviada correctamente.');
@@ -119,8 +125,8 @@ class RoomReservationController extends Controller
 
      
         $exists = RoomReservation::where('meeting_room_id', $reservation->meeting_room_id)
-            ->where('status', 'approved') 
-            ->where('id', '!=', $id) 
+            ->whereIn('status', ['approved', 'pending'])
+            ->where('id', '!=', $id)
             ->where(function ($query) use ($start, $end) {
                
                 $query->where('start_time', '<', $end)
@@ -356,7 +362,7 @@ class RoomReservationController extends Controller
         }
         
         $exists = RoomReservation::where('meeting_room_id', $request->meeting_room_id)
-            ->where('status', 'pending')
+            ->whereIn('status', ['approved', 'pending'])
             ->where(function ($query) use ($start, $end) {
                 $query->where('start_time', '<', $end)
                       ->where('end_time', '>', $start);
@@ -364,7 +370,9 @@ class RoomReservationController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['error' => '⚠️ La sala está ocupada en ese horario.']);
+            return back()
+                ->withErrors(['error' => '⚠️ La sala ya tiene una reserva aprobada. Por favor elige otro horario o sala.'])
+                ->withInput();
         }
 
         

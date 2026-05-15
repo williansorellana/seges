@@ -135,6 +135,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/solicitar-vehiculo', [VehicleRequestController::class, 'create'])->name('requests.create');
     Route::get('/solicitar-vehiculo/disponibilidad', [VehicleRequestController::class, 'availability'])->name('requests.availability');
     Route::post('/solicitar-vehiculo', [VehicleRequestController::class, 'store'])->name('requests.store');
+    Route::post('/requests/{id}/cancel', [VehicleRequestController::class, 'cancel'])
+    ->name('requests.cancel');
 
     // CONTROL DEL MODULO DE VEHICULOS - Solo Supervisor
     Route::middleware(['role:supervisor'])->group(function () {

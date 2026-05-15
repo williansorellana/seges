@@ -19,21 +19,19 @@ class DashboardController extends Controller
                 'actions' => array_filter([
 
                     // TODOS
+                    ['label' => 'Panel de Vehículos', 'route' => 'vehicles.dashboard'], //DASHBOARD GENERAL PARA TODOS para el MÓDULO VEHÍCULOS
                     ['label' => 'Reservar Vehículos', 'route' => 'requests.create'],
                     ['label' => 'Ver tus reservas', 'route' => 'requests.index'],
 
-                    // SOLO supervisor/admin
-                    in_array($user->role, ['admin','supervisor']) ? 
-                        ['label' => 'Panel de Vehículos', 'route' => 'vehicles.dashboard'] : null,
+                    // SOLO supervisor
+                    $user->role === 'supervisor'  
+                        ? ['label' => 'Gestión de Vehículos', 'route' => 'vehicles.index'] : null,
 
-                    in_array($user->role, ['admin','supervisor']) ? 
-                        ['label' => 'Gestión de Vehículos', 'route' => 'vehicles.index'] : null,
+                    $user->role === 'supervisor'
+                        ? ['label' => 'Conductores', 'route' => 'conductores.index'] : null,
 
-                    in_array($user->role, ['admin','supervisor']) ? 
-                        ['label' => 'Conductores', 'route' => 'conductores.index'] : null,
-
-                    in_array($user->role, ['admin','supervisor']) ? 
-                        ['label' => 'Personas Externas', 'route' => 'external-people.index'] : null,
+                    $user->role === 'supervisor' 
+                        ? ['label' => 'Personas Externas', 'route' => 'external-people.index'] : null,
 
                 ])
             ],
@@ -50,14 +48,14 @@ class DashboardController extends Controller
                     in_array($user->role, ['admin','supervisor','worker','driver']) ? 
                         ['label' => 'Mis Reservas', 'route' => 'reservations.my_reservations'] : null,
 
-                    // SOLO supervisor/admin
-                    in_array($user->role, ['admin','supervisor']) ? 
+                    // SOLO supervisor/
+                    $user->role === 'supervisor' ? 
                         ['label' => 'Reserva Manual', 'route' => 'reservations.create_external'] : null,
 
-                    in_array($user->role, ['admin','supervisor']) ? 
+                    $user->role === 'supervisor' ? 
                         ['label' => 'Gestionar Salas', 'route' => 'rooms.index'] : null,
 
-                    in_array($user->role, ['admin','supervisor']) ? 
+                    $user->role === 'supervisor' ? 
                         ['label' => 'Agenda', 'route' => 'rooms.agenda'] : null,
 
                 ])
