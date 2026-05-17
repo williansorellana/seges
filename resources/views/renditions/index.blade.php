@@ -134,6 +134,11 @@
                                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 border border-red-200">
                                                         Observada
                                                     </span>
+                                                    @if($ren->status === 'rejected' && $ren->observations->isNotEmpty())
+                                                        <div class="mt-2 text-xs text-red-600 dark:text-red-400 max-w-xs whitespace-normal">
+                                                            {{ $ren->observations->last()->observation }}
+                                                        </div>
+                                                    @endif
                                                     @break
                                             @endswitch
                                         </td>

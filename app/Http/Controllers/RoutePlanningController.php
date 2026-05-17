@@ -3,15 +3,72 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\DigitalSignatureService;
+use App\Models\WorkflowHistory;
+use App\Helpers\WorkflowHelper;
 
 class RoutePlanningController extends Controller
 {
     public function index()
     {
-        $plannings = \App\Models\RoutePlanning::where('user_id', auth()->id())
+        $query = \App\Models\RoutePlanning::query();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Trabajador normal
+        |--------------------------------------------------------------------------
+        */
+
+        if (auth()->user()->role === WorkflowHelper::ROLE_WORKER) {
+
+            $query->where('user_id', auth()->id());
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Jefatura
+        |--------------------------------------------------------------------------
+        */
+
+        elseif (auth()->user()->role === WorkflowHelper::ROLE_JEFATURA) {
+
+            $query->where('status', 'pending_jefatura')
+                ->whereHas('user', function ($q) {
+                    $q->where('jefatura_id', auth()->id());
+                });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Controlling
+        |--------------------------------------------------------------------------
+        */
+
+        elseif (
+            auth()->user()->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING
+            || auth()->user()->role === WorkflowHelper::ROLE_ADMIN
+        ) {
+
+            $query->where('status', 'pending_controlling');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Finanzas
+        |--------------------------------------------------------------------------
+        */
+
+        elseif (
+            auth()->user()->departamento === WorkflowHelper::DEPARTMENT_FINANCES
+        ) {
+
+            $query->where('status', 'pending_finances');
+        }
+
+        $plannings = $query
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-            
+
         return view('route-plannings.index', compact('plannings'));
     }
 
@@ -56,66 +113,162 @@ class RoutePlanningController extends Controller
 
     public function approveByJefatura(\App\Models\RoutePlanning $planning)
     {
-        if ($planning->user->jefatura_id !== auth()->id() && auth()->user()->role !== 'admin') {
+        /*
+        |--------------------------------------------------------------------------
+        | Validación autorización
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $planning->user->jefatura_id !== auth()->id()
+            && auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+        ) {
             abort(403, 'No autorizado.');
         }
 
-        $planning->status = 'pending_controlling';
-        $planning->save();
+        /*
+        |--------------------------------------------------------------------------
+        | Firma digital jefatura
+        |--------------------------------------------------------------------------
+        */
 
-        return redirect()->back()->with('success', 'Solicitud aprobada y escalada a Controlling.');
-    }
+        $signatureService = new DigitalSignatureService();
 
-    public function rejectByJefatura(Request $request, \App\Models\RoutePlanning $planning)
-    {
-        $request->validate(['observation' => 'required|string|max:500']);
+        $signatureService->sign(
 
-        if ($planning->user->jefatura_id !== auth()->id() && auth()->user()->role !== 'admin') {
-            abort(403, 'No autorizado.');
+            model: $planning,
+
+            user: auth()->user(),
+
+            snapshot: [
+
+                'planning_id' => $planning->id,
+
+                'worker' => $planning->user->name,
+
+                'destination' => $planning->destination,
+
+                'trip_type' => $planning->trip_type,
+
+                'approved_by' => auth()->user()->name,
+
+                'approved_at' => now()->toDateTimeString(),
+            ],
+
+            type: 'jefatura_approval'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Workflow según tipo viaje
+        |--------------------------------------------------------------------------
+        */
+
+        if ($planning->trip_type === 'reunion') {
+
+            $financeExists = \App\Models\User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)
+                ->exists();
+
+            if (!$financeExists) {
+
+                return redirect()
+                    ->back()
+                    ->with(
+                        'error',
+                        'No existe ningún usuario perteneciente al departamento Finanzas.'
+                    );
+            }
+
+            $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
+
+        } else {
+
+            $controllingExists = \App\Models\User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)
+                ->exists();
+
+            if (!$controllingExists) {
+
+                return redirect()
+                    ->back()
+                    ->with(
+                        'error',
+                        'No existe ningún usuario perteneciente al departamento Controlling.'
+                    );
+            }
+
+            $planning->status = WorkflowHelper::STATUS_PENDING_CONTROLLING;
         }
 
-        $planning->status = 'rejected';
         $planning->save();
 
-        $planning->observations()->create([
+        /*
+        |--------------------------------------------------------------------------
+        | Historial workflow
+        |--------------------------------------------------------------------------
+        */
+
+        WorkflowHistory::create([
+
+            'workflowable_type' => \App\Models\RoutePlanning::class,
+
+            'workflowable_id' => $planning->id,
+
             'user_id' => auth()->id(),
-            'observation' => $request->observation,
-            'action' => 'rejected'
+
+            'action' => 'approved_by_jefatura',
+
+            'from_status' => 'pending_jefatura',
+
+            'to_status' => $planning->status,
+
+            'observation' => 'Solicitud aprobada por jefatura.',
         ]);
 
-        return redirect()->back()->with('success', 'Solicitud rechazada. Se ha notificado al colaborador.');
+        /*
+        |--------------------------------------------------------------------------
+        | Respuesta
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->back()
+            ->with(
+                'success',
+                'Solicitud aprobada por jefatura correctamente.'
+            );
     }
 
     public function approveByControlling(\App\Models\RoutePlanning $planning)
     {
-        if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== 'Controlling') {
+        if (
+            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            &&
+            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
+        ) {
             abort(403, 'No autorizado.');
         }
 
-        if ($planning->requires_funds || $planning->requires_amipass) {
-            $planning->status = 'pending_finances';
-            $message = 'Solicitud validada por Controlling y escalada a Finanzas.';
-        } else {
-            $planning->status = 'approved';
-            $planning->digital_signature = hash('sha256', $planning->id . $planning->user_id . now());
-            $planning->signed_at = now();
-            $message = 'Solicitud aprobada exitosamente (Sin requerimientos financieros).';
-        }
+        $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
 
         $planning->save();
 
-        return redirect()->back()->with('success', $message);
+        return redirect()
+            ->back()
+            ->with(
+                'success',
+                'Solicitud validada por Controlling y enviada a Finanzas.'
+            );
     }
 
     public function rejectByControlling(Request $request, \App\Models\RoutePlanning $planning)
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== 'Controlling') {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_ADMIN && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING) {
             abort(403, 'No autorizado.');
         }
 
-        $planning->status = 'rejected';
+        $planning->status = WorkflowHelper::STATUS_REJECTED;
         $planning->save();
 
         $planning->observations()->create([
@@ -129,11 +282,11 @@ class RoutePlanningController extends Controller
 
     public function approveByFinances(\App\Models\RoutePlanning $planning)
     {
-        if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== 'Finanzas') {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_ADMIN && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES) {
             abort(403, 'No autorizado.');
         }
 
-        $planning->status = 'approved';
+        $planning->status = WorkflowHelper::STATUS_APPROVED;
         // Firma Digital: Hash SHA-256 para asegurar integridad
         $planning->digital_signature = hash('sha256', $planning->id . $planning->user_id . now());
         $planning->signed_at = now();
@@ -144,7 +297,7 @@ class RoutePlanningController extends Controller
             'route_planning_id' => $planning->id,
             'user_id' => $planning->user_id,
             'funds_received' => $planning->requested_funds ?? 0,
-            'status' => 'draft'
+            'status' => WorkflowHelper::STATUS_DRAFT
         ]);
 
         return redirect()->back()->with('success', 'Fondos liberados. Solicitud aprobada y firmada digitalmente.');
@@ -154,11 +307,11 @@ class RoutePlanningController extends Controller
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== 'Finanzas') {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_ADMIN && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES) {
             abort(403, 'No autorizado.');
         }
 
-        $planning->status = 'rejected';
+        $planning->status = WorkflowHelper::STATUS_REJECTED;
         $planning->save();
 
         $planning->observations()->create([

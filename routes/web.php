@@ -40,6 +40,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     // Rutas de Rendiciones
     Route::prefix('rendiciones')->name('renditions.')->group(function () {
         Route::get('/', [RenditionController::class, 'index'])->name('index');
+        Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
         Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
         Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
         Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');
@@ -69,22 +70,22 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura'])
     ->name('dashboard');
 
     // Panel de Vehiculos
 Route::get('/vehicles/dashboard', [VehicleController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura'])
     ->name('vehicles.dashboard');
 
     // Gestión de Activos
 Route::get('/assets/dashboard', [AssetController::class, 'dashboard'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer,jefatura'])
     ->name('assets.dashboard');
 
     // Gestion de Salas
 Route::get('/salas/dashboard', [RoomReservationController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer,jefatura'])
     ->name('salas.dashboard');
 
 Route::get('/reservar-sala', function () {
@@ -137,7 +138,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
 
     // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver) - NO Viewer
-    Route::middleware(['role:admin,supervisor,worker,driver'])->group(function () {
+    Route::middleware(['role:admin,supervisor,worker,driver,jefatura'])->group(function () {
         Route::post('/reservar-sala', [RoomReservationController::class, 'store'])->name('reservations.store');
         Route::get('/mis-reservas-salas', [RoomReservationController::class, 'myReservations'])->name('reservations.my_reservations');
         Route::put('/mis-reservas-salas/{id}/cancel', [RoomReservationController::class, 'cancel'])->name('reservations.cancel');
@@ -254,11 +255,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('external-people', \App\Http\Controllers\FrequentExternalPersonController::class);
     });
 
-    // Dashboard Activos - Accesible por Admin, Supervisor y Visualizador
-    Route::middleware(['role:admin,supervisor,viewer'])->group(function () {
-        Route::get('/assets/dashboard', [\App\Http\Controllers\AssetController::class, 'dashboard'])->name('assets.dashboard');
     });
-});
 
 // Rutas de cambio de contraseña forzado 
 Route::middleware(['auth'])->group(function () {

@@ -69,7 +69,32 @@
                                                     <div class="text-sm font-bold text-gray-900 dark:text-white">{{ $plan->user->name }}</div>
                                                     <div class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center mt-1">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                        Visado por Controlling
+                                                        @php
+                                                            if ($plan->status === 'pending_finances') {
+
+                                                                $approvalLabel = $plan->trip_type === 'reunion'
+                                                                    ? 'Visado por Jefatura'
+                                                                    : 'Visado por Controlling';
+
+                                                            } elseif ($plan->status === 'pending_controlling') {
+
+                                                                $approvalLabel = 'Visado por Jefatura';
+
+                                                            } elseif ($plan->status === 'approved') {
+
+                                                                $approvalLabel = 'Aprobado';
+
+                                                            } elseif ($plan->status === 'rejected') {
+
+                                                                $approvalLabel = 'Rechazado';
+
+                                                            } else {
+
+                                                                $approvalLabel = 'En revisión';
+                                                            }
+                                                        @endphp
+
+                                                        {{ $approvalLabel }}
                                                     </div>
                                                 </div>
                                             </div>
