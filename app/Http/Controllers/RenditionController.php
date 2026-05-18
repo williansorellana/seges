@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Notifications\WorkflowNotification;
 use Illuminate\Support\Facades\Notification;
+use App\Models\WorkflowHistory;
 
 class RenditionController extends Controller
 {
@@ -49,7 +50,7 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        $rendition->load('routePlanning','expenses','observations.user');
+        $rendition->load('routePlanning','expenses','observations.user','workflowHistories.user');
 
         return view('renditions.show', compact('rendition'));
     }
@@ -281,6 +282,17 @@ class RenditionController extends Controller
         $rendition->status = 'pending_controlling';
         $rendition->save();
 
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'approved_by_jefatura',
+            'from_status' => 'pending_jefatura',
+            'to_status' => 'pending_controlling',
+            'observation' => 'Rendición aprobada por jefatura.',
+            'ip_address' => request()->ip(),
+        ]);
+
         $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
 
         Notification::send($controllingUsers, new WorkflowNotification(
@@ -354,6 +366,17 @@ class RenditionController extends Controller
             'action' => 'returned'
         ]);
 
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'rejected_by_jefatura',
+            'from_status' => 'pending_jefatura',
+            'to_status' => 'rejected',
+            'observation' => $request->observation,
+            'ip_address' => request()->ip(),
+        ]);
+
         $rendition->user->notify(new WorkflowNotification(
             'Rendición observada',
             'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
@@ -402,6 +425,17 @@ class RenditionController extends Controller
 
         $rendition->status = 'pending_finances';
         $rendition->save();
+
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'approved_by_controlling',
+            'from_status' => 'pending_controlling',
+            'to_status' => 'pending_finances',
+            'observation' => 'Rendición aprobada por Controlling.',
+            'ip_address' => request()->ip(),
+        ]);
 
         $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
 
@@ -476,6 +510,17 @@ class RenditionController extends Controller
             'action' => 'returned'
         ]);
 
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'rejected_by_controlling',
+            'from_status' => 'pending_controlling',
+            'to_status' => 'rejected',
+            'observation' => $request->observation,
+            'ip_address' => request()->ip(),
+        ]);
+
         $rendition->user->notify(new WorkflowNotification(
             'Rendición observada',
             'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
@@ -524,6 +569,17 @@ class RenditionController extends Controller
 
         $rendition->status = 'approved';
         $rendition->save();
+
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'approved_by_finances',
+            'from_status' => 'pending_finances',
+            'to_status' => 'approved',
+            'observation' => 'Rendición aprobada por Finanzas.',
+            'ip_address' => request()->ip(),
+        ]);
 
         $rendition->user->notify(new WorkflowNotification(
             'Rendición aprobada',
@@ -606,6 +662,17 @@ class RenditionController extends Controller
             'user_id' => $user->id,
             'observation' => $request->observation,
             'action' => 'returned'
+        ]);
+
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'rejected_by_finances',
+            'from_status' => 'pending_finances',
+            'to_status' => 'rejected',
+            'observation' => $request->observation,
+            'ip_address' => request()->ip(),
         ]);
 
         $rendition->user->notify(new WorkflowNotification(

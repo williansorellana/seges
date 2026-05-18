@@ -15,12 +15,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                         </svg>
-                        @if(Auth::user()->unreadNotifications->count() > 0)
-                            <span id="notification-count"
-                                class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full border-2 border-white dark:border-gray-800">
-                                {{ Auth::user()->unreadNotifications->count() }}
-                            </span>
-                        @endif
+                        <span id="notification-count"
+                            @if(Auth::user()->unreadNotifications()->count() === 0) style="display:none;" @endif
+                            class="absolute top-0 right-0 items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full border-2 border-white dark:border-gray-800">
+                            @if(Auth::user()->unreadNotifications()->count() > 0)
+                                {{ Auth::user()->unreadNotifications()->count() }}
+                            @endif
+                        </span>
                     </button>
 
                     <div x-show="notifyOpen" @click.away="notifyOpen = false"
@@ -49,7 +50,7 @@
                             @endif
                         </div>
 
-                        <div class="max-h-[28rem] overflow-y-auto">
+                        <div id="notifications-list" class="max-h-[28rem] overflow-y-auto">
                             @if(Auth::user()->notifications->isEmpty())
                                 <div
                                     class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center">
@@ -205,4 +206,93 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function refreshNotifications() {
+            fetch('{{ route('notifications.unread-count') }}', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notification-count');
+
+                if (!badge) return;
+
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.textContent = '';
+                    badge.style.display = 'none';
+                }
+            });
+
+            fetch('{{ route('notifications.latest') }}', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById('notifications-list');
+
+                if (!list) return;
+
+                if (!data.notifications || data.notifications.length === 0) {
+                    list.innerHTML = `
+                        <div class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <p>Sin notificaciones</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = data.notifications.map(notification => {
+                    const unreadClass = notification.read_at
+                        ? 'opacity-75 bg-white dark:bg-gray-800'
+                        : 'bg-blue-50/50 dark:bg-blue-900/10';
+
+                    const reason = notification.reason
+                        ? `<p class="text-xs text-red-500 mt-1 italic break-words">"${notification.reason}"</p>`
+                        : '';
+
+                    return `
+                        <div class="relative border-b border-gray-100 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ${unreadClass}">
+                            <a href="/notifications/${notification.id}/read" class="block px-4 py-3 pr-10">
+                                <div class="flex items-start gap-3">
+                                    <div class="flex-shrink-0 mt-1">
+                                        <div class="w-2 h-2 rounded-full bg-yellow-500 mt-1.5"></div>
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug break-words">
+                                            ${notification.message}
+                                        </p>
+
+                                        ${reason}
+
+                                        <div class="flex items-center justify-between mt-1">
+                                            <p class="text-[10px] text-gray-500 uppercase tracking-wide truncate pr-2">
+                                                Sistema
+                                            </p>
+                                            <p class="text-[10px] text-gray-400 whitespace-nowrap">
+                                                ${notification.created_at}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            refreshNotifications();
+            setInterval(refreshNotifications, 20000);
+        });
+    </script>
 </nav>

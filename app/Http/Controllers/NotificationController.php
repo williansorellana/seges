@@ -49,4 +49,35 @@ class NotificationController extends Controller
         Auth::user()->unreadNotifications->markAsRead();
         return back();
     }
+
+    public function unreadCount()
+    {
+        return response()->json([
+            'count' => Auth::user()->unreadNotifications()->count()
+        ]);
+    }
+
+    public function latest()
+    {
+        $notifications = Auth::user()
+            ->notifications()
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'message' => $notification->data['message'] ?? $notification->data['title'] ?? 'Nueva notificación',
+                    'reason' => $notification->data['reason'] ?? null,
+                    'action_url' => $notification->data['action_url'] ?? route('notifications.read', $notification->id),
+                    'read_at' => $notification->read_at,
+                    'created_at' => $notification->created_at->diffForHumans(null, true, true),
+                ];
+            });
+
+        return response()->json([
+            'notifications' => $notifications
+        ]);
+    }
+
 }

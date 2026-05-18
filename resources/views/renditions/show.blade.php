@@ -227,7 +227,54 @@
                             </div>
                         </dl>
                     </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 border border-gray-100 dark:border-gray-700">
+                        <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-wider">
+                            Historial de Aprobaciones
+                        </h4>
 
+                        @if($rendition->workflowHistories->isEmpty())
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Aún no hay movimientos registrados para esta rendición.
+                            </p>
+                        @else
+                            <div class="space-y-4">
+                                @foreach($rendition->workflowHistories->sortByDesc('created_at') as $history)
+                                    <div class="border-l-4 pl-4
+                                        @if(str_contains($history->action, 'rejected') || str_contains($history->action, 'returned'))
+                                            border-red-500
+                                        @elseif(str_contains($history->action, 'approved'))
+                                            border-green-500
+                                        @else
+                                            border-indigo-500
+                                        @endif
+                                    ">
+                                        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                            {{ $history->user->name ?? 'Sistema' }}
+                                        </div>
+
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            Acción: {{ str_replace('_', ' ', $history->action) }}
+                                        </div>
+
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            Estado: {{ $history->from_status ?? 'N/A' }} → {{ $history->to_status }}
+                                        </div>
+
+                                        @if($history->observation)
+                                            <div class="mt-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40 rounded p-2">
+                                                {{ $history->observation }}
+                                            </div>
+                                        @endif
+
+                                        <div class="text-[11px] text-gray-400 mt-1">
+                                            {{ $history->created_at->format('d/m/Y H:i') }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 

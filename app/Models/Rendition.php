@@ -31,4 +31,9 @@ class Rendition extends Model
     {
         return $this->morphMany(RenditionObservation::class, 'observable');
     }
+
+    public function workflowHistories()
+    {
+        return $this->morphMany(\App\Models\WorkflowHistory::class, 'workflowable');
+    }
 }
