@@ -83,7 +83,20 @@
                                                     </div>
                                                     <div>
                                                         <div class="text-sm font-black text-white tracking-tight">{{ $plan->user->name }} {{ $plan->user->last_name }}</div>
-                                                        <div class="text-[9px] text-emerald-500 font-black uppercase tracking-widest flex items-center mt-0.5">Visado por Controlling</div>
+                                                        @php
+                                                            if ($plan->status === 'pending_finances') {
+                                                                $approvalLabel = $plan->trip_type === 'reunion' ? 'Visado por Jefatura' : 'Visado por Controlling';
+                                                            } elseif ($plan->status === 'pending_controlling') {
+                                                                $approvalLabel = 'Visado por Jefatura';
+                                                            } elseif ($plan->status === 'approved') {
+                                                                $approvalLabel = 'Aprobado';
+                                                            } elseif ($plan->status === 'rejected') {
+                                                                $approvalLabel = 'Rechazado';
+                                                            } else {
+                                                                $approvalLabel = 'En revisión';
+                                                            }
+                                                        @endphp
+                                                        <div class="text-[9px] text-emerald-500 font-black uppercase tracking-widest flex items-center mt-0.5">{{ $approvalLabel }}</div>
                                                     </div>
                                                 </div>
                                             </div>

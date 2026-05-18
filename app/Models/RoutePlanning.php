@@ -20,4 +20,14 @@ class RoutePlanning extends Model
     {
         return $this->morphMany(RenditionObservation::class, 'observable');
     }
+
+    public function signatures()
+    {
+        return $this->morphMany(DigitalSignature::class, 'signable');
+    }
+
+    public function workflowHistories()
+    {
+        return $this->morphMany(WorkflowHistory::class, 'workflowable');
+    }
 }

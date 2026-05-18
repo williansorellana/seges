@@ -40,6 +40,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     // Rutas de Rendiciones
     Route::prefix('rendiciones')->name('renditions.')->group(function () {
         Route::get('/', [RenditionController::class, 'index'])->name('index');
+        Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
         Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
         Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
         Route::put('/{rendition}/gastos/{expense}', [RenditionController::class, 'updateExpense'])->name('expenses.update');
@@ -256,11 +257,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('external-people', \App\Http\Controllers\FrequentExternalPersonController::class);
     });
 
-    // Dashboard Activos - Accesible por Admin, Supervisor y Visualizador
-    Route::middleware(['role:admin,supervisor,viewer'])->group(function () {
-        Route::get('/assets/dashboard', [\App\Http\Controllers\AssetController::class, 'dashboard'])->name('assets.dashboard');
     });
-});
 
 // Rutas de cambio de contraseña forzado 
 Route::middleware(['auth'])->group(function () {

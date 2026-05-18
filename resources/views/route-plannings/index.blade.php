@@ -34,6 +34,12 @@
                 </div>
             @endif
 
+            @if (session('error'))
+                <div class="mb-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 px-4 py-3 rounded-xl relative text-sm font-bold">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
                 
                 @if($plannings->isEmpty())
@@ -176,6 +182,15 @@
                                                 @case('pending_finances')
                                                     <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2 animate-pulse"></span>En Finanzas
+                                                    </span>
+                                                    @break
+                                                @case('pending_finances')
+                                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                                                        <svg class="animate-spin -ml-1 mr-2 h-3 w-3 text-purple-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                        </svg>
+                                                        En Finanzas
                                                     </span>
                                                     @break
                                                 @case('approved')

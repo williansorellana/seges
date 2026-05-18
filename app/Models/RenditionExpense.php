@@ -14,6 +14,6 @@ class RenditionExpense extends Model
 
     public function rendition()
     {
-        return $this->belongsTo(Rendition::class);
+        return $this->belongsTo(\App\Models\Rendition::class);
     }
 }

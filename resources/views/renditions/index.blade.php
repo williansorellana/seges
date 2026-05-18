@@ -147,6 +147,11 @@
                                                     <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 shadow-sm shadow-rose-900/10">
                                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>{{ __('Observada') }}
                                                     </span>
+                                                    @if($ren->status === 'rejected' && $ren->observations->isNotEmpty())
+                                                        <div class="mt-2 text-xs text-red-600 dark:text-red-400 max-w-xs whitespace-normal">
+                                                            {{ $ren->observations->last()->observation }}
+                                                        </div>
+                                                    @endif
                                                     @break
                                             @endswitch
                                         </td>
