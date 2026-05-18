@@ -608,6 +608,7 @@
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                                     <span x-show="!isCompressing">{{ __('Seleccionar Foto') }}</span>
                                     <span x-show="isCompressing">{{ __('Procesando...') }}</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -628,7 +629,6 @@
                                 }
                             " />
                     <x-input-error :messages="$errors->get('image')" class="mt-2" />
-                </div>
 
                     <!-- Datos Técnicos -->
                     <div class="space-y-4">
