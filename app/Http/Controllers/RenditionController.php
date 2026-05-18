@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\WorkflowHelper;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Notifications\WorkflowNotification;
+use Illuminate\Support\Facades\Notification;
 
 class RenditionController extends Controller
 {
@@ -92,6 +95,13 @@ class RenditionController extends Controller
         // Envía a jefatura si tiene, si no, directo a controlling.
         $rendition->status = auth()->user()->jefatura_id ? 'pending_jefatura' : 'pending_controlling';
         $rendition->save();
+        if ($rendition->user->jefatura) {
+            $rendition->user->jefatura->notify(new WorkflowNotification(
+            'Nueva rendición pendiente',
+            'El trabajador ' . $rendition->user->name . ' envió una rendición para revisión.',
+            route('renditions.approvals')
+            ));
+        }
 
         return redirect()->route('renditions.index')->with('success', 'Rendición finalizada y enviada a revisión con éxito.');
     }
@@ -271,6 +281,14 @@ class RenditionController extends Controller
         $rendition->status = 'pending_controlling';
         $rendition->save();
 
+        $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+
+        Notification::send($controllingUsers, new WorkflowNotification(
+            'Rendición pendiente en Controlling',
+            'Una rendición fue aprobada por jefatura y requiere revisión de Controlling.',
+            route('renditions.controlling')
+        ));
+
         return redirect()->back()->with(
             'success',
             'Rendición validada por jefatura.'
@@ -336,6 +354,12 @@ class RenditionController extends Controller
             'action' => 'returned'
         ]);
 
+        $rendition->user->notify(new WorkflowNotification(
+            'Rendición observada',
+            'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
+            route('renditions.show', $rendition->id)
+        ));
+
         return redirect()->back()->with(
             'success',
             'Rendición devuelta al trabajador.'
@@ -378,6 +402,14 @@ class RenditionController extends Controller
 
         $rendition->status = 'pending_finances';
         $rendition->save();
+
+        $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
+
+        Notification::send($financeUsers, new WorkflowNotification(
+            'Rendición pendiente en Finanzas',
+            'Una rendición fue aprobada por Controlling y requiere revisión final de Finanzas.',
+            route('renditions.finances')
+        ));
 
         return redirect()->back()->with(
             'success',
@@ -444,6 +476,12 @@ class RenditionController extends Controller
             'action' => 'returned'
         ]);
 
+        $rendition->user->notify(new WorkflowNotification(
+            'Rendición observada',
+            'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
+            route('renditions.show', $rendition->id)
+        ));
+
         return redirect()->back()->with(
             'success',
             'Rendición devuelta por Controlling.'
@@ -486,6 +524,12 @@ class RenditionController extends Controller
 
         $rendition->status = 'approved';
         $rendition->save();
+
+        $rendition->user->notify(new WorkflowNotification(
+            'Rendición aprobada',
+            'Tu rendición fue aprobada por Finanzas. El proceso finalizó correctamente.',
+            route('renditions.index')
+        ));
 
         /*
         |--------------------------------------------------------------------------
@@ -563,6 +607,12 @@ class RenditionController extends Controller
             'observation' => $request->observation,
             'action' => 'returned'
         ]);
+
+        $rendition->user->notify(new WorkflowNotification(
+            'Rendición observada',
+            'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
+            route('renditions.show', $rendition->id)
+        ));
 
         return redirect()->back()->with(
             'success',

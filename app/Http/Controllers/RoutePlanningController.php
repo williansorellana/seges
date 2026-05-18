@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Services\DigitalSignatureService;
 use App\Models\WorkflowHistory;
 use App\Helpers\WorkflowHelper;
+use App\Models\User;
+use App\Notifications\WorkflowNotification;
+use Illuminate\Support\Facades\Notification;
 
 class RoutePlanningController extends Controller
 {
@@ -108,6 +111,28 @@ class RoutePlanningController extends Controller
         
         $planning->save();
 
+        if ($planning->user->jefatura) {
+            $planning->user->jefatura->notify(new WorkflowNotification(
+                'Nueva planificación pendiente',
+                'El trabajador ' . $planning->user->name . ' creó una planificación de ruta.',
+                route('renditions.approvals')
+            ));
+        } else {
+            $targetDepartment = $planning->trip_type === 'reunion'
+                ? WorkflowHelper::DEPARTMENT_FINANCES
+                : WorkflowHelper::DEPARTMENT_CONTROLLING;
+
+            $users = User::where('departamento', $targetDepartment)->get();
+
+            Notification::send($users, new WorkflowNotification(
+                'Nueva planificación pendiente',
+                'El trabajador ' . $planning->user->name . ' creó una planificación sin jefatura asignada.',
+                $planning->trip_type === 'reunion'
+                    ? route('renditions.finances')
+                    : route('renditions.controlling')
+            ));
+        }
+
         return redirect()->route('route-plannings.index')->with('success', 'Planificación creada y enviada a revisión con éxito.');
     }
 
@@ -201,6 +226,25 @@ class RoutePlanningController extends Controller
 
         $planning->save();
 
+        if ($planning->trip_type === 'reunion') {
+            $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
+
+            Notification::send($financeUsers, new WorkflowNotification(
+                'Planificación pendiente en Finanzas',
+                'Una planificación por reunión fue aprobada por jefatura.',
+                route('renditions.finances')
+            ));
+        } else {
+            $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+
+            Notification::send($controllingUsers, new WorkflowNotification(
+                'Planificación pendiente en Controlling',
+                'Una planificación de terreno fue aprobada por jefatura.',
+                route('renditions.controlling')
+            ));
+        }
+
+
         /*
         |--------------------------------------------------------------------------
         | Historial workflow
@@ -238,6 +282,96 @@ class RoutePlanningController extends Controller
             );
     }
 
+    public function rejectByJefatura(Request $request, \App\Models\RoutePlanning $planning)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Validar observación
+        |--------------------------------------------------------------------------
+        */
+
+        $request->validate([
+            'observation' => 'required|string|max:500'
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validación autorización
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $planning->user->jefatura_id !== auth()->id()
+            &&
+            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+        ) {
+            abort(403, 'No autorizado.');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Estado válido
+        |--------------------------------------------------------------------------
+        */
+
+        if ($planning->status !== WorkflowHelper::STATUS_PENDING_JEFATURA) {
+            abort(403, 'La planificación no está pendiente de Jefatura.');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Rechazar planificación
+        |--------------------------------------------------------------------------
+        */
+
+        $planning->status = WorkflowHelper::STATUS_REJECTED;
+        $planning->save();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Registrar observación
+        |--------------------------------------------------------------------------
+        */
+
+        $planning->observations()->create([
+            'user_id' => auth()->id(),
+            'observation' => $request->observation,
+            'action' => 'rejected'
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Historial workflow
+        |--------------------------------------------------------------------------
+        */
+
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\RoutePlanning::class,
+            'workflowable_id' => $planning->id,
+            'user_id' => auth()->id(),
+            'action' => 'rejected_by_jefatura',
+            'from_status' => WorkflowHelper::STATUS_PENDING_JEFATURA,
+            'to_status' => WorkflowHelper::STATUS_REJECTED,
+            'observation' => $request->observation,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notificar trabajador
+        |--------------------------------------------------------------------------
+        */
+
+        $planning->user->notify(new WorkflowNotification(
+            'Planificación rechazada',
+            'Tu planificación fue rechazada por Jefatura. Revisa las observaciones.',
+            route('route-plannings.index')
+        ));
+
+        return redirect()
+            ->back()
+            ->with('success', 'Solicitud rechazada por Jefatura. Se ha notificado al colaborador.');
+    }
+
     public function approveByControlling(\App\Models\RoutePlanning $planning)
     {
         if (
@@ -251,6 +385,14 @@ class RoutePlanningController extends Controller
         $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
 
         $planning->save();
+
+        $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
+
+        Notification::send($financeUsers, new WorkflowNotification(
+            'Planificación pendiente en Finanzas',
+            'Una planificación fue validada por Controlling y requiere revisión de Finanzas.',
+            route('renditions.finances')
+        ));
 
         return redirect()
             ->back()
@@ -277,6 +419,12 @@ class RoutePlanningController extends Controller
             'action' => 'rejected'
         ]);
 
+        $planning->user->notify(new WorkflowNotification(
+            'Planificación rechazada',
+            'Tu planificación fue rechazada por Controlling. Revisa las observaciones.',
+            route('route-plannings.index')
+        ));
+
         return redirect()->back()->with('success', 'Solicitud rechazada por Controlling. Se ha notificado al colaborador.');
     }
 
@@ -300,6 +448,12 @@ class RoutePlanningController extends Controller
             'status' => WorkflowHelper::STATUS_DRAFT
         ]);
 
+        $planning->user->notify(new WorkflowNotification(
+            'Planificación aprobada',
+            'Tu planificación fue aprobada por Finanzas y ya puedes realizar la rendición.',
+            route('renditions.index')
+        ));
+
         return redirect()->back()->with('success', 'Fondos liberados. Solicitud aprobada y firmada digitalmente.');
     }
 
@@ -319,6 +473,12 @@ class RoutePlanningController extends Controller
             'observation' => $request->observation,
             'action' => 'rejected'
         ]);
+
+        $planning->user->notify(new WorkflowNotification(
+            'Planificación rechazada',
+            'Tu planificación fue rechazada por Finanzas. Revisa las observaciones.',
+            route('route-plannings.index')
+        ));
 
         return redirect()->back()->with('success', 'Solicitud rechazada por Finanzas. Se ha notificado al colaborador.');
     }
