@@ -86,6 +86,8 @@ class RoutePlanningController extends Controller
             'trip_type' => 'required|in:terreno,reunion',
             'motive' => 'required|string|max:255',
             'destination' => 'required|string|max:255',
+            'region' => 'nullable|string|max:255',
+            'companions' => 'nullable|string|max:500',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'requires_funds' => 'nullable|boolean',
@@ -99,6 +101,8 @@ class RoutePlanningController extends Controller
         $planning->trip_type = $validated['trip_type'];
         $planning->motive = $validated['motive'];
         $planning->destination = $validated['destination'];
+        $planning->region = $validated['region'] ?? null;
+        $planning->companions = $validated['companions'] ?? null;
         $planning->start_date = $validated['start_date'];
         $planning->end_date = $validated['end_date'];
         $planning->requires_funds = $request->has('requires_funds');

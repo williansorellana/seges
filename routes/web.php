@@ -43,6 +43,8 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
         Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
         Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
+        Route::put('/{rendition}/gastos/{expense}', [RenditionController::class, 'updateExpense'])->name('expenses.update');
+        Route::delete('/{rendition}/gastos/{expense}', [RenditionController::class, 'destroyExpense'])->name('expenses.destroy');
         Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');
         Route::get('/{rendition}/pdf', [RenditionController::class, 'downloadPdf'])->name('pdf');
         
@@ -137,7 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservar-sala', [RoomReservationController::class, 'index'])->name('reservations.catalog');
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
 
-    // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver) - NO Viewer
+    // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver, Jefatura) - NO Viewer
     Route::middleware(['role:admin,supervisor,worker,driver,jefatura'])->group(function () {
         Route::post('/reservar-sala', [RoomReservationController::class, 'store'])->name('reservations.store');
         Route::get('/mis-reservas-salas', [RoomReservationController::class, 'myReservations'])->name('reservations.my_reservations');

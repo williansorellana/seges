@@ -1,138 +1,151 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Mis Rendiciones') }}
-        </h2>
+        <div class="flex flex-col gap-1">
+            <h2 class="font-black text-2xl text-white leading-tight tracking-tight uppercase">
+                {{ __('Mis Rendiciones') }}
+            </h2>
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-500/20">Panel Principal</span>
+                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Gestión de Gastos y Viáticos</span>
+            </div>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-12 bg-[#0f172a] min-h-screen">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
             
+            {{-- Toast Notification --}}
             @if (session('success'))
-                <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
+                    class="fixed bottom-10 right-10 z-50 max-w-sm w-full bg-slate-900 border border-emerald-500/30 rounded-3xl shadow-2xl shadow-emerald-500/10 p-5 flex items-start gap-4 backdrop-blur-xl">
+                    <div class="flex-shrink-0 w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs font-black text-white uppercase tracking-wider">¡Operación exitosa!</p>
+                        <p class="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">{{ session('success') }}</p>
+                    </div>
+                    <button @click="show = false" class="text-slate-600 hover:text-white transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
             @endif
 
-            <!-- Tarjeta Informativa Superior -->
-            <div class="bg-indigo-600 rounded-xl shadow-lg mb-8 overflow-hidden">
-                <div class="px-6 py-8 sm:p-10 sm:pb-6 relative">
-                    <div class="relative z-10">
-                        <h3 class="text-xl font-bold text-white mb-2">Bandeja de Rendiciones</h3>
-                        <p class="text-indigo-100 max-w-2xl text-sm">
-                            Aquí aparecerán automáticamente los fondos que han sido aprobados y depositados para tus viajes.
-                            Cuando regreses, debes justificar los gastos subiendo las boletas o facturas correspondientes.
-                        </p>
+            <!-- Tarjeta Informativa Superior - Premium Edition -->
+            <div class="bg-slate-900 rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden relative group">
+                <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-600/15 transition-all duration-700"></div>
+                <div class="px-8 py-10 sm:p-12 relative z-10">
+                    <div class="flex flex-col md:flex-row items-center gap-8">
+                        <div class="flex-shrink-0 w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center border border-blue-500/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                            <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="text-center md:text-left">
+                            <h3 class="text-3xl font-black text-white mb-3 tracking-tight uppercase">Centro de Rendiciones</h3>
+                            <p class="text-slate-400 max-w-4xl text-sm leading-relaxed font-medium italic">
+                                Gestione sus justificaciones de gastos de viaje de forma eficiente. Recuerde que la carga oportuna de sus documentos asegura una revisión rápida y un cierre exitoso de su solicitud.
+                            </p>
+                        </div>
                     </div>
-                    <!-- Decoración visual SVG -->
-                    <svg class="absolute right-0 bottom-0 text-indigo-500 opacity-30 transform translate-x-1/4 translate-y-1/4" width="200" height="200" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11.644 1.59a.75.75 0 01.712 0l9.75 5.25c.343.184.343.682 0 .866l-9.75 5.25a.75.75 0 01-.712 0l-9.75-5.25a.75.75 0 010-.866l9.75-5.25z" />
-                        <path d="M3.265 10.602l7.668 4.129a2.25 2.25 0 002.134 0l7.668-4.13-9.75 5.25a.75.75 0 01-.712 0l-9.75-5.25z" />
-                        <path d="M3.265 14.602l7.668 4.129a2.25 2.25 0 002.134 0l7.668-4.13-9.75 5.25a.75.75 0 01-.712 0l-9.75-5.25z" />
-                    </svg>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-100 dark:border-gray-700">
+            <!-- Listado de Rendiciones -->
+            <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-600/5 rounded-full blur-[80px] pointer-events-none"></div>
                 
                 @if($renditions->isEmpty())
-                    <div class="p-10 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                        </svg>
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Sin rendiciones activas</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Aún no tienes fondos entregados o pendientes de justificar.</p>
+                    <div class="p-24 text-center">
+                        <div class="mx-auto w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center mb-8 border border-slate-700 shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-slate-500 opacity-50">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-black text-white uppercase tracking-tight">{{ __('Sin rendiciones activas') }}</h3>
+                        <p class="mt-3 text-sm text-slate-500 max-w-sm mx-auto font-medium">{{ __('Aún no tienes fondos entregados o viajes finalizados pendientes de justificar.') }}</p>
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Identificador
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Destino / Fechas
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Fondos Asignados
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Total Rendido
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Estado
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Acción
-                                    </th>
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="bg-slate-950/50">
+                                    <th class="px-8 py-6 text-left text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">{{ __('Identificador') }}</th>
+                                    <th class="px-8 py-6 text-left text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">{{ __('Destino / Fechas') }}</th>
+                                    <th class="px-8 py-6 text-left text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">{{ __('Fondos Asignados') }}</th>
+                                    <th class="px-8 py-6 text-left text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">{{ __('Total Rendido') }}</th>
+                                    <th class="px-8 py-6 text-left text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">{{ __('Estado') }}</th>
+                                    <th class="px-8 py-6 text-center text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">{{ __('Acciones') }}</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody class="divide-y divide-slate-800/50">
                                 @foreach ($renditions as $ren)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                    <tr class="group/row hover:bg-slate-800/30 transition-all duration-300">
                                         
                                         <!-- ID -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-bold text-indigo-600 dark:text-indigo-400">RND-{{ str_pad($ren->id, 4, '0', STR_PAD_LEFT) }}</div>
-                                            <div class="text-xs text-gray-500 mt-1">Ref: REQ-{{ str_pad($ren->route_planning_id, 4, '0', STR_PAD_LEFT) }}</div>
+                                        <td class="px-8 py-6 whitespace-nowrap">
+                                            <div class="flex flex-col gap-2">
+                                                <span class="font-black text-[12px] text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-xl border border-blue-500/20 shadow-inner self-start tracking-tighter">RND-{{ str_pad($ren->id, 4, '0', STR_PAD_LEFT) }}</span>
+                                                <div class="text-[10px] text-slate-600 font-black uppercase tracking-widest pl-1">REF-{{ str_pad($ren->route_planning_id, 4, '0', STR_PAD_LEFT) }}</div>
+                                            </div>
                                         </td>
-
+ 
                                         <!-- Viaje -->
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        <td class="px-8 py-6">
+                                            <div class="text-sm font-black text-white mb-2 tracking-tight">
                                                 {{ $ren->routePlanning->destination }}
                                             </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                {{ \Carbon\Carbon::parse($ren->routePlanning->start_date)->format('d/m/Y') }} al {{ \Carbon\Carbon::parse($ren->routePlanning->end_date)->format('d/m/Y') }}
+                                            <div class="flex items-center gap-2 text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                                                <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                {{ \Carbon\Carbon::parse($ren->routePlanning->start_date)->format('d/m/Y') }} <span class="text-slate-700 italic">al</span> {{ \Carbon\Carbon::parse($ren->routePlanning->end_date)->format('d/m/Y') }}
                                             </div>
                                         </td>
-
+ 
                                         <!-- Fondos Recibidos -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-bold text-gray-800 dark:text-gray-200">
+                                        <td class="px-8 py-6 whitespace-nowrap">
+                                            <div class="text-[14px] font-black text-emerald-400 bg-emerald-500/5 px-3 py-1.5 rounded-xl border border-emerald-500/10 shadow-inner inline-flex items-center">
                                                 ${{ number_format($ren->funds_received, 0, ',', '.') }}
                                             </div>
                                         </td>
-
+ 
                                         <!-- Total Rendido -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-8 py-6 whitespace-nowrap">
                                             @if($ren->total_declared > 0)
-                                                <div class="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                                                <span class="text-[14px] font-black text-blue-400 tracking-tight">
                                                     ${{ number_format($ren->total_declared, 0, ',', '.') }}
-                                                </div>
+                                                </span>
                                             @else
-                                                <div class="text-sm text-gray-400 italic">
-                                                    $0
-                                                </div>
+                                                <span class="text-[10px] text-slate-600 font-black uppercase tracking-widest italic">
+                                                    {{ __('Pendiente') }}
+                                                </span>
                                             @endif
                                         </td>
-
+ 
                                         <!-- Estado -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-8 py-6 whitespace-nowrap">
                                             @switch($ren->status)
                                                 @case('draft')
-                                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
-                                                        Por Rendir
+                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-slate-800 text-slate-400 border border-slate-700 shadow-sm">
+                                                        <span class="w-2 h-2 rounded-full bg-slate-500 mr-2 shadow-[0_0_8px_rgba(100,116,139,0.5)]"></span>{{ __('Borrador') }}
                                                     </span>
                                                     @break
                                                 @case('pending_jefatura')
                                                 @case('pending_controlling')
                                                 @case('pending_finances')
-                                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                                        <svg class="animate-spin -ml-1 mr-2 h-3 w-3 text-yellow-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                        En Revisión
+                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-sm shadow-amber-900/10">
+                                                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>{{ __('En Revisión') }}
                                                     </span>
                                                     @break
                                                 @case('approved')
                                                 @case('closed')
-                                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 border border-green-200">
-                                                        Cerrada
+                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-sm shadow-emerald-900/10">
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{{ __('Cerrada') }}
                                                     </span>
                                                     @break
                                                 @case('rejected')
-                                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 border border-red-200">
-                                                        Observada
+                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 shadow-sm shadow-rose-900/10">
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>{{ __('Observada') }}
                                                     </span>
                                                     @if($ren->status === 'rejected' && $ren->observations->isNotEmpty())
                                                         <div class="mt-2 text-xs text-red-600 dark:text-red-400 max-w-xs whitespace-normal">
@@ -142,24 +155,27 @@
                                                     @break
                                             @endswitch
                                         </td>
-
+ 
                                         <!-- Acciones -->
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            @if($ren->status === 'draft' || $ren->status === 'rejected')
-                                                <a href="{{ route('renditions.show', $ren->id) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none transition shadow-sm">
-                                                    Declarar Gastos
-                                                </a>
-                                            @else
-                                                <a href="{{ route('renditions.show', $ren->id) }}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium mr-3">
-                                                    Ver Detalles
-                                                </a>
-                                                @if($ren->status === 'approved')
-                                                    <a href="{{ route('renditions.pdf', $ren->id) }}" class="inline-flex items-center px-3 py-1 bg-white border border-gray-300 rounded text-xs font-semibold text-gray-700 uppercase tracking-widest hover:bg-gray-50 shadow-sm">
-                                                        <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                                        PDF
+                                        <td class="px-8 py-6 whitespace-nowrap text-center">
+                                            <div class="flex items-center justify-center gap-4">
+                                                @if($ren->status === 'draft' || $ren->status === 'rejected')
+                                                    <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate class="group/btn px-6 py-2.5 bg-blue-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all flex items-center gap-2 cursor-pointer">
+                                                        <svg class="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                        {{ __('Rendir Gastos') }}
                                                     </a>
+                                                @else
+                                                    <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate class="group/btn px-5 py-2.5 bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-700 hover:bg-slate-700 hover:text-white transition-all cursor-pointer">
+                                                        {{ __('Ver Detalles') }}
+                                                    </a>
+                                                    @if($ren->status === 'approved' || $ren->status === 'closed')
+                                                        <a href="{{ route('renditions.pdf', $ren->id) }}" class="group/btn px-5 py-2.5 bg-rose-600/10 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-rose-500/20 hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-rose-900/10">
+                                                            <svg class="w-4 h-4 group-hover/btn:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                                            PDF
+                                                        </a>
+                                                    @endif
                                                 @endif
-                                            @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -167,12 +183,15 @@
                         </table>
                     </div>
                     
-                    <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                        {{ $renditions->links() }}
-                    </div>
+                    @if($renditions->hasPages())
+                        <div class="px-8 py-8 border-t border-slate-800 bg-slate-950/20">
+                            {{ $renditions->links() }}
+                        </div>
+                    @endif
                 @endif
-
+ 
             </div>
         </div>
     </div>
 </x-app-layout>
+

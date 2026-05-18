@@ -4,40 +4,110 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Gestión de Vehículos') }}
             </h2>
-            <div class="flex flex-wrap gap-2 items-center">
-                
-                <!-- Search Button (Mobile) / Input (Desktop) are handled in the table section layout to be cleaner -->
-                
+            <div class="flex flex-wrap gap-3 items-center">
+                <!-- Papelera -->
                 <a href="{{ route('vehicles.trash') }}"
-                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
+                    class="inline-flex items-center px-4 py-2 bg-slate-800/50 border border-red-500/30 rounded-xl font-bold text-[11px] text-red-400 uppercase tracking-wider hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-300 group h-10 shadow-[0_0_15px_rgba(239,68,68,0.05)] cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                     {{ __('Papelera') }}
                 </a>
+
+                <!-- Import Flatpickr -->
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+                <style>
+                    /* Standard Seges Search Label Style */
+                    .search-label {
+                      display: flex !important;
+                      align-items: center;
+                      box-sizing: border-box;
+                      position: relative;
+                      border: 1px solid #334155;
+                      border-radius: 1rem;
+                      overflow: hidden;
+                      background: #0f172a;
+                      padding: 10px 14px;
+                      cursor: text;
+                      transition: all 0.3s ease;
+                      width: 100% !important;
+                      min-height: 48px;
+                    }
+                    .search-label:hover { border-color: #475569; }
+                    .search-label:focus-within { 
+                        background: #020617; 
+                        border-color: #3b82f6; 
+                        box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+                    }
+                    .search-label input, .search-label select { 
+                        outline: none; 
+                        width: 100%; 
+                        border: none !important; 
+                        background: none !important; 
+                        color: #f1f5f9; 
+                        font-size: 0.875rem;
+                        font-weight: 600;
+                        padding: 0;
+                        box-shadow: none !important;
+                        appearance: none;
+                    }
+                    .search-label input::placeholder { color: #475569; }
+                    .slash-icon { 
+                        margin-left: 8px;
+                        border: 1px solid #334155; 
+                        background: linear-gradient(-225deg, #1e293b, #334155); 
+                        border-radius: 6px; 
+                        text-align: center; 
+                        box-shadow: inset 0 -2px 0 0 #0f172a, inset 0 0 1px 1px #475569, 0 1px 2px 1px rgba(0, 0, 0, 0.4); 
+                        color: #64748b;
+                        font-size: 10px; 
+                        font-weight: 900;
+                        width: 20px; 
+                        height: 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                    }
+                    
+                    /* Custom Flatpickr Overrides */
+                    .flatpickr-calendar.dark {
+                        background: #0f172a !important;
+                        border: 1px solid #1e293b !important;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+                        border-radius: 1.5rem !important;
+                    }
+                    .flatpickr-day.selected {
+                        background: #3b82f6 !important;
+                        border-color: #3b82f6 !important;
+                    }
+                </style>
+
+                <!-- Historial -->
                 <a href="{{ route('vehicles.users-history-index') }}"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-500 active:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    class="inline-flex items-center px-4 py-2 bg-slate-800/50 border border-slate-600/30 rounded-xl font-bold text-[11px] text-slate-300 uppercase tracking-wider hover:bg-slate-700 hover:text-white hover:border-slate-500 transition-all duration-300 group h-10 shadow-sm cursor-pointer">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {{ __('Historial Usuarios') }}
                 </a>
-                <!-- Botón Solicitudes Pendientes -->
+
+                <!-- Solicitudes -->
                 <div class="relative">
                     <button x-data="" @click="$dispatch('open-modal', 'maintenance-requests-modal')"
-                        class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-400 active:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 relative h-9">
+                        class="inline-flex items-center px-4 py-2 bg-slate-800/50 border border-amber-500/30 rounded-xl font-bold text-[11px] text-amber-400 uppercase tracking-wider hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all duration-300 group h-10 shadow-[0_0_15px_rgba(245,158,11,0.05)] relative cursor-pointer">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
-                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                         Solicitudes
                         @if($pendingRequests->count() > 0 || (isset($pendingReservations) && $pendingReservations->count() > 0))
-                            <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                            <span class="absolute -top-1.5 -right-1.5 flex h-4 w-4">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center font-bold">
+                                <span class="relative inline-flex rounded-full h-4 w-4 bg-red-600 text-white text-[10px] items-center justify-center font-bold shadow-sm">
                                     {{ $pendingRequests->count() + ($pendingReservations ?? collect())->count() }}
                                 </span>
                             </span>
@@ -45,13 +115,13 @@
                     </button>
                 </div>
 
-                <!-- Botón Agregar Vehículo -->
+                <!-- Nuevo -->
                 <button x-data="" @click="$dispatch('open-modal', 'create-vehicle-modal')"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
+                    class="inline-flex items-center px-5 py-2 bg-blue-600 border border-blue-500 rounded-xl font-bold text-[11px] text-white uppercase tracking-wider hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all duration-300 group h-10 shadow-[0_0_20px_rgba(37,99,235,0.3)] cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                     {{ __('Nuevo') }}
+                    {{ __('Nuevo') }}
                 </button>
             </div>
         </div>
@@ -70,7 +140,6 @@
             viewingCompanions: [],
             rejectionRequestId: null,
             rejectionUrl: '',
-            filtersOpen: false,
             searchQuery: '{{ request('search', '') }}',
             getDaysRemaining(dateStr) {
                 if (!dateStr) return null;
@@ -102,466 +171,341 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- Stats Cards -->
-            <div class="mb-6 flex flex-wrap justify-center gap-3">
-                <a href="{{ route('vehicles.index', request()->except(['status', 'page'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-gray-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ !request('status') ? 'ring-2 ring-gray-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase truncate">Total</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $totalVehicles }}</div>
+            <div class="mb-8 grid grid-cols-2 md:grid-cols-5 gap-4">
+                <a href="{{ route('vehicles.index', request()->except(['status', 'page'])) }}" wire:navigate
+                   class="relative group bg-slate-800/40 border border-slate-700/50 p-4 rounded-2xl transition-all duration-300 hover:bg-slate-800 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/40 cursor-pointer {{ !request('status') ? 'ring-2 ring-blue-500 ring-offset-4 ring-offset-slate-900 border-blue-500/50' : '' }}">
+                    <div class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total</div>
+                    <div class="text-2xl font-black text-white">{{ $totalVehicles }}</div>
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6l2 4m-8-4v8m0-8V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9h2m8 0H9m4 0h2m4 0h2v-4m0 0h-5m3.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" /></svg>
+                    </div>
                 </a>
 
-                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'available'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-green-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'available' ? 'ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-green-600 dark:text-green-400 text-[10px] font-bold uppercase truncate">Disponibles</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countDisponible }}</div>
+                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'available'])) }}" wire:navigate
+                   class="relative group bg-slate-800/40 border border-emerald-500/20 p-4 rounded-2xl transition-all duration-300 hover:bg-emerald-500/10 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/20 cursor-pointer {{ request('status') === 'available' ? 'ring-2 ring-emerald-500 ring-offset-4 ring-offset-slate-900 border-emerald-500/50' : '' }}">
+                    <div class="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-1">Disponibles</div>
+                    <div class="text-2xl font-black text-white">{{ $countDisponible }}</div>
+                    <div class="absolute top-0 right-0 p-3 text-emerald-500/20 group-hover:text-emerald-500/40 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                 </a>
 
-                 <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'occupied'])) }}" 
-                    class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'occupied' ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase truncate">En Uso</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countAsignado }}</div>
+                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'occupied'])) }}" wire:navigate
+                   class="relative group bg-slate-800/40 border border-blue-500/20 p-4 rounded-2xl transition-all duration-300 hover:bg-blue-500/10 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-900/20 cursor-pointer {{ request('status') === 'occupied' ? 'ring-2 ring-blue-500 ring-offset-4 ring-offset-slate-900 border-blue-500/50' : '' }}">
+                    <div class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-1">En Uso</div>
+                    <div class="text-2xl font-black text-white">{{ $countAsignado }}</div>
+                    <div class="absolute top-0 right-0 p-3 text-blue-500/20 group-hover:text-blue-500/40 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                 </a>
 
-                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'maintenance'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-yellow-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'maintenance' ? 'ring-2 ring-yellow-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-yellow-600 dark:text-yellow-400 text-[10px] font-bold uppercase truncate">Mantenimiento</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countMantenimiento }}</div>
+                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'maintenance'])) }}" wire:navigate
+                   class="relative group bg-slate-800/40 border border-amber-500/20 p-4 rounded-2xl transition-all duration-300 hover:bg-amber-500/10 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-900/20 cursor-pointer {{ request('status') === 'maintenance' ? 'ring-2 ring-amber-500 ring-offset-4 ring-offset-slate-900 border-amber-500/50' : '' }}">
+                    <div class="text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-1">Mantenimiento</div>
+                    <div class="text-2xl font-black text-white">{{ $countMantenimiento }}</div>
+                    <div class="absolute top-0 right-0 p-3 text-amber-500/20 group-hover:text-amber-500/40 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
                 </a>
 
-                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'out_of_service'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-red-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'out_of_service' ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-red-600 dark:text-red-400 text-[10px] font-bold uppercase truncate">Fuera Servicio</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countFueraDeServicio }}</div>
+                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'out_of_service'])) }}" wire:navigate
+                   class="relative group bg-slate-800/40 border border-rose-500/20 p-4 rounded-2xl transition-all duration-300 hover:bg-rose-500/10 hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-900/20 cursor-pointer {{ request('status') === 'out_of_service' ? 'ring-2 ring-rose-500 ring-offset-4 ring-offset-slate-900 border-rose-500/50' : '' }}">
+                    <div class="text-rose-400 text-[10px] font-bold uppercase tracking-widest mb-1">Fuera Servicio</div>
+                    <div class="text-2xl font-black text-white">{{ $countFueraDeServicio }}</div>
+                    <div class="absolute top-0 right-0 p-3 text-rose-500/20 group-hover:text-rose-500/40 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                 </a>
             </div>
 
             <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center">
-                <div class="relative w-full sm:max-w-md">
+                <div class="relative w-full sm:max-w-md group">
                     <input type="text" x-model="searchQuery"
                         placeholder="Buscar por patente, marca o modelo..."
-                        class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-indigo-500 transition-shadow">
+                        class="w-full bg-[#0f172a] border border-slate-700 text-slate-100 rounded-xl pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-inner placeholder-slate-500 font-medium">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
                 </div>
 
-                <div class="flex gap-2 w-full sm:w-auto">
-                    <button type="button" @click="filtersOpen = true" 
-                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-bold text-sm transition-colors flex items-center gap-2 border border-gray-300 dark:border-gray-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                <div class="flex gap-3 w-full sm:w-auto relative" x-data="{ filtersOpen: false }" @click.away="filtersOpen = false">
+                    <button type="button" @click="filtersOpen = !filtersOpen" 
+                        class="px-5 py-2.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-slate-700 hover:text-white font-bold text-sm transition-all flex items-center gap-2 shadow-sm group cursor-pointer relative">
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                         Filtros
                         @php
                             $activeFiltersCount = collect([request('status'), request('document_status'), request('maintenance_status')])->filter()->count();
                         @endphp
                         @if($activeFiltersCount > 0)
-                            <span class="bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{{ $activeFiltersCount }}</span>
+                            <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-lg shadow-blue-500/40">{{ $activeFiltersCount }}</span>
                         @endif
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': filtersOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
+
+                    <!-- Dropdown Content -->
+                    <div x-show="filtersOpen" 
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                        class="absolute right-0 top-full mt-3 w-72 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-[60] p-4 backdrop-blur-xl"
+                        style="display: none;">
+                        
+                        <!-- Header -->
+                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Opciones de Filtro</span>
+                            @if($activeFiltersCount > 0)
+                                <a href="{{ route('vehicles.index') }}" wire:navigate class="text-[9px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-tighter">Limpiar Todo</a>
+                            @endif
+                        </div>
+
+                        <!-- Filter Sections -->
+                        <div class="space-y-6">
+                            <!-- Estado -->
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estado del Vehículo</label>
+                                <div class="grid grid-cols-1 gap-1.5">
+                                    @php
+                                        $statuses = [
+                                            'available' => ['label' => 'Disponible', 'color' => 'bg-emerald-500'],
+                                            'occupied' => ['label' => 'Reservado', 'color' => 'bg-blue-500'],
+                                            'maintenance' => ['label' => 'Mantenimiento', 'color' => 'bg-amber-500'],
+                                            'out_of_service' => ['label' => 'Fuera de Servicio', 'color' => 'bg-rose-500'],
+                                        ];
+                                    @endphp
+                                    @foreach($statuses as $value => $info)
+                                        <a href="{{ request('status') === $value ? route('vehicles.index', request()->except(['status', 'page'])) : route('vehicles.index', array_merge(request()->query(), ['status' => $value, 'page' => 1])) }}" 
+                                           wire:navigate
+                                           class="flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer {{ request('status') === $value ? 'bg-blue-600/20 border border-blue-500/30' : 'hover:bg-slate-800 border border-transparent' }}">
+                                            <div class="flex items-center gap-3">
+                                                <span class="w-2 h-2 rounded-full {{ $info['color'] }} shadow-[0_0_8px_rgba(0,0,0,0.5)]"></span>
+                                                <span class="text-xs font-bold {{ request('status') === $value ? 'text-white' : 'text-slate-400' }}">{{ $info['label'] }}</span>
+                                            </div>
+                                            @if(request('status') === $value)
+                                                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- Documentación -->
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Documentación</label>
+                                <div class="grid grid-cols-1 gap-1.5">
+                                    <a href="{{ request('document_status') === 'up_to_date' ? route('vehicles.index', request()->except(['document_status', 'page'])) : route('vehicles.index', array_merge(request()->query(), ['document_status' => 'up_to_date', 'page' => 1])) }}" 
+                                       wire:navigate
+                                       class="flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer {{ request('document_status') === 'up_to_date' ? 'bg-emerald-600/20 border border-emerald-500/30' : 'hover:bg-slate-800 border border-transparent' }}">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                            <span class="text-xs font-bold {{ request('document_status') === 'up_to_date' ? 'text-white' : 'text-slate-400' }}">Documentos al Día</span>
+                                        </div>
+                                        @if(request('document_status') === 'up_to_date')
+                                            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        @endif
+                                    </a>
+                                    <a href="{{ request('document_status') === 'expired' ? route('vehicles.index', request()->except(['document_status', 'page'])) : route('vehicles.index', array_merge(request()->query(), ['document_status' => 'expired', 'page' => 1])) }}" 
+                                       wire:navigate
+                                       class="flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer {{ request('document_status') === 'expired' ? 'bg-rose-600/20 border border-rose-500/30' : 'hover:bg-slate-800 border border-transparent' }}">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                            <span class="text-xs font-bold {{ request('document_status') === 'expired' ? 'text-white' : 'text-slate-400' }}">Documentos Vencidos</span>
+                                        </div>
+                                        @if(request('document_status') === 'expired')
+                                            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        @endif
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Mantención -->
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Mantención</label>
+                                <div class="grid grid-cols-1 gap-1.5">
+                                    <a href="{{ request('maintenance_status') === 'ok' ? route('vehicles.index', request()->except(['maintenance_status', 'page'])) : route('vehicles.index', array_merge(request()->query(), ['maintenance_status' => 'ok', 'page' => 1])) }}" 
+                                       wire:navigate
+                                       class="flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer {{ request('maintenance_status') === 'ok' ? 'bg-emerald-600/20 border border-emerald-500/30' : 'hover:bg-slate-800 border border-transparent' }}">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                            <span class="text-xs font-bold {{ request('maintenance_status') === 'ok' ? 'text-white' : 'text-slate-400' }}">Mecánica al Día</span>
+                                        </div>
+                                        @if(request('maintenance_status') === 'ok')
+                                            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        @endif
+                                    </a>
+                                    <a href="{{ request('maintenance_status') === 'needed' ? route('vehicles.index', request()->except(['maintenance_status', 'page'])) : route('vehicles.index', array_merge(request()->query(), ['maintenance_status' => 'needed', 'page' => 1])) }}" 
+                                       wire:navigate
+                                       class="flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer {{ request('maintenance_status') === 'needed' ? 'bg-amber-600/20 border border-amber-500/30' : 'hover:bg-slate-800 border border-transparent' }}">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                            <span class="text-xs font-bold {{ request('maintenance_status') === 'needed' ? 'text-white' : 'text-slate-400' }}">Requiere Atención</span>
+                                        </div>
+                                        @if(request('maintenance_status') === 'needed')
+                                            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        @endif
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <template x-if="searchQuery || {{ $activeFiltersCount > 0 ? 'true' : 'false' }}">
-                        <a href="{{ route('vehicles.index') }}" class="px-3 py-2 text-gray-500 hover:text-red-500 transition-colors" title="Limpiar Filtros">
+                        <a href="{{ route('vehicles.index') }}" wire:navigate class="px-3 py-2 text-slate-500 hover:text-rose-500 transition-colors flex items-center cursor-pointer" title="Limpiar Filtros">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </a>
                     </template>
                 </div>
             </div>
 
-            <!-- Filter Sidebar (Off-canvas) -->
-            <div x-show="filtersOpen" class="fixed inset-0 z-50 flex justify-end" style="display: none;">
-                <!-- Backdrop -->
-                <div @click="filtersOpen = false" 
-                    x-show="filtersOpen"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition ease-in duration-300"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-                <!-- Sidebar Content -->
-                <div x-show="filtersOpen"
-                    x-transition:enter="transition transform ease-out duration-300"
-                    x-transition:enter-start="translate-x-full"
-                    x-transition:enter-end="translate-x-0"
-                    x-transition:leave="transition transform ease-in duration-300"
-                    x-transition:leave-start="translate-x-0"
-                    x-transition:leave-end="translate-x-full"
-                    class="relative w-80 bg-white dark:bg-gray-800 h-full shadow-2xl p-6 overflow-y-auto border-l border-gray-700">
-                    
-                    <div class="flex justify-between items-center mb-8">
-                        <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                            Filtros
-                        </h3>
-                        <button @click="filtersOpen = false" class="text-gray-400 hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </div>
-
-                    <form method="GET" action="{{ route('vehicles.index') }}">
-                        <input type="hidden" name="search" :value="searchQuery">
-
-                        <!-- Filter: Status -->
-                        <div class="mb-4 border-b border-gray-700 pb-4" x-data="{ open: {{ request('status') ? 'true' : 'false' }} }">
-                            <button type="button" @click="open = !open" class="flex items-center justify-between w-full text-left text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 focus:outline-none">
-                                <span>Estado</span>
-                                <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </button>
-                            <div x-show="open" x-collapse style="display: none;" class="space-y-2 mt-2">
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('status') === 'available' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="status" value="available" class="hidden" {{ request('status') === 'available' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
-                                    <span class="text-gray-200">Disponible</span>
-                                </label>
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('status') === 'occupied' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="status" value="occupied" class="hidden" {{ request('status') === 'occupied' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
-                                    <span class="text-gray-200">Reservado</span>
-                                </label>
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('status') === 'maintenance' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="status" value="maintenance" class="hidden" {{ request('status') === 'maintenance' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span>
-                                    <span class="text-gray-200">Mantenimiento</span>
-                                </label>
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('status') === 'out_of_service' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="status" value="out_of_service" class="hidden" {{ request('status') === 'out_of_service' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></span>
-                                    <span class="text-gray-200">Fuera de Servicio</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Filter: Document Status -->
-                        <div class="mb-4 border-b border-gray-700 pb-4" x-data="{ open: {{ request('document_status') ? 'true' : 'false' }} }">
-                            <button type="button" @click="open = !open" class="flex items-center justify-between w-full text-left text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 focus:outline-none">
-                                <span>Estado Documentos</span>
-                                <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </button>
-                            <div x-show="open" x-collapse style="display: none;" class="space-y-2 mt-2">
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('document_status') === 'up_to_date' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="document_status" value="up_to_date" class="hidden" {{ request('document_status') === 'up_to_date' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
-                                    <span class="text-gray-200">Al Día</span>
-                                </label>
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('document_status') === 'expired' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="document_status" value="expired" class="hidden" {{ request('document_status') === 'expired' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></span>
-                                    <span class="text-gray-200">Atrasados</span>
-                                </label>
-                            </div>
-                        </div>
-
-                         <!-- Filter: Maintenance Status -->
-                         <div class="mb-4 border-b border-gray-700 pb-4 border-none" x-data="{ open: {{ request('maintenance_status') ? 'true' : 'false' }} }">
-                            <button type="button" @click="open = !open" class="flex items-center justify-between w-full text-left text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 focus:outline-none">
-                                <span>Estado Mantención</span>
-                                <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </button>
-                            <div x-show="open" x-collapse style="display: none;" class="space-y-2 mt-2">
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('maintenance_status') === 'ok' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="maintenance_status" value="ok" class="hidden" {{ request('maintenance_status') === 'ok' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
-                                    <span class="text-gray-200">Al Día</span>
-                                </label>
-                                <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('maintenance_status') === 'needed' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
-                                    <input type="radio" name="maintenance_status" value="needed" class="hidden" {{ request('maintenance_status') === 'needed' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <span class="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span>
-                                    <span class="text-gray-200">Requiere Mantención</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-6 border-t border-gray-700 flex flex-col gap-3">
-                            <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-500/30">
-                                Aplicar Filtros
-                            </button>
-                            @if(request('status'))
-                                <a href="{{ route('vehicles.index', ['search' => request('search')]) }}" class="w-full py-3 text-center text-gray-400 hover:text-white font-medium hover:bg-gray-700 rounded-lg transition-colors">
-                                    Limpiar Estado
-                                </a>
-                            @endif
-                        </div>
-                    </form>
-                </div>
-            </div>
 
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
                     <div class="overflow-x-auto">
-                        <table class="min-w-full leading-normal">
-                            <thead class="bg-gray-800 text-gray-300">
-                                <tr>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Foto
-                                    </th>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Patente
-                                    </th>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Marca / Modelo
-                                    </th>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Año
-                                    </th>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Estado
-                                    </th>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Estado Doc.
-                                    </th>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Kilometraje
-                                    </th>
-                                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Acciones
-                                    </th>
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="bg-slate-900/80 text-slate-500 border-b border-slate-800">
+                                    <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em]">Foto</th>
+                                    <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em]">Patente</th>
+                                    <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em]">Marca / Modelo</th>
+                                    <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em]">Año</th>
+                                    <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em]">Estado Operativo</th>
+                                    <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em]">Documentación</th>
+                                    <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em]">Kilometraje</th>
+                                    <th class="px-6 py-5 text-right text-[9px] font-black uppercase tracking-[0.2em]">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-700 bg-gray-900 text-gray-300">
+                            <tbody class="divide-y divide-slate-800/60 bg-slate-950/20">
                                 @forelse($vehicles as $vehicle)
-                                    <tr class="hover:bg-gray-800 transition duration-150 {{ request('highlight_id') == $vehicle->id ? 'bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500' : '' }}"
+                                    @php $jsonVehicle = $vehicle->load(['currentMaintenanceState', 'documents', 'reservations.user', 'reservations.companions', 'reservations.conductor'])->append(['display_status', 'active_reservation', 'effective_reservation'])->toJson(); @endphp
+                                    <tr class="hover:bg-slate-900/40 transition-all duration-300 group {{ request('highlight_id') == $vehicle->id ? 'bg-blue-600/5 border-l-4 border-l-blue-600' : '' }}"
                                         data-search="{{ strtolower($vehicle->plate . ' ' . $vehicle->brand . ' ' . $vehicle->model) }}"
                                         x-show="!searchQuery || $el.dataset.search.split(' ').some(word => word.startsWith(searchQuery.toLowerCase()))">
-                                        <td class="px-5 py-4 text-sm">
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             @if($vehicle->image_path)
-                                                <div class="h-10 w-10 flex-shrink-0">
-                                                    <img class="h-10 w-10 rounded-full object-cover border border-gray-600"
+                                                <div class="h-12 w-12 flex-shrink-0 group-hover:scale-110 transition-all duration-500 relative">
+                                                    <div class="absolute -inset-1 bg-blue-600/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                    <img class="relative h-12 w-12 rounded-2xl object-cover border border-slate-800 shadow-2xl"
                                                         src="{{ Storage::url($vehicle->image_path) }}"
                                                         alt="{{ $vehicle->plate }}">
                                                 </div>
                                             @else
-                                                <div
-                                                    class="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-400 border border-gray-600">
+                                                <div class="h-12 w-12 rounded-2xl bg-slate-900 flex items-center justify-center text-[9px] font-black text-slate-600 border border-slate-800 group-hover:border-slate-700 transition-colors uppercase">
                                                     N/A
                                                 </div>
                                             @endif
                                         </td>
-                                        <td class="px-5 py-4 text-sm font-bold">
-                                            {{ $vehicle->plate }}
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="text-xs font-black text-white bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 shadow-inner group-hover:border-blue-500/30 transition-colors">{{ $vehicle->plate }}</span>
                                         </td>
-                                        <td class="px-5 py-4 text-sm">
-                                            {{ $vehicle->brand }} {{ $vehicle->model }}
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-black text-white group-hover:text-blue-400 transition-colors">{{ $vehicle->brand }}</div>
+                                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{{ $vehicle->model }}</div>
                                         </td>
-                                        <td class="px-5 py-4 text-sm">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400 font-black">
                                             {{ $vehicle->year }}
                                         </td>
-                                            <td class="px-5 py-4 text-sm">
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             @php
                                                 $displayStatus = $vehicle->display_status;
                                                 $statusClasses = [
-                                                    'available' => 'text-green-400 bg-green-900/30 border border-green-900',
-                                                    'out_of_service' => 'text-red-400 bg-red-900/30 border border-red-900',
-                                                    'maintenance' => 'text-yellow-400 bg-yellow-900/30 border border-yellow-900',
-                                                    'occupied' => 'text-blue-400 bg-blue-900/30 border border-blue-900',
+                                                    'available' => 'text-emerald-400 bg-emerald-500/5 border-emerald-500/20 shadow-emerald-500/5',
+                                                    'out_of_service' => 'text-rose-400 bg-rose-500/5 border-rose-500/20 shadow-rose-500/5',
+                                                    'maintenance' => 'text-amber-400 bg-amber-500/5 border-amber-500/20 shadow-amber-500/5',
+                                                    'occupied' => 'text-blue-400 bg-blue-500/5 border-blue-500/20 shadow-blue-500/5',
                                                 ];
                                                 $statusLabel = [
-                                                    'available' => 'DISPONIBLE',
-                                                    'out_of_service' => 'FUERA DE SERVICIO',
-                                                    'maintenance' => 'MANTENIMIENTO',
-                                                    'occupied' => 'RESERVADO',
+                                                    'available' => 'Disponible',
+                                                    'out_of_service' => 'F. Servicio',
+                                                    'maintenance' => 'Mantención',
+                                                    'occupied' => 'Reservado',
                                                 ];
                                             @endphp
-                                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md {{ $statusClasses[$displayStatus] ?? 'text-gray-400 bg-gray-800' }}">
+                                            <span class="px-3 py-1.5 inline-flex text-[9px] font-black rounded-xl border {{ $statusClasses[$displayStatus] ?? 'text-slate-400 bg-slate-900' }} uppercase tracking-widest shadow-inner">
                                                 {{ $statusLabel[$displayStatus] ?? strtoupper($displayStatus) }}
                                             </span>
                                             @if($displayStatus === 'occupied' && $vehicle->active_reservation)
-                                                <div class="text-[10px] text-blue-300 mt-1">
-                                                    Por: {{ $vehicle->active_reservation->user->name }}
+                                                <div class="text-[9px] text-blue-500 font-black uppercase tracking-tighter mt-1.5 opacity-60">
+                                                    {{ $vehicle->active_reservation->user->name }}
                                                 </div>
                                             @endif
                                         </td>
-                                        <td class="px-5 py-4 text-sm">
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             @if($vehicle->hasExpiredDocuments())
-                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md text-red-400 bg-red-900/30 border border-red-900">
-                                                    ATRASADO
+                                                <span class="px-3 py-1.5 inline-flex text-[9px] font-black rounded-xl text-rose-400 bg-rose-500/5 border border-rose-500/20 uppercase tracking-widest shadow-inner">
+                                                    Vencida
                                                 </span>
                                             @else
-                                                 <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md text-green-400 bg-green-900/30 border border-green-900">
-                                                    AL DÍA
+                                                 <span class="px-3 py-1.5 inline-flex text-[9px] font-black rounded-xl text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 uppercase tracking-widest shadow-inner">
+                                                    Vigente
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-5 py-4 text-sm">
-                                            <div class="flex items-center">
-                                                <p class="text-gray-900 dark:text-gray-100 whitespace-no-wrap mr-2">
-                                                    {{ number_format($vehicle->mileage, 0, '', '.') }} km
-                                                </p>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-white text-sm font-black tracking-tight">
+                                                    {{ number_format($vehicle->mileage, 0, '', '.') }} <span class="text-[10px] text-slate-600 font-black uppercase">km</span>
+                                                </span>
                                                 @if($vehicle->currentMaintenanceState && $vehicle->currentMaintenanceState->next_oil_change_km)
                                                     @if($vehicle->mileage >= $vehicle->currentMaintenanceState->next_oil_change_km)
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 animate-pulse">
-                                                            ⚠️ VENCIDO
-                                                        </span>
+                                                        <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]"></div>
                                                     @elseif(($vehicle->currentMaintenanceState->next_oil_change_km - $vehicle->mileage) <= 500)
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                                            ⚠️ PRÓXIMO
-                                                        </span>
+                                                        <div class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></div>
                                                     @endif
                                                 @endif
                                             </div>
                                         </td>
-                                        <td class="px-5 py-4 text-sm font-medium">
-                                            @php
-                                                $soap = $vehicle->documents->firstWhere('type', 'insurance');
-                                                $permit = $vehicle->documents->firstWhere('type', 'permit');
-                                                $technical = $vehicle->documents->firstWhere('type', 'technical_review');
-                                                
-                                                $jsVehicle = [
-                                                    'id' => $vehicle->id,
-                                                    'plate' => $vehicle->plate,
-                                                    'serial_number' => $vehicle->serial_number,
-                                                    'brand' => $vehicle->brand,
-                                                    'model' => $vehicle->model,
-                                                    'year' => $vehicle->year,
-                                                    'mileage' => $vehicle->mileage,
-                                                    'status' => $vehicle->status,
-                                                    'image_url' => $vehicle->image_path ? Storage::url($vehicle->image_path) : '',
-                                                    'imageUrl' => $vehicle->image_path ? Storage::url($vehicle->image_path) : '', // Duplicate for compatibility if needed
-                                                    'documents' => $vehicle->documents,
-                                                    'soap_expires_at' => $soap?->expires_at?->format('Y-m-d') ?? '',
-                                                    'permit_expires_at' => $permit?->expires_at?->format('Y-m-d') ?? '',
-                                                    'technical_expires_at' => $technical?->expires_at?->format('Y-m-d') ?? '',
-                                                    'technical_expires_at' => $technical?->expires_at?->format('Y-m-d') ?? '',
-                                                    'assigned_user' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->user->name : '',
-                                                    'assigned_user_rut' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->user->rut : '',
-                                                    'assigned_user_phone' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->user->phone : '',
-                                                    'fuel_type' => $vehicle->fuel_type,
-                                                    'reservation_status' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? $vehicle->effective_reservation->status : null,
-                                                    'reservation' => ($vehicle->display_status === 'occupied' && $vehicle->effective_reservation) ? [
-                                                        'id' => $vehicle->effective_reservation->id,
-                                                        'start_date' => $vehicle->effective_reservation->start_date->format('Y-m-d H:i'),
-                                                        'end_date' => $vehicle->effective_reservation->end_date->format('Y-m-d H:i'),
-                                                        'destination_type' => $vehicle->effective_reservation->destination_type,
-                                                        'user_name' => $vehicle->effective_reservation->user->name,
-                                                        'user_email' => $vehicle->effective_reservation->user->email,
-                                                        'user_rut' => $vehicle->effective_reservation->user->rut,
-                                                        'user_photo' => $vehicle->effective_reservation->user->profile_photo_path ? Storage::url($vehicle->effective_reservation->user->profile_photo_path) : null,
-                                                        'conductor_name' => $vehicle->effective_reservation->conductor ? $vehicle->effective_reservation->conductor->nombre : 'Mismo solicitante',
-                                                        'conductor_rut' => $vehicle->effective_reservation->conductor ? $vehicle->effective_reservation->conductor->rut : null,
-                                                        'conductor_photo' => ($vehicle->effective_reservation->conductor && $vehicle->effective_reservation->conductor->profile_photo_path) ? Storage::url($vehicle->effective_reservation->conductor->profile_photo_path) : null, 
-                                                        'has_external_conductor' => (bool) $vehicle->effective_reservation->conductor,
-                                                        'days_remaining' => (int) ceil(now()->floatDiffInDays($vehicle->effective_reservation->end_date, false)),
-                                                        'companions' => $vehicle->effective_reservation->companions->map(function($companion) {
-                                                            return [
-                                                                'name' => $companion->user_id && $companion->user ? $companion->user->name . ' ' . $companion->user->last_name : ($companion->external_name ?? 'Sin nombre'),
-                                                                'rut' => $companion->user_id && $companion->user ? ($companion->user->rut ?? 'N/A') : ($companion->external_rut ?? 'N/A'),
-                                                                'type' => $companion->user_id ? 'Interno' : 'Externo',
-                                                                'position' => $companion->user_id && $companion->user ? ($companion->user->position ?? 'N/A') : ($companion->external_position ?? 'N/A'),
-                                                                'department' => $companion->user_id && $companion->user ? ($companion->user->department ?? 'N/A') : ($companion->external_department ?? 'N/A'),
-                                                            ];
-                                                        }),
-                                                    ] : null,
-                                                ];
-                                                $jsonVehicle = json_encode($jsVehicle);
-                                            @endphp
-                                            <div class="flex items-center space-x-4">
-                                                <!-- Botón Mantenimiento -->
+                                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <!-- Mantenimiento -->
                                                 <button @click="
-                                                                maintenanceVehicle = {
-                                                                    id: {{ $vehicle->id }},
-                                                                    status: '{{ $vehicle->status }}',
-                                                                    updateStateAction: '{{ route('vehicles.maintenance.state', $vehicle) }}',
-                                                                    storeRequestAction: '{{ route('vehicles.maintenance.request', $vehicle) }}',
-                                                                    completeAction: '{{ route('vehicles.maintenance.complete', $vehicle) }}',
-                                                                    last_oil_change_km: '{{ isset($vehicle->currentMaintenanceState->last_oil_change_km) ? number_format($vehicle->currentMaintenanceState->last_oil_change_km, 0, '', '.') : '' }}',
-                                                                    next_oil_change_km: '{{ isset($vehicle->currentMaintenanceState->next_oil_change_km) ? number_format($vehicle->currentMaintenanceState->next_oil_change_km, 0, '', '.') : '' }}',
-                                                                    tire_status_front: '{{ $vehicle->currentMaintenanceState->tire_status_front ?? 'good' }}',
-                                                                    tire_status_rear: '{{ $vehicle->currentMaintenanceState->tire_status_rear ?? 'good' }}',
-                                                                    oil_change_due: {{ ($vehicle->currentMaintenanceState && $vehicle->currentMaintenanceState->next_oil_change_km && $vehicle->mileage >= $vehicle->currentMaintenanceState->next_oil_change_km) ? 'true' : 'false' }}
-                                                                };
-                                                                $dispatch('open-modal', 'maintenance-vehicle-modal');
-                                                            "
-                                                    class="{{ ($vehicle->currentMaintenanceState && $vehicle->currentMaintenanceState->next_oil_change_km && $vehicle->mileage >= $vehicle->currentMaintenanceState->next_oil_change_km) ? 'text-red-500 hover:text-red-400 animate-pulse' : 'text-yellow-400 hover:text-yellow-300' }} transition duration-150"
+                                                                 maintenanceVehicle = {
+                                                                     id: {{ $vehicle->id }},
+                                                                     status: '{{ $vehicle->status }}',
+                                                                     updateStateAction: '{{ route('vehicles.maintenance.state', $vehicle) }}',
+                                                                     storeRequestAction: '{{ route('vehicles.maintenance.request', $vehicle) }}',
+                                                                     completeAction: '{{ route('vehicles.maintenance.complete', $vehicle) }}',
+                                                                     last_oil_change_km: '{{ isset($vehicle->currentMaintenanceState->last_oil_change_km) ? number_format($vehicle->currentMaintenanceState->last_oil_change_km, 0, '', '.') : '' }}',
+                                                                     next_oil_change_km: '{{ isset($vehicle->currentMaintenanceState->next_oil_change_km) ? number_format($vehicle->currentMaintenanceState->next_oil_change_km, 0, '', '.') : '' }}',
+                                                                     tire_status_front: '{{ $vehicle->currentMaintenanceState->tire_status_front ?? 'good' }}',
+                                                                     tire_status_rear: '{{ $vehicle->currentMaintenanceState->tire_status_rear ?? 'good' }}',
+                                                                     oil_change_due: {{ ($vehicle->currentMaintenanceState && $vehicle->currentMaintenanceState->next_oil_change_km && $vehicle->mileage >= $vehicle->currentMaintenanceState->next_oil_change_km) ? 'true' : 'false' }}
+                                                                 };
+                                                                 $dispatch('open-modal', 'maintenance-vehicle-modal');
+                                                             "
+                                                    class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 {{ ($vehicle->currentMaintenanceState && $vehicle->currentMaintenanceState->next_oil_change_km && $vehicle->mileage >= $vehicle->currentMaintenanceState->next_oil_change_km) ? 'text-rose-500 animate-pulse border-rose-500/30' : 'text-amber-500 hover:text-white hover:bg-amber-600 hover:border-amber-500 shadow-lg hover:shadow-amber-600/20' }} transition-all duration-300 flex items-center justify-center cursor-pointer"
                                                     title="Mantenimiento">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                                                        </path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    </svg>
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                </button>
+                                                
+                                                <div class="h-4 w-[1px] bg-slate-800"></div>
+
+                                                <!-- Ficha -->
+                                                <button @click="viewingVehicle = {{ $jsonVehicle }}; $dispatch('open-modal', 'view-vehicle-modal');"
+                                                    class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-emerald-500 hover:text-white hover:bg-emerald-600 hover:border-emerald-500 shadow-lg hover:shadow-emerald-600/20 transition-all duration-300 flex items-center justify-center cursor-pointer"
+                                                    title="Ver Ficha">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                                 </button>
 
-                                                <!-- Historial de Mantenimiento -->
-                                                <a href="{{ route('vehicles.maintenance.history', $vehicle->id) }}"
-                                                    class="text-gray-400 hover:text-white transition duration-150"
-                                                    title="Historial del Vehículo">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                    </svg>
-                                                </a>
-
-                                                <!-- Ver Detalle (General) -->
-                                                <button @click="
-                                                                viewingVehicle = {{ $jsonVehicle }};
-                                                                $dispatch('open-modal', 'view-vehicle-modal');
-                                                            "
-                                                    class="text-green-400 hover:text-green-300 transition duration-150"
-                                                    title="Ver Ficha Vehículo">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                                        </path>
-                                                    </svg>
-                                                </button>
-
-                                                <!-- Ver Reserva (Solo si Ocupado) -->
-                                                @if($displayStatus === 'occupied' && $vehicle->effective_reservation)
-                                                <button @click="
-                                                            viewingVehicle = {{ $jsonVehicle }};
-                                                            $dispatch('open-modal', 'reservation-detail-modal');
-                                                        "
-                                                    class="text-indigo-400 hover:text-indigo-300 transition duration-150"
-                                                    title="Ver Reserva Activa">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                    </svg>
-                                                </button>
-                                                @endif
-                                                <a href="{{ route('fuel-loads.index', ['vehicle_id' => $vehicle->id]) }}"
-                                                    class="text-orange-500 hover:text-orange-400 transition duration-150"
-                                                    title="Historial de Combustible">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                                    </svg>
-                                                </a>
-                                                <button @click="
-                                                    editingVehicle = {{ $jsonVehicle }};
-                                                    editAction = '{{ route('vehicles.update', $vehicle->id) }}';
-                                                    $dispatch('open-modal', 'edit-vehicle-modal');
-                                                "
-                                                    class="text-blue-400 hover:text-blue-300 transition duration-150"
+                                                <!-- Editar -->
+                                                <button @click="editingVehicle = {{ $jsonVehicle }}; editAction = '{{ route('vehicles.update', $vehicle->id) }}'; $dispatch('open-modal', 'edit-vehicle-modal');"
+                                                    class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-blue-500 hover:text-white hover:bg-blue-600 hover:border-blue-500 shadow-lg hover:shadow-blue-600/20 transition-all duration-300 flex items-center justify-center cursor-pointer"
                                                     title="Editar">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                                        </path>
-                                                    </svg>
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                 </button>
 
-                                                    <button
-                                                        @click="$dispatch('open-modal', 'confirm-delete-modal'); deleteAction = '{{ route('vehicles.destroy', $vehicle) }}'"
-                                                        class="text-red-400 hover:text-red-300 transition duration-150"
-                                                        title="Eliminar">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                            </path>
-                                                        </svg>
-                                                    </button>
+                                                <!-- Eliminar -->
+                                                <button @click="$dispatch('open-modal', 'confirm-delete-modal'); deleteAction = '{{ route('vehicles.destroy', $vehicle) }}'"
+                                                    class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-rose-500 hover:text-white hover:bg-rose-600 hover:border-rose-500 shadow-lg hover:shadow-rose-600/20 transition-all duration-300 flex items-center justify-center cursor-pointer"
+                                                    title="Eliminar">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -579,9 +523,9 @@
             </div>
         </div>
 
-        <!-- Modal Agregar Vehículo -->
-        <x-modal name="create-vehicle-modal" :show="$errors->any()" focusable>
-            <form method="POST" action="{{ route('vehicles.store') }}" class="p-6 bg-gray-800 text-gray-100"
+
+        <x-modal name="create-vehicle-modal" :show="$errors->any()" focusable maxWidth="3xl">
+            <form method="POST" action="{{ route('vehicles.store') }}" class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative"
                 enctype="multipart/form-data"
                 x-data="{
                     photoName: null,
@@ -624,33 +568,49 @@
                         });
                     }
                 }">
-                @csrf
-
-                <h2 class="text-lg font-medium text-gray-100 mb-4">
-                    {{ __('Nuevo Vehículo') }}
-                </h2>
-
-                <!-- Foto con Compresión -->
-                <div class="mb-4 bg-gray-900 border border-gray-700 rounded-lg p-4">
-                    <x-input-label for="image" :value="__('Foto del Vehículo')" class="text-gray-300 mb-2" />
-                    
-                    <!-- Preview -->
-                    <div class="mt-2 mb-4" x-show="photoPreview" style="display: none;">
-                        <span class="block rounded-md w-full h-40 bg-cover bg-no-repeat bg-center mx-auto border border-gray-600"
-                            x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
-                        </span>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                         <div x-show="!photoPreview" class="text-xs text-gray-500 italic">
-                            Sin foto seleccionada
+                <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20 shadow-inner">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         </div>
-                        
-                        <button type="button" x-on:click.prevent="$refs.photo.click()" :disabled="isCompressing"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 active:bg-blue-600 disabled:opacity-25 transition">
-                            <span x-show="!isCompressing">{{ __('Seleccionar Foto') }}</span>
-                            <span x-show="isCompressing">{{ __('Procesando...') }}</span>
-                        </button>
+                        <div>
+                            <h3 class="text-lg font-black text-white tracking-tight uppercase">{{ __('Nuevo Vehículo') }}</h3>
+                            <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Registro oficial en flota</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                @csrf
+                <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar" x-data="{ photoPreview: null, isCompressing: false }">
+                    
+                    <!-- Foto del Vehículo -->
+                    <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/photo">
+                        <label class="block text-[9px] font-black text-slate-500 mb-4 uppercase tracking-[0.2em]">{{ __('Fotografía Principal') }}</label>
+                        <div class="flex flex-col sm:flex-row items-center gap-5">
+                            <div class="relative">
+                                <div class="absolute -inset-1 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover/photo:opacity-40 transition-opacity"></div>
+                                <template x-if="!photoPreview">
+                                    <div class="relative w-40 h-28 bg-slate-900 rounded-2xl border-2 border-slate-800 border-dashed flex items-center justify-center text-slate-700">
+                                        <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    </div>
+                                </template>
+                                <template x-if="photoPreview">
+                                    <img :src="photoPreview" class="relative w-40 h-28 object-cover rounded-2xl border-2 border-slate-800 shadow-2xl">
+                                </template>
+                            </div>
+
+                            <div class="flex-1 space-y-4">
+                                <p class="text-xs text-slate-500 font-medium leading-relaxed">Sube una imagen nítida del vehículo para facilitar su identificación visual en el sistema.</p>
+                                <button type="button" @click="$refs.photo.click()" :disabled="isCompressing" class="px-6 py-2.5 bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-700 hover:bg-slate-700 hover:text-white transition-all cursor-pointer flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                    <span x-show="!isCompressing">{{ __('Seleccionar Foto') }}</span>
+                                    <span x-show="isCompressing">{{ __('Procesando...') }}</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <input id="image" type="file" name="image" class="hidden" x-ref="photo" accept="image/*" 
@@ -669,966 +629,878 @@
                                 }
                             " />
                     <x-input-error :messages="$errors->get('image')" class="mt-2" />
-                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Patente -->
-                    <div>
-                        <x-input-label for="plate" :value="__('Patente')" class="text-gray-300" />
-                        <x-text-input id="plate"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="plate" :value="old('plate')" required autofocus
-                            placeholder="Ej: AB123CD" />
-                        <x-input-error :messages="$errors->get('plate')" class="mt-2" />
-                    </div>
-
-                    <!-- Nº Serie/Chasis -->
-                    <div>
-                        <x-input-label for="serial_number" :value="__('Nº Serie/Chasis')" class="text-gray-300" />
-                        <x-text-input id="serial_number"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="serial_number" :value="old('serial_number')" placeholder="Opcional" />
-                        <x-input-error :messages="$errors->get('serial_number')" class="mt-2" />
-                    </div>
-
-                    <!-- Marca -->
-                    <div>
-                        <x-input-label for="brand" :value="__('Marca')" class="text-gray-300" />
-                        <x-text-input id="brand"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="brand" :value="old('brand')" required placeholder="Toyota" />
-                        <x-input-error :messages="$errors->get('brand')" class="mt-2" />
-                    </div>
-
-                    <!-- Modelo -->
-                    <div>
-                        <x-input-label for="model" :value="__('Modelo')" class="text-gray-300" />
-                        <x-text-input id="model"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="model" :value="old('model')" required placeholder="Hilux" />
-                        <x-input-error :messages="$errors->get('model')" class="mt-2" />
-                    </div>
-
-                    <!-- Año -->
-                    <div>
-                        <x-input-label for="year" :value="__('Año')" class="text-gray-300" />
-                        <x-text-input id="year"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="number" name="year" :value="old('year')" required placeholder="2023" />
-                        <x-input-error :messages="$errors->get('year')" class="mt-2" />
-                    </div>
-
-                    <!-- Kilometraje -->
-                    <div class="md:col-span-2">
-                        <x-input-label for="mileage" :value="__('Kilometraje')" class="text-gray-300" />
-                        <x-text-input id="mileage"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="mileage" :value="old('mileage')" required placeholder="0" 
-                            x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" />
-                        <x-input-error :messages="$errors->get('mileage')" class="mt-2" />
-                    </div>
-
-                    <!-- Tipo de Combustible -->
-                    <div>
-                        <x-input-label for="fuel_type" :value="__('Tipo de Combustible')" class="text-gray-300" />
-                        <select id="fuel_type" name="fuel_type"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm">
-                            <option value="diesel">Petróleo (Diesel)</option>
-                            <option value="gasoline">Bencina (Gasolina)</option>
-                        </select>
-                        <x-input-error :messages="$errors->get('fuel_type')" class="mt-2" />
-                    </div>
-
-                    <!-- Documentación Inicial -->
-                    <div class="md:col-span-2 border-t border-gray-700 pt-4 mt-2">
-                        <h3 class="text-sm font-bold text-blue-400 mb-3 uppercase">Documentación Inicial (Opcional)</h3>
+                    <!-- Datos Técnicos -->
+                    <div class="space-y-4">
+                        <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="w-6 h-[1px] bg-indigo-500/30"></span>
+                            {{ __('Especificaciones Técnicas') }}
+                        </h4>
                         
-                        <!-- Seguro (SOAP) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <x-input-label for="soap_file" :value="__('Seguro Obligatorio (SOAP)')" class="text-gray-400" />
-                                <input id="soap_file" type="file" name="soap_file" accept=".pdf,image/*" 
-                                    class="block w-full text-sm text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-gray-900 border border-gray-700 rounded-md mt-1" />
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Patente</label>
+                                <div class="search-label">
+                                    <input type="text" name="plate" required placeholder="Ej: AB123CD">
+                                    <kbd class="slash-icon">/</kbd>
+                                </div>
                             </div>
-                            <div>
-                                <x-input-label for="soap_expires" :value="__('Vencimiento SOAP')" class="text-gray-400" />
-                                <x-text-input id="soap_expires" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="date" name="soap_expires_at" />
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Nº Serie/Chasis</label>
+                                <div class="search-label">
+                                    <input type="text" name="serial_number" placeholder="Opcional">
+                                    <kbd class="slash-icon">/</kbd>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Kilometraje</label>
+                                <div class="search-label">
+                                    <input type="text" name="mileage" required placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">
+                                    <kbd class="slash-icon">/</kbd>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Marca</label>
+                                <div class="search-label">
+                                    <input type="text" name="brand" required placeholder="Toyota">
+                                    <kbd class="slash-icon">/</kbd>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Modelo</label>
+                                <div class="search-label">
+                                    <input type="text" name="model" required placeholder="Hilux">
+                                    <kbd class="slash-icon">/</kbd>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Año</label>
+                                <div class="search-label">
+                                    <input type="number" name="year" required placeholder="2023">
+                                    <kbd class="slash-icon">/</kbd>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Combustible</label>
+                                <div class="search-label">
+                                    <select name="fuel_type" class="cursor-pointer">
+                                        <option value="diesel" class="bg-slate-900">Petróleo (Diesel)</option>
+                                        <option value="gasoline" class="bg-slate-900">Bencina (Gasolina)</option>
+                                    </select>
+                                    <svg class="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Permiso Circulación -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <x-input-label for="permit_file" :value="__('Permiso Circulación')" class="text-gray-400" />
-                                <input id="permit_file" type="file" name="permit_file" accept=".pdf,image/*" 
-                                    class="block w-full text-sm text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-gray-900 border border-gray-700 rounded-md mt-1" />
+                    <!-- Documentación -->
+                    <div class="space-y-4">
+                        <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="w-6 h-[1px] bg-blue-500/30"></span>
+                            {{ __('Documentación Legal Inicial') }}
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- SOAP -->
+                            <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Seguro Obligatorio (SOAP)') }}</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                </div>
+                                <div class="space-y-4">
+                                    <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                    <div class="group/date">
+                                        <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                        <div class="search-label">
+                                            <input type="text" name="soap_expires_at" class="flatpickr-date" placeholder="Seleccionar fecha">
+                                            <kbd class="slash-icon">/</kbd>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <x-input-label for="permit_expires" :value="__('Vencimiento Permiso')" class="text-gray-400" />
-                                <x-text-input id="permit_expires" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="date" name="permit_expires_at" />
-                            </div>
-                        </div>
 
-                        <!-- Revisión Técnica -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <x-input-label for="technical_file" :value="__('Revisión Técnica')" class="text-gray-400" />
-                                <input id="technical_file" type="file" name="technical_file" accept=".pdf,image/*" 
-                                    class="block w-full text-sm text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-gray-900 border border-gray-700 rounded-md mt-1" />
+                            <!-- Permiso Circulación -->
+                            <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Permiso de Circulación') }}</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                </div>
+                                <div class="space-y-4">
+                                    <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                    <div class="group/date">
+                                        <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                        <div class="search-label">
+                                            <input type="text" name="permit_expires_at" class="flatpickr-date" placeholder="Seleccionar fecha">
+                                            <kbd class="slash-icon">/</kbd>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <x-input-label for="technical_expires" :value="__('Vencimiento Revisión')" class="text-gray-400" />
-                                <x-text-input id="technical_expires" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="date" name="technical_expires_at" />
+
+                            <!-- Revisión Técnica -->
+                            <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc md:col-span-2">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Certificado de Revisión Técnica') }}</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner h-fit self-end">
+                                    <div class="group/date">
+                                        <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                        <div class="search-label">
+                                            <input type="text" name="technical_expires_at" class="flatpickr-date" placeholder="Seleccionar fecha">
+                                            <kbd class="slash-icon">/</kbd>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end space-x-3">
-                    <x-secondary-button x-on:click="$dispatch('close')"
-                        class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                <!-- Footer -->
+                <div class="px-6 py-5 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-3 sticky bottom-0 z-10">
+                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                         {{ __('Cancelar') }}
-                    </x-secondary-button>
-
-                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent">
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                         {{ __('Guardar Vehículo') }}
-                    </x-primary-button>
+                    </button>
                 </div>
             </form>
         </x-modal>
 
         <!-- Modal Confirmación Eliminar -->
         <x-modal name="confirm-delete-modal" :show="false" focusable>
-            <div class="p-6 bg-gray-800 text-gray-100">
-                <h2 class="text-lg font-medium text-gray-100">
-                    {{ __('¿Estás seguro?') }}
-                </h2>
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-rose-600/5 rounded-full blur-[80px] pointer-events-none"></div>
 
-                <p class="mt-1 text-sm text-gray-400">
-                    {{ __('El vehículo se moverá a la papelera. Podrás restaurarlo después si lo necesitas.') }}
-                </p>
+                <div class="p-10 text-center">
+                    <div class="w-20 h-20 rounded-[2rem] bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 shadow-inner mx-auto mb-8 animate-bounce-subtle">
+                        <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </div>
+                    
+                    <h3 class="text-2xl font-black text-white tracking-tight uppercase mb-4">{{ __('¿Confirmar Eliminación?') }}</h3>
+                    <p class="text-slate-400 text-sm font-medium max-w-xs mx-auto leading-relaxed">
+                        {{ __('El vehículo se moverá a la papelera. Podrás restaurarlo después si lo necesitas.') }}
+                    </p>
+                </div>
 
-                <div class="mt-6 flex justify-end space-x-3">
-                    <x-secondary-button @click="$dispatch('close')"
-                        class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                <div class="px-8 py-6 bg-slate-950/50 backdrop-blur-md border-t border-slate-800 flex items-center justify-center gap-4">
+                    <button type="button" @click="$dispatch('close')" class="px-8 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                         {{ __('Cancelar') }}
-                    </x-secondary-button>
-
+                    </button>
+                    
                     <form method="POST" :action="deleteAction">
                         @csrf
                         @method('DELETE')
-                        <x-danger-button class="ml-3">
-                            {{ __('Sí, enviar a la papelera') }}
-                        </x-danger-button>
+                        <button type="submit" class="px-10 py-3 bg-rose-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-1 transition-all flex items-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7" /></svg>
+                            {{ __('Eliminar Vehículo') }}
+                        </button>
                     </form>
                 </div>
             </div>
         </x-modal>
 
         <!-- Modal Editar Vehículo -->
-        <x-modal name="edit-vehicle-modal" :show="false" focusable>
+        <x-modal name="edit-vehicle-modal" :show="false" focusable maxWidth="3xl">
             <form method="POST" :action="editAction" enctype="multipart/form-data"
-                class="p-6 bg-gray-800 text-gray-100">
+                class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
                 @csrf
                 @method('PUT')
 
-                <h2 class="text-lg font-medium text-gray-100 mb-4">
-                    {{ __('Editar Vehículo') }}
-                </h2>
+                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-600/5 rounded-full blur-[80px] pointer-events-none"></div>
+
+                <!-- Header -->
+                <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shadow-inner">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-white tracking-tight uppercase">{{ __('Editar Vehículo') }}</h3>
+                            <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Actualización de ficha técnica</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar" x-data="{ photoPreview: null }">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Patente</label>
+                        <div class="search-label">
+                            <input type="text" name="plate" id="edit_plate" x-model="editingVehicle.plate" required placeholder="AA123BB">
+                            <kbd class="slash-icon">/</kbd>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Nº Serie/Chasis</label>
+                        <div class="search-label">
+                            <input type="text" name="serial_number" id="edit_serial_number" x-model="editingVehicle.serial_number" placeholder="Opcional">
+                            <kbd class="slash-icon">/</kbd>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Kilometraje</label>
+                        <div class="search-label">
+                            <input type="text" name="mileage" id="edit_mileage" x-model="editingVehicle.mileage" required placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">
+                            <kbd class="slash-icon">/</kbd>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Marca</label>
+                        <div class="search-label">
+                            <input type="text" name="brand" id="edit_brand" x-model="editingVehicle.brand" required placeholder="Toyota">
+                            <kbd class="slash-icon">/</kbd>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Modelo</label>
+                        <div class="search-label">
+                            <input type="text" name="model" id="edit_model" x-model="editingVehicle.model" required placeholder="Hilux">
+                            <kbd class="slash-icon">/</kbd>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Año</label>
+                        <div class="search-label">
+                            <input type="number" name="year" id="edit_year" x-model="editingVehicle.year" required placeholder="2023">
+                            <kbd class="slash-icon">/</kbd>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Patente -->
-                    <div>
-                        <x-input-label for="edit_plate" :value="__('Patente')" class="text-gray-300" />
-                        <x-text-input id="edit_plate"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="plate" x-model="editingVehicle.plate" required placeholder="AA123BB" />
-                        <x-input-error :messages="$errors->get('plate')" class="mt-2" />
-                    </div>
-
-                    <!-- Nº Serie -->
-                    <div>
-                        <x-input-label for="edit_serial_number" :value="__('Nº Serie/Chasis')" class="text-gray-300" />
-                        <x-text-input id="edit_serial_number"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="serial_number" x-model="editingVehicle.serial_number" placeholder="Opcional" />
-                        <x-input-error :messages="$errors->get('serial_number')" class="mt-2" />
-                    </div>
-
-                    <!-- Marca -->
-                    <div>
-                        <x-input-label for="edit_brand" :value="__('Marca')" class="text-gray-300" />
-                        <x-text-input id="edit_brand"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="brand" x-model="editingVehicle.brand" required placeholder="Toyota" />
-                        <x-input-error :messages="$errors->get('brand')" class="mt-2" />
-                    </div>
-
-                    <!-- Modelo -->
-                    <div>
-                        <x-input-label for="edit_model" :value="__('Modelo')" class="text-gray-300" />
-                        <x-text-input id="edit_model"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="model" x-model="editingVehicle.model" required placeholder="Hilux" />
-                        <x-input-error :messages="$errors->get('model')" class="mt-2" />
-                    </div>
-
-                    <!-- Año -->
-                    <div>
-                        <x-input-label for="edit_year" :value="__('Año')" class="text-gray-300" />
-                        <x-text-input id="edit_year"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="number" name="year" x-model="editingVehicle.year" required placeholder="2023" />
-                        <x-input-error :messages="$errors->get('year')" class="mt-2" />
-                    </div>
-
-                    <!-- Kilometraje -->
-                    <div class="md:col-span-2">
-                        <x-input-label for="edit_mileage" :value="__('Kilometraje')" class="text-gray-300" />
-                        <x-text-input id="edit_mileage"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            type="text" name="mileage" x-model="editingVehicle.mileage" required placeholder="0" 
-                            x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" />
-                        <x-input-error :messages="$errors->get('mileage')" class="mt-2" />
-                    </div>
-
-                    <!-- Tipo de Combustible (Editar) -->
-                    <div>
-                        <x-input-label for="edit_fuel_type" :value="__('Tipo de Combustible')" class="text-gray-300" />
-                        <select id="edit_fuel_type" name="fuel_type" x-model="editingVehicle.fuel_type"
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm">
-                            <option value="diesel">Petróleo (Diesel)</option>
-                            <option value="gasoline">Bencina (Gasolina)</option>
-                        </select>
-                        <x-input-error :messages="$errors->get('fuel_type')" class="mt-2" />
-                    </div>
-
-                    <!-- Estado -->
-                    <div class="md:col-span-2">
-                        <x-input-label for="edit_status" :value="__('Estado')" class="text-gray-300" />
-                        <template x-if="editingVehicle.status !== 'occupied'">
-                            <select id="edit_status" name="status" x-model="editingVehicle.status"
-                                class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm">
-                                <option value="available">{{ __('Disponible') }}</option>
-                                <option value="out_of_service">{{ __('Fuera de Servicio') }}</option>
-                                <option value="maintenance">{{ __('En Mantenimiento') }}</option>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Combustible</label>
+                        <div class="search-label">
+                            <select id="edit_fuel_type" name="fuel_type" x-model="editingVehicle.fuel_type" class="cursor-pointer">
+                                <option value="diesel" class="bg-slate-900">Petróleo (Diesel)</option>
+                                <option value="gasoline" class="bg-slate-900">Bencina (Gasolina)</option>
                             </select>
+                            <svg class="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Estado Operativo</label>
+                        <template x-if="editingVehicle.status !== 'occupied'">
+                            <div class="search-label">
+                                <select id="edit_status" name="status" x-model="editingVehicle.status" class="cursor-pointer">
+                                    <option value="available" class="bg-slate-900">{{ __('Disponible') }}</option>
+                                    <option value="out_of_service" class="bg-slate-900">{{ __('Fuera de Servicio') }}</option>
+                                    <option value="maintenance" class="bg-slate-900">{{ __('En Mantención') }}</option>
+                                    <option value="workshop" class="bg-slate-900">{{ __('En Taller') }}</option>
+                                </select>
+                                <svg class="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
                         </template>
                         <template x-if="editingVehicle.status === 'occupied'">
-                            <div>
+                            <div class="relative group/assigned">
                                 <input type="hidden" name="status" value="occupied">
-                                <div class="block mt-1 w-full bg-blue-900/20 border border-blue-500/50 text-blue-200 rounded-md shadow-sm p-2 flex items-center">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                    </svg>
-                                    <span class="font-bold">RESERVADO (En Uso)</span>
+                                <div class="px-4 py-3 bg-blue-600/10 border border-blue-500/30 rounded-2xl flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                    <span class="text-xs font-black text-blue-400 uppercase tracking-widest">En Uso (Reservado)</span>
                                 </div>
-                                <p class="mt-1 text-xs text-blue-400">
-                                    El estado no se puede editar manualmente mientras el vehículo está en uso. 
-                                    Debe finalizar la reserva para liberarlo.
-                                </p>
                             </div>
                         </template>
-                        <x-input-error :messages="$errors->get('status')" class="mt-2" />
                     </div>
+                </div>
 
-                    <!-- Foto (Opcional) -->
-                    <div class="md:col-span-2">
-                        <x-input-label for="edit_image" :value="__('Actualizar Foto (Opcional)')"
-                            class="text-gray-300" />
-                        <input id="edit_image" type="file" name="image" accept="image/*"
-                            class="block w-full text-sm text-gray-400
-                             file:mr-4 file:py-2 file:px-4
-                             file:rounded-md file:border-0
-                             file:text-sm file:font-semibold
-                             file:bg-blue-600 file:text-white
-                             hover:file:bg-blue-700
-                             cursor-pointer bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
-                        <p class="mt-1 text-xs text-gray-500">Dejar vacío para mantener la actual.</p>
-                        <x-input-error :messages="$errors->get('image')" class="mt-2" />
-                    </div>
-
-                    <!-- Documentación -->
-                    <div class="md:col-span-2 border-t border-gray-700 pt-4 mt-2">
-                        <h3 class="text-sm font-bold text-blue-400 mb-3 uppercase">Actualizar Documentación</h3>
-                        
+                <!-- Documentación -->
+                <div class="space-y-4 pt-5 border-t border-slate-800">
+                    <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span class="w-6 h-[1px] bg-blue-500/30"></span>
+                        {{ __('Actualizar Documentación') }}
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <!-- Seguro (SOAP) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <x-input-label for="edit_soap_file" :value="__('Seguro Obligatorio (SOAP)')" class="text-gray-400" />
-                                <input id="edit_soap_file" type="file" name="soap_file" accept=".pdf,image/*" 
-                                    class="block w-full text-sm text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-gray-900 border border-gray-700 rounded-md mt-1" />
+                        <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Seguro Obligatorio (SOAP)') }}</span>
+                                <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
-                            <div>
-                                <x-input-label for="edit_soap_expires" :value="__('Vencimiento SOAP')" class="text-gray-400" 
-                                    ::class="{
-                                        'text-red-500 font-bold': getDaysRemaining(editingVehicle.soap_expires_at) !== null && getDaysRemaining(editingVehicle.soap_expires_at) < 0,
-                                        'text-yellow-500 font-bold': getDaysRemaining(editingVehicle.soap_expires_at) !== null && getDaysRemaining(editingVehicle.soap_expires_at) >= 0 && getDaysRemaining(editingVehicle.soap_expires_at) <= 7
-                                    }" />
-                                <x-text-input id="edit_soap_expires" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" 
-                                    ::class="{
-                                        'border-red-500 focus:border-red-500 ring-1 ring-red-500': getDaysRemaining(editingVehicle.soap_expires_at) !== null && getDaysRemaining(editingVehicle.soap_expires_at) < 0,
-                                        'border-yellow-500 focus:border-yellow-500 ring-1 ring-yellow-500': getDaysRemaining(editingVehicle.soap_expires_at) !== null && getDaysRemaining(editingVehicle.soap_expires_at) >= 0 && getDaysRemaining(editingVehicle.soap_expires_at) <= 7
-                                    }" 
-                                    type="date" name="soap_expires_at" x-model="editingVehicle.soap_expires_at" />
-                                <template x-if="getDaysRemaining(editingVehicle.soap_expires_at) !== null">
-                                    <div>
-                                        <span x-show="getDaysRemaining(editingVehicle.soap_expires_at) < 0" class="text-xs text-red-500 font-bold mt-1 block">⚠️ VENCIDO</span>
-                                        <span x-show="getDaysRemaining(editingVehicle.soap_expires_at) >= 0 && getDaysRemaining(editingVehicle.soap_expires_at) <= 7" class="text-xs text-yellow-500 font-bold mt-1 block" x-text="'⚠️ Faltan ' + getDaysRemaining(editingVehicle.soap_expires_at) + ' días'"></span>
+                            <div class="space-y-4">
+                                <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                <div class="group/date">
+                                    <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                    <div class="flex items-center border border-slate-800 rounded-xl bg-slate-950 px-3 py-2.5 focus-within:border-blue-500 transition-all">
+                                        <input type="text" name="soap_expires_at" x-model="editingVehicle.soap_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer" placeholder="Seleccionar fecha">
                                     </div>
-                                </template>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Permiso Circulación -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <x-input-label for="edit_permit_file" :value="__('Permiso Circulación')" class="text-gray-400" />
-                                <input id="edit_permit_file" type="file" name="permit_file" accept=".pdf,image/*" 
-                                    class="block w-full text-sm text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-gray-900 border border-gray-700 rounded-md mt-1" />
+                        <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Permiso de Circulación') }}</span>
+                                <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
-                            <div>
-                                <x-input-label for="edit_permit_expires" :value="__('Vencimiento Permiso')" class="text-gray-400" 
-                                    ::class="{
-                                        'text-red-500 font-bold': getDaysRemaining(editingVehicle.permit_expires_at) !== null && getDaysRemaining(editingVehicle.permit_expires_at) < 0,
-                                        'text-yellow-500 font-bold': getDaysRemaining(editingVehicle.permit_expires_at) !== null && getDaysRemaining(editingVehicle.permit_expires_at) >= 0 && getDaysRemaining(editingVehicle.permit_expires_at) <= 7
-                                    }" />
-                                <x-text-input id="edit_permit_expires" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" 
-                                    ::class="{
-                                        'border-red-500 focus:border-red-500 ring-1 ring-red-500': getDaysRemaining(editingVehicle.permit_expires_at) !== null && getDaysRemaining(editingVehicle.permit_expires_at) < 0,
-                                        'border-yellow-500 focus:border-yellow-500 ring-1 ring-yellow-500': getDaysRemaining(editingVehicle.permit_expires_at) !== null && getDaysRemaining(editingVehicle.permit_expires_at) >= 0 && getDaysRemaining(editingVehicle.permit_expires_at) <= 7
-                                    }"
-                                    type="date" name="permit_expires_at" x-model="editingVehicle.permit_expires_at"/>
-                                <template x-if="getDaysRemaining(editingVehicle.permit_expires_at) !== null">
-                                    <div>
-                                        <span x-show="getDaysRemaining(editingVehicle.permit_expires_at) < 0" class="text-xs text-red-500 font-bold mt-1 block">⚠️ VENCIDO</span>
-                                        <span x-show="getDaysRemaining(editingVehicle.permit_expires_at) >= 0 && getDaysRemaining(editingVehicle.permit_expires_at) <= 7" class="text-xs text-yellow-500 font-bold mt-1 block" x-text="'⚠️ Faltan ' + getDaysRemaining(editingVehicle.permit_expires_at) + ' días'"></span>
+                            <div class="space-y-4">
+                                <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                <div class="group/date">
+                                    <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                    <div class="flex items-center border border-slate-800 rounded-xl bg-slate-950 px-3 py-2.5 focus-within:border-blue-500 transition-all">
+                                        <input type="text" name="permit_expires_at" x-model="editingVehicle.permit_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer" placeholder="Seleccionar fecha">
                                     </div>
-                                </template>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Revisión Técnica -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <x-input-label for="edit_technical_file" :value="__('Revisión Técnica')" class="text-gray-400" />
-                                <input id="edit_technical_file" type="file" name="technical_file" accept=".pdf,image/*" 
-                                    class="block w-full text-sm text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-gray-900 border border-gray-700 rounded-md mt-1" />
+                        <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc md:col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Certificado de Revisión Técnica') }}</span>
+                                <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
-                            <div>
-                                <x-input-label for="edit_technical_expires" :value="__('Vencimiento Revisión')" class="text-gray-400" 
-                                    ::class="{
-                                        'text-red-500 font-bold': getDaysRemaining(editingVehicle.technical_expires_at) !== null && getDaysRemaining(editingVehicle.technical_expires_at) < 0,
-                                        'text-yellow-500 font-bold': getDaysRemaining(editingVehicle.technical_expires_at) !== null && getDaysRemaining(editingVehicle.technical_expires_at) >= 0 && getDaysRemaining(editingVehicle.technical_expires_at) <= 7
-                                    }" />
-                                <x-text-input id="edit_technical_expires" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" 
-                                    ::class="{
-                                        'border-red-500 focus:border-red-500 ring-1 ring-red-500': getDaysRemaining(editingVehicle.technical_expires_at) !== null && getDaysRemaining(editingVehicle.technical_expires_at) < 0,
-                                        'border-yellow-500 focus:border-yellow-500 ring-1 ring-yellow-500': getDaysRemaining(editingVehicle.technical_expires_at) !== null && getDaysRemaining(editingVehicle.technical_expires_at) >= 0 && getDaysRemaining(editingVehicle.technical_expires_at) <= 7
-                                    }" 
-                                    type="date" name="technical_expires_at" x-model="editingVehicle.technical_expires_at" />
-                                <template x-if="getDaysRemaining(editingVehicle.technical_expires_at) !== null">
-                                    <div>
-                                        <span x-show="getDaysRemaining(editingVehicle.technical_expires_at) < 0" class="text-xs text-red-500 font-bold mt-1 block">⚠️ VENCIDO</span>
-                                        <span x-show="getDaysRemaining(editingVehicle.technical_expires_at) >= 0 && getDaysRemaining(editingVehicle.technical_expires_at) <= 7" class="text-xs text-yellow-500 font-bold mt-1 block" x-text="'⚠️ Faltan ' + getDaysRemaining(editingVehicle.technical_expires_at) + ' días'"></span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner h-fit self-end">
+                                <div class="group/date">
+                                    <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                    <div class="flex items-center border border-slate-800 rounded-xl bg-slate-950 px-3 py-2.5 focus-within:border-blue-500 transition-all">
+                                        <input type="text" name="technical_expires_at" x-model="editingVehicle.technical_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer" placeholder="Seleccionar fecha">
                                     </div>
-                                </template>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end space-x-3">
-                    <x-secondary-button @click="$dispatch('close')"
-                        class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                <!-- Footer -->
+                <div class="px-6 py-5 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-3 sticky bottom-0 z-10">
+                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                         {{ __('Cancelar') }}
-                    </x-secondary-button>
-
-                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent">
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                         {{ __('Actualizar Vehículo') }}
-                    </x-primary-button>
+                    </button>
                 </div>
             </form>
         </x-modal>
 
         <!-- Modal Ver Detalle Vehículo -->
-        <x-modal name="view-vehicle-modal" :show="false" focusable zIndex="z-[60]">
-            <div class="p-6 bg-gray-800 text-gray-100">
-                <h2 class="text-xl font-bold text-gray-100 mb-6 border-b border-gray-700 pb-2">
-                    {{ __('Detalle del Vehículo') }}
-                </h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Foto Grande -->
-                    <div
-                        class="flex flex-col items-center justify-center bg-gray-900 rounded-lg p-4 border border-gray-700">
-                        <template x-if="viewingVehicle.imageUrl">
-                            <img :src="viewingVehicle.imageUrl" alt="Foto Vehículo"
-                                class="w-full h-64 object-cover rounded-md shadow-lg">
-                        </template>
-                        <template x-if="!viewingVehicle.imageUrl">
-                            <div
-                                class="w-full h-64 flex items-center justify-center bg-gray-800 text-gray-500 rounded-md">
-                                <span class="text-sm">Sin imagen disponible</span>
+        <x-modal name="view-vehicle-modal" :show="false" focusable zIndex="z-[60]" maxWidth="4xl">
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+                <!-- Header con Imagen de Fondo -->
+                <div class="relative h-48 bg-slate-900/50">
+                    <template x-if="viewingVehicle.imageUrl">
+                        <img :src="viewingVehicle.imageUrl" alt="Foto Vehículo" class="w-full h-full object-cover opacity-40 transition-opacity duration-700">
+                    </template>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+                    
+                    <div class="absolute bottom-8 left-10">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shadow-inner backdrop-blur-sm">
+                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                        </template>
+                            <div>
+                                <h2 class="text-3xl font-black text-white tracking-tighter uppercase" x-text="viewingVehicle.plate"></h2>
+                                <p class="text-[11px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1" x-text="viewingVehicle.brand + ' ' + viewingVehicle.model"></p>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Datos -->
-                    <div class="space-y-4">
-                        <div>
-                            <span class="block text-xs text-gray-400 uppercase tracking-widest">Patente</span>
-                            <span class="text-2xl font-bold text-white tracking-wider"
-                                x-text="viewingVehicle.plate"></span>
-                        </div>
-                        
-                        <template x-if="viewingVehicle.serial_number">
-                            <div>
-                                <span class="block text-xs text-gray-400 uppercase tracking-widest">Nº Serie/Chasis</span>
-                                <span class="text-base text-gray-300 font-mono tracking-wider"
-                                    x-text="viewingVehicle.serial_number"></span>
-                            </div>
-                        </template>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="block text-xs text-gray-400 uppercase tracking-widest">Marca</span>
-                                <span class="text-lg text-gray-200" x-text="viewingVehicle.brand"></span>
-                            </div>
-                            <div>
-                                <span class="block text-xs text-gray-400 uppercase tracking-widest">Modelo</span>
-                                <span class="text-lg text-gray-200" x-text="viewingVehicle.model"></span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="block text-xs text-gray-400 uppercase tracking-widest">Año</span>
-                                <span class="text-lg text-gray-200" x-text="viewingVehicle.year"></span>
-                            </div>
-                            <div>
-                                <span class="block text-xs text-gray-400 uppercase tracking-widest">Kilometraje</span>
-                                <span class="text-lg text-gray-200" x-text="Number(viewingVehicle.mileage).toLocaleString('es-CL') + ' km'"></span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="block text-xs text-gray-400 uppercase tracking-widest">Combustible</span>
-                                <span class="text-lg font-bold" 
-                                    :class="viewingVehicle.fuel_type === 'diesel' ? 'text-yellow-400' : 'text-green-400'"
-                                    x-text="viewingVehicle.fuel_type === 'diesel' ? 'PETRÓLEO' : 'BENCINA'"></span>
-                            </div>
-                            <div>
-
-                        <div>
-                            <span class="block text-xs text-gray-400 uppercase tracking-widest mb-1">Estado</span>
-                            <span
-                                class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md"
-                                :class="{
-                                    'bg-green-900 text-green-200': viewingVehicle.status === 'available',
-                                    'bg-red-900 text-red-200': viewingVehicle.status === 'out_of_service',
-                                    'bg-yellow-900 text-yellow-200': viewingVehicle.status === 'maintenance',
-                                    'bg-blue-900 text-blue-200': viewingVehicle.status === 'occupied'
-                                }"
-                                x-text="viewingVehicle.status === 'available' ? 'DISPONIBLE' : (viewingVehicle.status === 'out_of_service' ? 'FUERA DE SERVICIO' : (viewingVehicle.status === 'maintenance' ? 'MANTENIMIENTO' : 'RESERVADO'))">
-                            </span>
-                            <!-- Badge "EN VIAJE" cuando el estado de la reserva es in_trip -->
-                            <template x-if="viewingVehicle.status === 'occupied' && viewingVehicle.reservation_status === 'in_trip'">
-                                <span class="mt-2 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md bg-indigo-900 text-indigo-200 border border-indigo-700">
-                                    EN VIAJE
-                                </span>
-                            </template>
-                        </div>
-                        <div>
-                            <span class="block text-xs text-gray-400 uppercase tracking-widest mb-1">Estado Doc.</span>
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md"
-                                  :class="hasExpiredDocs(viewingVehicle.documents) ? 'text-red-400 bg-red-900/30 border border-red-900' : 'text-green-400 bg-green-900/30 border border-green-900'"
-                                  x-text="hasExpiredDocs(viewingVehicle.documents) ? 'ATRASADO' : 'AL DÍA'">
-                            </span>
-                        </div>
-
-                    </div>
+                    <button @click="$dispatch('close')" class="absolute top-6 right-6 w-10 h-10 bg-slate-900/50 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-all flex items-center justify-center cursor-pointer backdrop-blur-md border border-slate-700/30">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
-                        
-                        <template x-if="viewingVehicle.status === 'occupied' && viewingVehicle.assigned_user">
-                            <div class="mt-4 border-t border-gray-700 pt-3">
-                                <span class="block text-xs text-blue-400 uppercase tracking-widest mb-2 font-bold">Datos de Asignación</span>
-                                <div class="bg-gray-800 rounded p-3 space-y-2 border border-blue-900/30">
-                                    <div class="flex justify-between">
-                                        <span class="text-xs text-gray-400">Nombre:</span>
-                                        <span class="text-sm font-bold text-white max-w-[150px] truncate" x-text="viewingVehicle.assigned_user"></span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-xs text-gray-400">RUT:</span>
-                                        <span class="text-sm text-gray-200" x-text="viewingVehicle.assigned_user_rut || 'No registra'"></span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-xs text-gray-400">Teléfono:</span>
-                                        <span class="text-sm text-gray-200 font-mono" x-text="viewingVehicle.assigned_user_phone || 'No registra'"></span>
-                                    </div>
+
+                <div class="p-10 space-y-12 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <!-- Especificaciones Técnicas -->
+                        <div class="space-y-8">
+                            <h3 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                <span class="w-8 h-[1px] bg-blue-500/30"></span>
+                                Especificaciones Técnicas
+                            </h3>
+                            
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="bg-slate-950/40 p-5 rounded-3xl border border-slate-800/50 shadow-inner group/item">
+                                    <span class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 group-hover/item:text-blue-400 transition-colors">Año Fab.</span>
+                                    <span class="text-base font-black text-white" x-text="viewingVehicle.year"></span>
+                                </div>
+                                <div class="bg-slate-950/40 p-5 rounded-3xl border border-slate-800/50 shadow-inner group/item">
+                                    <span class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 group-hover/item:text-blue-400 transition-colors">Kilometraje</span>
+                                    <span class="text-base font-black text-white" x-text="Number(viewingVehicle.mileage).toLocaleString('es-CL') + ' KM'"></span>
+                                </div>
+                                <div class="bg-slate-950/40 p-5 rounded-3xl border border-slate-800/50 shadow-inner group/item">
+                                    <span class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 group-hover/item:text-blue-400 transition-colors">Combustible</span>
+                                    <span class="text-sm font-black uppercase" :class="viewingVehicle.fuel_type === 'diesel' ? 'text-amber-400' : 'text-emerald-400'" x-text="viewingVehicle.fuel_type === 'diesel' ? 'Diesel' : 'Gasolina'"></span>
+                                </div>
+                                <div class="bg-slate-950/40 p-5 rounded-3xl border border-slate-800/50 shadow-inner group/item">
+                                    <span class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 group-hover/item:text-blue-400 transition-colors">Estado Actual</span>
+                                    <span class="text-sm font-black uppercase" 
+                                          :class="{
+                                              'text-emerald-400': viewingVehicle.status === 'available',
+                                              'text-rose-400': viewingVehicle.status === 'out_of_service',
+                                              'text-amber-400': viewingVehicle.status === 'maintenance',
+                                              'text-blue-400': viewingVehicle.status === 'occupied'
+                                          }"
+                                          x-text="viewingVehicle.status === 'available' ? 'Disponible' : (viewingVehicle.status === 'out_of_service' ? 'F. Servicio' : (viewingVehicle.status === 'maintenance' ? 'Mantención' : 'Reservado'))"></span>
+                                </div>
+                                <div class="bg-slate-950/40 p-5 rounded-3xl border border-slate-800/50 shadow-inner col-span-2 group/item">
+                                    <span class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 group-hover/item:text-blue-400 transition-colors">Nº Serie / Chasis</span>
+                                    <span class="text-sm font-mono font-bold text-slate-300 break-all" x-text="viewingVehicle.serial_number || 'No Registrado'"></span>
                                 </div>
                             </div>
-                        </template>
-                    </div>
-                </div>
+                        </div>
 
-                <div class="mt-8">
-                    <h3 class="text-lg font-bold text-gray-100 mb-4 border-b border-gray-700 pb-2">Documentación</h3>
-                    
-                    <!-- Lista de Documentos -->
-                    <div class="mb-6">
-                        <template x-if="viewingVehicle.documents && viewingVehicle.documents.length > 0">
-                            <ul class="space-y-2">
+                        <!-- Estado Operativo / Documentación -->
+                        <div class="space-y-8">
+                            <h3 class="text-[11px] font-black text-emerald-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                <span class="w-8 h-[1px] bg-emerald-500/30"></span>
+                                Control de Documentos
+                            </h3>
+
+                            <div class="space-y-4">
                                 <template x-for="doc in viewingVehicle.documents" :key="doc.id">
-                                    <li class="flex items-center justify-between bg-gray-900 p-3 rounded-md border border-gray-700">
-                                        <div class="flex items-center">
-                                            <span x-text="doc.type === 'insurance' ? '🛡️ Seguro' : (doc.type === 'technical_review' ? '🔧 Revisión Técnica' : '📄 Permiso Circulación')" 
-                                                  class="text-sm font-medium text-gray-200 mr-2"></span>
-                                            <span x-text="'(Vence: ' + (doc.expires_at ? doc.expires_at.split('T')[0].split('-').reverse().join('/') : '') + ')'" class="text-xs text-gray-400"></span>
-                                            <span x-show="getDaysRemaining(doc.expires_at) !== null && getDaysRemaining(doc.expires_at) < 0" class="ml-2 text-xs font-bold text-red-500 bg-red-900/30 px-2 py-0.5 rounded">VENCIDO</span>
-                                            <span x-show="getDaysRemaining(doc.expires_at) !== null && getDaysRemaining(doc.expires_at) >= 0 && getDaysRemaining(doc.expires_at) <= 7" class="ml-2 text-xs font-bold text-yellow-500 bg-yellow-900/30 px-2 py-0.5 rounded" x-text="'⚠️ ' + getDaysRemaining(doc.expires_at) + ' días'"></span>
+                                    <div class="flex items-center justify-between bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800/50 hover:border-blue-500/30 transition-all group">
+                                        <div class="flex items-center gap-5">
+                                            <div class="w-12 h-12 rounded-2xl bg-slate-900 group-hover:bg-blue-600/10 group-hover:text-blue-500 transition-colors flex items-center justify-center shadow-inner border border-slate-800">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            </div>
+                                            <div>
+                                                <div class="text-[11px] font-black text-white uppercase tracking-widest" x-text="doc.type === 'insurance' ? 'SOAP' : (doc.type === 'technical_review' ? 'Rev. Técnica' : 'Permiso Circ.')"></div>
+                                                <div class="text-[10px] font-bold mt-1" :class="getDaysRemaining(doc.expires_at) < 0 ? 'text-rose-500' : 'text-slate-500'" x-text="'Vencimiento: ' + (doc.expires_at ? doc.expires_at.split('T')[0].split('-').reverse().join('/') : '---')"></div>
+                                            </div>
                                         </div>
-                                        <div class="flex space-x-2">
-                                            <a :href="'/storage/' + doc.file_path" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">Ver</a>
-                                            <!-- Delete button logic requires a form, might be complex in view-only modal -->
-                                        </div>
-                                    </li>
+                                        <a :href="'/storage/' + doc.file_path" target="_blank" class="w-10 h-10 bg-blue-600/10 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-lg hover:shadow-blue-600/20">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                        </a>
+                                    </div>
                                 </template>
-                            </ul>
-                        </template>
-                        <template x-if="!viewingVehicle.documents || viewingVehicle.documents.length === 0">
-                            <p class="text-gray-500 text-sm italic">No hay documentos registrados.</p>
-                        </template>
+                                
+                                <template x-if="!viewingVehicle.documents || viewingVehicle.documents.length === 0">
+                                    <div class="text-center py-12 border-2 border-dashed border-slate-800 rounded-[2.5rem] bg-slate-950/20">
+                                        <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest italic">Sin documentación adjunta</p>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Usuario Asignado (si aplica) -->
+                            <template x-if="viewingVehicle.status === 'occupied' && viewingVehicle.assigned_user">
+                                <div class="pt-6 border-t border-slate-800">
+                                    <h4 class="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                        Usuario Asignado
+                                    </h4>
+                                    <div class="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-5 flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-500 font-black text-xl border border-rose-500/20">
+                                            <span x-text="viewingVehicle.assigned_user.charAt(0)"></span>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-black text-white" x-text="viewingVehicle.assigned_user"></div>
+                                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5" x-text="'RUT: ' + (viewingVehicle.assigned_user_rut || 'N/A')"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mt-8 flex justify-end">
-                    <x-secondary-button @click="$dispatch('close')"
-                        class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600 w-full md:w-auto justify-center">
-                        {{ __('Cerrar') }}
-                    </x-secondary-button>
+                <div class="px-8 py-6 bg-slate-950/50 backdrop-blur-md border-t border-slate-800 flex items-center justify-end">
+                    <button @click="$dispatch('close')" class="px-8 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                        {{ __('Cerrar Ficha Técnica') }}
+                    </button>
                 </div>
             </div>
         </x-modal>
 
-        <!-- Modal Mantenimiento -->
-        <x-modal name="maintenance-vehicle-modal" :show="false" focusable>
-            <div class="p-6 bg-gray-800 text-gray-100" x-data="{ tab: 'status' }">
-                <h2 class="text-xl font-bold text-gray-100 mb-6 border-b border-gray-700 pb-2">
-                    {{ __('Gestión de Mantenimiento') }}
-                </h2>
 
-                <!-- Tabs Navigation -->
-                <div class="flex space-x-4 mb-6 border-b border-gray-700">
-                    <button @click="tab = 'status'"
-                        :class="{ 'border-b-2 border-blue-500 text-blue-400': tab === 'status', 'text-gray-400 hover:text-gray-200': tab !== 'status' }"
-                        class="pb-2 text-sm font-medium transition-colors duration-150">
-                        Estado Técnico
-                    </button>
-                    <button @click="tab = 'request'"
-                        :class="{ 'border-b-2 border-blue-500 text-blue-400': tab === 'request', 'text-gray-400 hover:text-gray-200': tab !== 'request' }"
-                        class="pb-2 text-sm font-medium transition-colors duration-150">
-                        Solicitar Mantención
+        <!-- Modal Mantenimiento -->
+        <x-modal name="maintenance-vehicle-modal" :show="false" focusable maxWidth="4xl">
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" x-data="{ tab: 'status' }">
+                <!-- Header -->
+                <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-white tracking-tight uppercase">{{ __('Centro de Mantenimiento') }}</h3>
+                            <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Control preventivo y correctivo</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
-                <!-- Tab: Estado Técnico -->
-                <div x-show="tab === 'status'">
+                <!-- Tabs Navigation -->
+                <div class="px-8 py-2 bg-slate-900/30 border-b border-slate-800 flex gap-6 overflow-x-auto">
+                    <button @click="tab = 'status'" :class="tab === 'status' ? 'text-blue-400 border-blue-500' : 'text-slate-500 border-transparent hover:text-slate-300'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer whitespace-nowrap">
+                        Estado Actual
+                    </button>
+                    <button @click="tab = 'request'" :class="tab === 'request' ? 'text-blue-400 border-blue-500' : 'text-slate-500 border-transparent hover:text-slate-300'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer whitespace-nowrap">
+                        Solicitar Mantención
+                    </button>
+                    <button @click="tab = 'history'" :class="tab === 'history' ? 'text-blue-400 border-blue-500' : 'text-slate-500 border-transparent hover:text-slate-300'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer whitespace-nowrap">
+                        Historial de OT
+                    </button>
+                    <button @click="tab = 'pending'" :class="tab === 'pending' ? 'text-blue-400 border-blue-500' : 'text-slate-500 border-transparent hover:text-slate-300'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer whitespace-nowrap relative">
+                        Solicitudes
+                        @if($pendingRequests->count() > 0)
+                            <span class="absolute top-2 -right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
+                        @endif
+                    </button>
+                </div>
+
+                 <!-- Tab: Estado Actual -->
+                <div x-show="tab === 'status'" x-transition:enter="transition duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
                     <form id="update-maintenance-state-form" method="POST" :action="maintenanceVehicle.updateStateAction">
                         @csrf
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-300 mb-4">Aceite y Servicios</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <x-input-label for="last_oil_change" :value="__('Último Cambio Aceite (km)')"
-                                            class="text-gray-400" />
-                                        <x-text-input id="last_oil_change"
-                                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100"
-                                            type="text" name="last_oil_change_km"
-                                            x-model="maintenanceVehicle.last_oil_change_km"
-                                            x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"
-                                            x-bind:disabled="maintenanceVehicle.oil_change_due && !['maintenance', 'workshop'].includes(maintenanceVehicle.status)"
-                                            x-bind:class="{'opacity-50 cursor-not-allowed': maintenanceVehicle.oil_change_due && !['maintenance', 'workshop'].includes(maintenanceVehicle.status)}"
-                                            placeholder="0" />
-                                    </div>
-                                    <div>
-                                        <x-input-label for="next_oil_change" :value="__('Próximo Cambio (km)')"
-                                            class="text-gray-400"
-                                            ::class="{ 'text-red-500 font-bold': maintenanceVehicle.oil_change_due }" />
-                                        <div class="relative">
-                                            <x-text-input id="next_oil_change"
-                                                class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100"
-                                                ::class="{ 'border-red-500 ring-1 ring-red-500': maintenanceVehicle.oil_change_due }"
-                                                type="text" name="next_oil_change_km"
-                                                x-model="maintenanceVehicle.next_oil_change_km"
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="space-y-8">
+                                <h3 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <span class="w-8 h-[1px] bg-blue-500/30"></span>
+                                    Aceite y Servicios
+                                </h3>
+                                
+                                <div class="space-y-6">
+                                    <div class="group">
+                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Último Cambio Aceite (km)</label>
+                                        <div class="search-label">
+                                            <input type="text" name="last_oil_change_km" x-model="maintenanceVehicle.last_oil_change_km" 
                                                 x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"
                                                 x-bind:disabled="maintenanceVehicle.oil_change_due && !['maintenance', 'workshop'].includes(maintenanceVehicle.status)"
-                                                x-bind:class="{'opacity-50 cursor-not-allowed': maintenanceVehicle.oil_change_due && !['maintenance', 'workshop'].includes(maintenanceVehicle.status)}"
-                                                placeholder="10.000" />
-                                            <template x-if="maintenanceVehicle.oil_change_due">
-                                                <span
-                                                    class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                                    <svg class="h-5 w-5 text-red-500" fill="currentColor"
-                                                        viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                </span>
-                                            </template>
+                                                placeholder="0">
+                                            <kbd class="slash-icon">/</kbd>
                                         </div>
                                     </div>
-
+                                    <div class="group">
+                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors" ::class="{ 'text-rose-500': maintenanceVehicle.oil_change_due }">Próximo Cambio (km)</label>
+                                        <div class="search-label" :class="maintenanceVehicle.oil_change_due ? 'border-rose-500/50 bg-rose-500/5' : ''">
+                                            <input type="text" name="next_oil_change_km" x-model="maintenanceVehicle.next_oil_change_km"
+                                                x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"
+                                                x-bind:disabled="maintenanceVehicle.oil_change_due && !['maintenance', 'workshop'].includes(maintenanceVehicle.status)"
+                                                placeholder="10.000">
+                                            <kbd class="slash-icon">/</kbd>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-300 mb-4">Estado Neumáticos</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <x-input-label for="tire_front" :value="__('Delanteros')"
-                                            class="text-gray-400" />
-                                        <select id="tire_front" name="tire_status_front"
-                                            x-model="maintenanceVehicle.tire_status_front"
-                                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                            <option value="good">🟢 Bueno</option>
-                                            <option value="fair">🟡 Regular</option>
-                                            <option value="poor">🔴 Malo (Cambiar)</option>
-                                        </select>
+                            <div class="space-y-8">
+                                <h3 class="text-[11px] font-black text-emerald-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <span class="w-8 h-[1px] bg-emerald-500/30"></span>
+                                    Estado Neumáticos
+                                </h3>
+                                
+                                <div class="space-y-6">
+                                    <div class="group">
+                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Eje Delantero</label>
+                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-2 focus-within:border-blue-500 transition-all shadow-inner">
+                                            <select name="tire_status_front" x-model="maintenanceVehicle.tire_status_front" class="w-full bg-transparent border-none text-white text-sm font-bold py-3 px-2 focus:ring-0 cursor-pointer">
+                                                <option value="good" class="bg-slate-900">🟢 Bueno</option>
+                                                <option value="fair" class="bg-slate-900">🟡 Regular</option>
+                                                <option value="poor" class="bg-slate-900">🔴 Malo (Cambiar)</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <x-input-label for="tire_rear" :value="__('Traseros')" class="text-gray-400" />
-                                        <select id="tire_rear" name="tire_status_rear"
-                                            x-model="maintenanceVehicle.tire_status_rear"
-                                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                            <option value="good">🟢 Bueno</option>
-                                            <option value="fair">🟡 Regular</option>
-                                            <option value="poor">🔴 Malo (Cambiar)</option>
-                                        </select>
+                                    <div class="group">
+                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Eje Trasero</label>
+                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-2 focus-within:border-blue-500 transition-all shadow-inner">
+                                            <select name="tire_status_rear" x-model="maintenanceVehicle.tire_status_rear" class="w-full bg-transparent border-none text-white text-sm font-bold py-3 px-2 focus:ring-0 cursor-pointer">
+                                                <option value="good" class="bg-slate-900">🟢 Bueno</option>
+                                                <option value="fair" class="bg-slate-900">🟡 Regular</option>
+                                                <option value="poor" class="bg-slate-900">🔴 Malo (Cambiar)</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </form>
 
-                    <div class="mt-8 flex justify-end space-x-3">
-                        <x-secondary-button @click="$dispatch('close')"
-                            class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                    <div class="mt-12 flex justify-end gap-4 pt-8 border-t border-slate-800">
+                        <button type="button" @click="$dispatch('close')" class="px-6 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                             {{ __('Cancelar') }}
-                        </x-secondary-button>
+                        </button>
 
                         <template x-if="!['maintenance', 'workshop'].includes(maintenanceVehicle.status)">
-                            <x-primary-button form="update-maintenance-state-form" 
-                                class="bg-blue-600 hover:bg-blue-700 border-transparent">
-                                {{ __('Actualizar Estado') }}
-                            </x-primary-button>
-                        </template>
-
-                        <template x-if="maintenanceVehicle.status === 'maintenance' || maintenanceVehicle.status === 'workshop'">
-                            <x-primary-button form="update-maintenance-state-form" 
-                                ::formaction="maintenanceVehicle.completeAction"
-                                class="bg-green-600 hover:bg-green-700 border-transparent ml-auto">
-                                ✅ {{ __('Finalizar Mantenimiento') }}
-                            </x-primary-button>
+                            <button type="submit" form="update-maintenance-state-form" class="px-8 py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 transition-all cursor-pointer">
+                                {{ __('Actualizar Ficha Técnica') }}
+                            </button>
                         </template>
                     </div>
                 </div>
 
                 <!-- Tab: Solicitar Mantención -->
-                <div x-show="tab === 'request'">
-                    <form method="POST" :action="maintenanceVehicle.storeRequestAction">
+                <div x-show="tab === 'request'" x-transition:enter="transition duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+                    <form method="POST" :action="maintenanceVehicle.storeRequestAction" class="space-y-8">
                         @csrf
-                        <div class="grid grid-cols-1 gap-6">
-                            <div>
-                                <x-input-label for="req_type" :value="__('Tipo de Solicitud')" class="text-gray-400" />
-                                <select id="req_type" name="type" required
-                                    class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="oil">🛢️ Cambio de Aceite</option>
-                                    <option value="tires">🛞 Cambio de Neumáticos</option>
-                                    <option value="mechanics">🔧 Mecánica General</option>
-                                    <option value="general">📋 Otro / Inspección</option>
-                                </select>
+                        <div class="space-y-6">
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Tipo de Solicitud</label>
+                                <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-2 focus-within:border-blue-500 transition-all shadow-inner">
+                                    <select name="type" required class="w-full bg-transparent border-none text-white text-sm font-bold py-3 px-2 focus:ring-0 cursor-pointer">
+                                        <option value="oil" class="bg-slate-900">🛢️ Cambio de Aceite</option>
+                                        <option value="tires" class="bg-slate-900">🛞 Cambio de Neumáticos</option>
+                                        <option value="mechanics" class="bg-slate-900">🔧 Mecánica General</option>
+                                        <option value="general" class="bg-slate-900">📋 Otro / Inspección</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div>
-                                <x-input-label for="req_desc" :value="__('Descripción Detallada')"
-                                    class="text-gray-400" />
-                                <textarea id="req_desc" name="description" rows="4" required
-                                    class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    placeholder="Describe el problema o los detalles del servicio requerido..."></textarea>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Descripción Detallada</label>
+                                <div class="border border-slate-800 rounded-3xl bg-slate-950 p-6 focus-within:border-blue-500 transition-all shadow-inner">
+                                    <textarea name="description" rows="5" required class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-medium resize-none leading-relaxed" placeholder="Describe el problema o los detalles del servicio requerido..."></textarea>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mt-8 flex justify-end space-x-3">
-                            <x-secondary-button @click="$dispatch('close')"
-                                class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                        <div class="flex justify-end gap-4 pt-8 border-t border-slate-800">
+                            <button type="button" @click="$dispatch('close')" class="px-6 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                                 {{ __('Cancelar') }}
-                            </x-secondary-button>
-                            <x-primary-button class="bg-yellow-600 hover:bg-yellow-700 border-transparent">
+                            </button>
+                            <button type="submit" class="px-10 py-3 bg-amber-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-amber-600/20 hover:bg-amber-500 hover:-translate-y-1 transition-all flex items-center gap-2 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                                 {{ __('Enviar Solicitud') }}
-                            </x-primary-button>
+                            </button>
                         </div>
                     </form>
+                </div>
+
+                <!-- Tab: Historial (Placeholder for now) -->
+                <div x-show="tab === 'history'" x-transition:enter="transition duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+                    <div class="text-center py-20">
+                        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 border border-slate-700">
+                            <svg class="w-8 h-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <p class="text-slate-500 font-black text-[10px] uppercase tracking-widest italic">Historial de órdenes en desarrollo</p>
+                    </div>
+                </div>
+
+                <!-- Tab: Pendientes (Placeholder for now) -->
+                <div x-show="tab === 'pending'" x-transition:enter="transition duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+                    <div class="text-center py-20">
+                        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 border border-slate-700">
+                            <svg class="w-8 h-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <p class="text-slate-500 font-black text-[10px] uppercase tracking-widest italic">Solicitudes pendientes en desarrollo</p>
+                    </div>
                 </div>
             </div>
         </x-modal>
         <!-- Modal Solicitudes Pendientes -->
-        <x-modal name="maintenance-requests-modal" :show="false" focusable maxWidth="fit">
-            <div class="p-6 bg-gray-800 text-gray-100">
-                <h2 class="text-lg font-medium text-gray-100 mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                    {{ __('Solicitudes Pendientes') }}
-                </h2>
-
-                <!-- Sección de Reservas de Vehículos -->
-                <div class="mb-8">
-                    <h3 class="text-md font-bold text-indigo-400 mb-3 uppercase tracking-wider">Reservas de Vehículos</h3>
-                    @if(isset($pendingReservations) && $pendingReservations->count() > 0)
-                        <div class="overflow-x-auto bg-gray-900 rounded-lg shadow mb-4">
-                            <table class="min-w-full divide-y divide-gray-700">
-                                <thead>
-                                    <tr>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Foto</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuario</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Vehículo</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Origen</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Destino</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Acompañantes</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tipo Viaje</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Desde</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Hasta</th>
-                                        <th class="px-4 py-3 bg-gray-900 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-gray-800 divide-y divide-gray-700">
-                                    @foreach($pendingReservations as $reservation)
-                                        <tr>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-100">
-                                                <button @click="viewingUser = { 
-                                                    name: '{{ $reservation->user->name }}', 
-                                                    email: '{{ $reservation->user->email }}', 
-                                                    photo: '{{ $reservation->user->profile_photo_path ? asset('storage/' . $reservation->user->profile_photo_path) : null }}',
-                                                    initial: '{{ substr($reservation->user->name, 0, 1) }}'
-                                                }; $dispatch('open-modal', 'user-details-modal')" 
-                                                class="focus:outline-none transform hover:scale-110 transition-transform duration-200">
-                                                    @if ($reservation->user->profile_photo_path)
-                                                        <img class="h-12 w-12 rounded-full object-cover border-2 border-transparent hover:border-indigo-500" src="{{ asset('storage/' . $reservation->user->profile_photo_path) }}" alt="{{ $reservation->user->name }}" />
-                                                    @else
-                                                        <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-800 font-bold ml-1 text-lg border-2 border-transparent hover:border-indigo-500">
-                                                            {{ substr($reservation->user->name, 0, 1) }}
-                                                        </div>
-                                                    @endif
-                                                </button>
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-100">
-                                                <div>{{ $reservation->user->name }}</div>
-                                                <div class="text-xs text-gray-400 mt-0.5">{{ $reservation->user->cargo ?? 'N/A' }}</div>
-                                                <div class="text-xs text-gray-500">{{ $reservation->user->departamento ?? 'N/A' }}</div>
-                                                @if($reservation->conductor)
-                                                    <div class="text-xs text-yellow-500 mt-1 flex items-center">
-                                                        <span class="mr-1">👉 Para:</span>
-                                                        <span class="font-bold">{{ $reservation->conductor->nombre }}</span>
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                                @php
-                                                    $soap = $reservation->vehicle->documents->firstWhere('type', 'insurance');
-                                                    $permit = $reservation->vehicle->documents->firstWhere('type', 'permit');
-                                                    $technical = $reservation->vehicle->documents->firstWhere('type', 'technical_review');
-                                                    
-                                                    $reqJsVehicle = [
-                                                        'id' => $reservation->vehicle->id,
-                                                        'plate' => $reservation->vehicle->plate,
-                                                        'serial_number' => $reservation->vehicle->serial_number,
-                                                        'brand' => $reservation->vehicle->brand,
-                                                        'model' => $reservation->vehicle->model,
-                                                        'year' => $reservation->vehicle->year,
-                                                        'mileage' => $reservation->vehicle->mileage,
-                                                        'status' => $reservation->vehicle->status,
-                                                        'image_url' => $reservation->vehicle->image_path ? Storage::url($reservation->vehicle->image_path) : '',
-                                                        'imageUrl' => $reservation->vehicle->image_path ? Storage::url($reservation->vehicle->image_path) : '',
-                                                        'documents' => $reservation->vehicle->documents,
-                                                        'assigned_user' => $reservation->user->name, // Emulate assignment for this view
-                                                        'assigned_user_rut' => $reservation->user->rut ?? '',
-                                                        'assigned_user_phone' => $reservation->user->phone ?? '',
-                                                    ];
-                                                    $reqJsonVehicle = json_encode($reqJsVehicle);
-                                                @endphp
-                                                <div class="flex items-center">
-                                                    <button @click="viewingVehicle = {{ $reqJsonVehicle }}; $dispatch('open-modal', 'view-vehicle-modal')" 
-                                                            class="focus:outline-none transform hover:scale-110 transition-transform duration-200 cursor-pointer"
-                                                            title="Ver Detalle Grande">
-                                                        @if($reservation->vehicle->image_path)
-                                                            <img src="{{ asset('storage/' . $reservation->vehicle->image_path) }}" alt="Vehículo" class="h-10 w-10 rounded-full object-cover mr-3 border border-gray-600 hover:border-blue-500">
-                                                        @else
-                                                            <div class="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center mr-3 border border-gray-600 hover:border-blue-500">
-                                                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                                </svg>
-                                                            </div>
-                                                        @endif
-                                                    </button>
-                                                    <div>
-                                                        <div class="font-bold text-white">{{ $reservation->vehicle->brand }} {{ $reservation->vehicle->model }}</div>
-                                                        <div class="text-xs text-gray-500 font-mono">{{ $reservation->vehicle->plate }}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                                <div class="text-sm font-medium text-gray-100">{{ $reservation->origin ?? 'N/A' }}</div>
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                                <div class="text-sm font-medium text-gray-100">{{ $reservation->destination ?? 'N/A' }}</div>
-                                            </td>
-                                            <td class="px-4 py-3 text-sm text-gray-300">
-                                                 @if($reservation->companions->count() > 0)
-                                                    <button @click="
-                                                        viewingCompanions = {{ json_encode($reservation->companions->map(function($c) {
-                                                            return [
-                                                                    'name' => $c->user ? $c->user->name : $c->external_name,
-                                                                    'rut' => $c->user ? $c->user->rut : $c->external_rut,
-                                                                    'type' => $c->user ? 'Interno' : 'Externo',
-                                                                    'department' => $c->user ? ($c->user->departamento ?? 'N/A') : ($c->external_department ?? 'N/A'),
-                                                                    'position' => $c->user ? ($c->user->cargo ?? 'N/A') : ($c->external_position ?? 'N/A')
-                                                                ];
-                                                        }), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }};
-                                                        $dispatch('open-modal', 'companions-list-modal');
-                                                    " class="inline-flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800">
-                                                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                                        Ver Lista
-                                                    </button>
-                                                @else
-                                                    <span class="text-xs text-gray-500 italic">Sin acompañantes</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                                @if($reservation->destination_type === 'outside')
-                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">Fuera Ciudad</span>
-                                                @else
-                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Local</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                                {{ $reservation->start_date->format('d/m/Y H:i') }}
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                                {{ $reservation->end_date->format('d/m/Y H:i') }}
-                                            </td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                                <div class="flex justify-end space-x-2">
-                                                    <form action="{{ route('requests.approve', $reservation->id) }}" method="POST">
-                                                        @csrf
-                                                        <button type="submit" class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 disabled:opacity-25 transition">
-                                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                                            Aprobar
-                                                        </button>
-                                                    </form>
-                                                    <button type="button" 
-                                                        @click="rejectionUrl = '{{ route('requests.reject', $reservation->id) }}'; $dispatch('open-modal', 'reject-request-modal')"
-                                                        class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:border-red-700 focus:ring focus:ring-red-200 disabled:opacity-25 transition">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                        Rechazar
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+        <x-modal name="maintenance-requests-modal" :show="false" focusable maxWidth="5xl">
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+                <!-- Header -->
+                <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         </div>
-                    @else
-                        <p class="text-gray-500 italic mb-4">No hay reservas pendientes.</p>
-                    @endif
+                        <div>
+                            <h3 class="text-xl font-black text-white tracking-tight uppercase">{{ __('Solicitudes Pendientes') }}</h3>
+                            <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Control de aprobaciones administrativas</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
 
-                <div class="border-t border-gray-700 pt-4">
-                    <h3 class="text-md font-bold text-yellow-500 mb-3 uppercase tracking-wider">Mantenimiento</h3>
-                @if($pendingRequests->isEmpty())
-                    <p class="text-gray-400 text-center py-8">No hay solicitudes de mantenimiento.</p>
-                @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-700">
-                            <thead>
-                                <tr>
-                                    <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Vehículo</th>
-                                    <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tipo</th>
-                                    <th class="px-4 py-3 bg-gray-900 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descripción</th>
-                                    <th class="px-4 py-3 bg-gray-900 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-gray-800 divide-y divide-gray-700">
-                                @foreach($pendingRequests as $req)
-                                    <tr>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-100">
-                                            {{ $req->vehicle ? $req->vehicle->brand : 'Vehículo Eliminado' }} 
-                                            {{ $req->vehicle ? $req->vehicle->model : '' }} <br>
-                                            <span class="text-xs text-gray-500">{{ $req->vehicle ? $req->vehicle->plate : '' }}</span>
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                            @switch($req->type)
-                                                @case('oil') <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Aceite</span> @break
-                                                @case('tires') <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Neumáticos</span> @break
-                                                @case('mechanics') <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Mecánica</span> @break
-                                                @default <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">General</span>
-                                            @endswitch
-                                        </td>
-                                        <td class="px-4 py-3 text-sm text-gray-300 max-w-xs truncate" title="{{ $req->description }}">
-                                            {{ $req->description }}
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                            <form method="POST" action="/maintenance/requests/{{ $req->id }}/accept">
-                                                @csrf
-                                                <button type="submit" class="text-green-500 hover:text-green-400 font-bold hover:underline">
-                                                    ACEPTAR
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                <div class="p-8 space-y-10 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                    <!-- Sección de Reservas -->
+                    <div class="space-y-6">
+                        <h4 class="text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="w-8 h-[1px] bg-indigo-500/30"></span>
+                            Reservas de Vehículos
+                        </h4>
+                        
+                        @if(isset($pendingReservations) && $pendingReservations->count() > 0)
+                            <div class="overflow-hidden border border-slate-800 rounded-[2rem] bg-slate-950/50 shadow-2xl">
+                                <table class="min-w-full divide-y divide-slate-800">
+                                    <thead>
+                                        <tr class="bg-slate-900/50">
+                                            <th class="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Solicitante</th>
+                                            <th class="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Vehículo</th>
+                                            <th class="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Destino</th>
+                                            <th class="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Periodo</th>
+                                            <th class="px-6 py-4 text-right text-[9px] font-black text-slate-500 uppercase tracking-widest">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800/50">
+                                        @foreach($pendingReservations as $reservation)
+                                            <tr class="hover:bg-slate-800/30 transition-colors group">
+                                                <td class="px-6 py-5 whitespace-nowrap">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="relative">
+                                                            @if ($reservation->user->profile_photo_path)
+                                                                <img class="h-10 w-10 rounded-2xl object-cover ring-2 ring-slate-800" src="{{ asset('storage/' . $reservation->user->profile_photo_path) }}" alt="" />
+                                                            @else
+                                                                <div class="h-10 w-10 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-400 font-black text-sm border border-indigo-500/20 ring-2 ring-slate-800">
+                                                                    {{ substr($reservation->user->name, 0, 1) }}
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                        <div>
+                                                            <div class="text-sm font-black text-white group-hover:text-indigo-400 transition-colors">{{ $reservation->user->name }}</div>
+                                                            <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{{ $reservation->user->cargo ?? 'Personal' }}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5 whitespace-nowrap">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="text-sm font-black text-white uppercase">{{ $reservation->vehicle->brand }}</div>
+                                                        <div class="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-500 font-black">{{ $reservation->vehicle->plate }}</div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5">
+                                                    <div class="flex flex-col">
+                                                        <div class="text-sm font-bold text-slate-300 truncate max-w-[150px]">{{ $reservation->destination }}</div>
+                                                        <div class="text-[9px] uppercase font-black tracking-widest mt-0.5 {{ $reservation->destination_type === 'outside' ? 'text-amber-500' : 'text-blue-500' }}">
+                                                            {{ $reservation->destination_type === 'outside' ? 'Comisión Fuera Ciudad' : 'Operación Local' }}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5 whitespace-nowrap">
+                                                    <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                                        {{ $reservation->start_date->format('d M, H:i') }}
+                                                    </div>
+                                                    <div class="text-[9px] font-bold text-slate-600 mt-0.5">
+                                                        Hasta {{ $reservation->end_date->format('d M, H:i') }}
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5 whitespace-nowrap text-right">
+                                                    <div class="flex justify-end gap-3">
+                                                        <form action="{{ route('requests.approve', $reservation->id) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit" class="w-10 h-10 bg-emerald-600/10 text-emerald-500 rounded-2xl hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center cursor-pointer group/btn" title="Aprobar">
+                                                                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" 
+                                                            @click="rejectionUrl = '{{ route('requests.reject', $reservation->id) }}'; $dispatch('open-modal', 'reject-request-modal')"
+                                                            class="w-10 h-10 bg-rose-600/10 text-rose-500 rounded-2xl hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center cursor-pointer group/btn" title="Rechazar">
+                                                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-12 border-2 border-dashed border-slate-800 rounded-[2.5rem] bg-slate-950/20">
+                                <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest italic italic">No hay reservas pendientes de aprobación</p>
+                            </div>
+                        @endif
                     </div>
-                @endif
 
-                <div class="mt-6 flex justify-end">
-                    <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
-                        {{ __('Cerrar') }}
-                    </x-secondary-button>
+                    <!-- Sección de Mantenimiento -->
+                    <div class="space-y-6 pt-6 border-t border-slate-800">
+                        <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="w-8 h-[1px] bg-amber-500/30"></span>
+                            Solicitudes de Mantenimiento
+                        </h4>
+                        
+                        @if($pendingRequests->isEmpty())
+                            <div class="text-center py-12 border-2 border-dashed border-slate-800 rounded-[2.5rem] bg-slate-950/20">
+                                <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest italic">No hay servicios técnicos solicitados</p>
+                            </div>
+                        @else
+                            <div class="overflow-hidden border border-slate-800 rounded-[2rem] bg-slate-950/50 shadow-2xl">
+                                <table class="min-w-full divide-y divide-slate-800">
+                                    <thead>
+                                        <tr class="bg-slate-900/50">
+                                            <th class="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Vehículo</th>
+                                            <th class="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Tipo de Servicio</th>
+                                            <th class="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Descripción</th>
+                                            <th class="px-6 py-4 text-right text-[9px] font-black text-slate-500 uppercase tracking-widest">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800/50">
+                                        @foreach($pendingRequests as $req)
+                                            <tr class="hover:bg-slate-800/30 transition-colors group">
+                                                <td class="px-6 py-5 whitespace-nowrap">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="text-sm font-black text-white uppercase">{{ $req->vehicle ? $req->vehicle->brand : 'N/A' }}</div>
+                                                        <div class="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-500 font-black">{{ $req->vehicle ? $req->vehicle->plate : '---' }}</div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5 whitespace-nowrap">
+                                                    @switch($req->type)
+                                                        @case('oil') <span class="px-3 py-1 text-[9px] font-black uppercase rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 tracking-widest">Aceite</span> @break
+                                                        @case('tires') <span class="px-3 py-1 text-[9px] font-black uppercase rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 tracking-widest">Neumáticos</span> @break
+                                                        @case('mechanics') <span class="px-3 py-1 text-[9px] font-black uppercase rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 tracking-widest">Mecánica</span> @break
+                                                        @default <span class="px-3 py-1 text-[9px] font-black uppercase rounded-xl bg-slate-500/10 text-slate-400 border border-slate-500/20 tracking-widest">General</span>
+                                                    @endswitch
+                                                </td>
+                                                <td class="px-6 py-5">
+                                                    <p class="text-[11px] text-slate-400 font-medium line-clamp-1 max-w-[200px]" title="{{ $req->description }}">{{ $req->description }}</p>
+                                                </td>
+                                                <td class="px-6 py-5 whitespace-nowrap text-right">
+                                                    <form method="POST" action="/maintenance/requests/{{ $req->id }}/accept">
+                                                        @csrf
+                                                        <button type="submit" class="px-6 py-2 bg-emerald-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
+                                                            Aceptar Servicio
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="px-8 py-6 bg-slate-950/50 backdrop-blur-md border-t border-slate-800 flex items-center justify-end">
+                    <button @click="$dispatch('close')" class="px-8 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                        {{ __('Cerrar Panel') }}
+                    </button>
                 </div>
             </div>
         </x-modal>
 
         <!-- Modal Rechazar Solicitud -->
         <x-modal name="reject-request-modal" :show="false" focusable>
-            <div class="p-6 bg-gray-800 text-gray-100">
-                <h2 class="text-xl font-bold text-gray-100 mb-4 border-b border-gray-700 pb-2">Rechazar Solicitud</h2>
-                
-                <p class="text-sm text-gray-400 mb-4">
-                    Por favor, indica el motivo del rechazo. Esta información será enviada al solicitante.
-                </p>
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+                <!-- Header -->
+                <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-white tracking-tight uppercase">{{ __('Rechazar Solicitud') }}</h3>
+                            <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Indique el motivo administrativo</p>
+                        </div>
+                    </div>
+                </div>
 
-                <form :action="rejectionUrl" method="POST">
+                <form :action="rejectionUrl" method="POST" class="p-8 space-y-8">
                     @csrf
-                    <div class="mb-4">
-                        <x-input-label for="rejection_reason" :value="__('Motivo del Rechazo')" class="text-gray-300" />
-                        <textarea id="rejection_reason" name="rejection_reason" rows="3" required
-                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500"
-                            placeholder="Ej: El vehículo no está disponible por mantención imprevista..."></textarea>
+                    <div class="group">
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-rose-400 transition-colors">Motivo del Rechazo</label>
+                        <div class="border border-slate-800 rounded-3xl bg-slate-950 p-6 focus-within:border-rose-500 transition-all shadow-inner">
+                            <textarea name="rejection_reason" rows="4" required class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-medium resize-none leading-relaxed" placeholder="Ej: No existe disponibilidad del vehículo para la fecha solicitada..."></textarea>
+                        </div>
                     </div>
 
-                    <div class="flex justify-end space-x-3">
-                        <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                    <div class="flex justify-end gap-4 pt-4">
+                        <button type="button" @click="$dispatch('close')" class="px-6 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                             {{ __('Cancelar') }}
-                        </x-secondary-button>
+                        </button>
                         
-                        <x-primary-button class="bg-red-600 hover:bg-red-500 border-transparent">
+                        <button type="submit" class="px-8 py-3 bg-rose-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-1 transition-all flex items-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                             {{ __('Confirmar Rechazo') }}
-                        </x-primary-button>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1662,439 +1534,402 @@
         </x-modal>
         <!-- Modal Gestionar Documentos -->
         <x-modal name="manage-documents-modal" :show="false" focusable>
-            <div class="p-6 bg-gray-800 text-gray-100" x-data="{ activeTab: 'list' }">
-                <h2 class="text-xl font-bold text-gray-100 mb-6 border-b border-gray-700 pb-2">
-                    {{ __('Gestión Documental') }}
-                </h2>
-
-                <div class="mb-6 bg-gray-900 p-4 rounded-lg">
-                     <p class="text-sm text-gray-400">Vehículo: <span class="font-bold text-white" x-text="viewingVehicle.brand + ' ' + viewingVehicle.model"></span></p>
-                     <p class="text-sm text-gray-400">Patente: <span class="font-bold text-white" x-text="viewingVehicle.plate"></span></p>
+            <div class="p-8 bg-[#0f172a] text-slate-100" x-data="{ activeTab: 'list' }">
+                <div class="mb-8 border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        {{ __('Gestión Documental') }}
+                    </h2>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest" x-text="viewingVehicle.plate"></span>
+                        <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest" x-text="viewingVehicle.brand + ' ' + viewingVehicle.model"></span>
+                    </div>
                 </div>
 
                 <!-- Tabs -->
-                <div class="flex space-x-4 mb-4 border-b border-gray-700">
-                    <button @click="activeTab = 'list'" :class="{ 'border-b-2 border-blue-500 text-blue-400': activeTab === 'list', 'text-gray-400': activeTab !== 'list' }" class="pb-2 text-sm font-medium">Documentos Actuales</button>
-                    <button @click="activeTab = 'upload'" :class="{ 'border-b-2 border-blue-500 text-blue-400': activeTab === 'upload', 'text-gray-400': activeTab !== 'upload' }" class="pb-2 text-sm font-medium">Subir Nuevo</button>
+                <div class="flex gap-2 mb-8 bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800 w-fit">
+                    <button @click="activeTab = 'list'" :class="activeTab === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:text-slate-200'" class="px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 cursor-pointer">Documentos</button>
+                    <button @click="activeTab = 'upload'" :class="activeTab === 'upload' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:text-slate-200'" class="px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 cursor-pointer">Subir Nuevo</button>
                 </div>
 
                 <!-- Lista -->
-                <div x-show="activeTab === 'list'">
+                <div x-show="activeTab === 'list'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
                     <template x-if="viewingVehicle.documents && viewingVehicle.documents.length > 0">
-                        <ul class="space-y-3">
+                        <div class="space-y-3">
                             <template x-for="doc in viewingVehicle.documents" :key="doc.id">
-                                <li class="flex items-center justify-between bg-gray-700 p-3 rounded border border-gray-600">
-                                    <div>
-                                        <p class="text-sm font-bold text-gray-200" x-text="doc.type === 'insurance' ? 'Seguro' : (doc.type === 'technical_review' ? 'Revisión Técnica' : 'Permiso Circulación')"></p>
-                                        <p class="text-xs text-gray-400">
-                                            Vence: <span x-text="doc.expires_at ? doc.expires_at.split('T')[0].split('-').reverse().join('/') : ''"></span>
-                                            <span x-show="getDaysRemaining(doc.expires_at) !== null && getDaysRemaining(doc.expires_at) < 0" class="ml-2 text-xs font-bold text-red-500 bg-red-900/30 px-2 py-0.5 rounded">VENCIDO</span>
-                                            <span x-show="getDaysRemaining(doc.expires_at) !== null && getDaysRemaining(doc.expires_at) >= 0 && getDaysRemaining(doc.expires_at) <= 7" class="ml-2 text-xs font-bold text-yellow-500 bg-yellow-900/30 px-2 py-0.5 rounded" x-text="'⚠️ ' + getDaysRemaining(doc.expires_at) + ' días'"></span>
-                                        </p>
+                                <div class="flex items-center justify-between bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 hover:border-slate-500 transition-all group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-400 transition-all">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-black text-white uppercase tracking-tight" x-text="doc.type === 'insurance' ? 'Seguro (SOAP)' : (doc.type === 'technical_review' ? 'Revisión Técnica' : 'Permiso Circulación')"></div>
+                                            <div class="text-[10px] font-bold" :class="getDaysRemaining(doc.expires_at) < 0 ? 'text-rose-500' : 'text-slate-500'">
+                                                Vence: <span x-text="doc.expires_at ? doc.expires_at.split('T')[0].split('-').reverse().join('/') : ''"></span>
+                                                <template x-if="getDaysRemaining(doc.expires_at) < 0">
+                                                    <span class="ml-2 px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-500 text-[8px] font-black uppercase tracking-widest border border-rose-500/20">Vencido</span>
+                                                </template>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="flex items-center space-x-2">
-                                        <a :href="'/storage/' + doc.file_path" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs uppercase font-bold">Ver</a>
+                                    <div class="flex items-center gap-2">
+                                        <a :href="'/storage/' + doc.file_path" target="_blank" class="p-2 bg-blue-600/10 text-blue-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all cursor-pointer" title="Ver Documento">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        </a>
                                         
-                                        <form method="POST" :action="'/vehicles/documents/' + doc.id">
+                                        <form method="POST" :action="'/vehicles/documents/' + doc.id" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-400 hover:text-red-300 text-xs uppercase font-bold bg-transparent border-0 cursor-pointer">Eliminar</button>
+                                            <button type="submit" class="p-2 bg-rose-600/10 text-rose-500 rounded-xl hover:bg-rose-600 hover:text-white transition-all cursor-pointer" title="Eliminar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
                                         </form>
                                     </div>
-                                </li>
+                                </div>
                             </template>
-                        </ul>
+                        </div>
                     </template>
                     <template x-if="!viewingVehicle.documents || viewingVehicle.documents.length === 0">
-                        <div class="text-center py-8 text-gray-500">No hay documentos cargados.</div>
+                        <div class="text-center py-10 border-2 border-dashed border-slate-800 rounded-3xl">
+                            <p class="text-sm text-slate-500 font-bold italic">No hay documentos registrados</p>
+                        </div>
                     </template>
                 </div>
 
                 <!-- Subir -->
-                <div x-show="activeTab === 'upload'">
-                    <form method="POST" :action="'/vehicles/' + viewingVehicle.id + '/documents'" enctype="multipart/form-data" class="space-y-4">
+                <div x-show="activeTab === 'upload'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                    <form method="POST" :action="'/vehicles/' + viewingVehicle.id + '/documents'" enctype="multipart/form-data" class="space-y-6">
                         @csrf
-                        <div>
-                            <x-input-label for="doc_type" :value="__('Tipo de Documento')" class="text-gray-400" />
-                            <select id="doc_type" name="type" required class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="insurance">Seguro Obligatorio (SOAP)</option>
-                                <option value="technical_review">Revisión Técnica</option>
-                                <option value="permit">Permiso de Circulación</option>
-                                <option value="other">Otro</option>
-                            </select>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group">
+                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Tipo de Documento</label>
+                                <div class="flex items-center border border-slate-700 rounded-xl bg-slate-900/50 focus-within:border-blue-500 transition-all overflow-hidden">
+                                    <select name="type" required class="w-full bg-transparent border-none text-slate-100 text-sm font-bold py-3 px-4 focus:ring-0 cursor-pointer">
+                                        <option value="insurance" class="bg-slate-900">Seguro Obligatorio (SOAP)</option>
+                                        <option value="technical_review" class="bg-slate-900">Revisión Técnica</option>
+                                        <option value="permit" class="bg-slate-900">Permiso de Circulación</option>
+                                        <option value="other" class="bg-slate-900">Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Fecha de Vencimiento</label>
+                                <div class="flex items-center border border-slate-700 rounded-xl bg-slate-900/50 px-4 py-3 focus-within:border-blue-500 transition-all">
+                                    <input type="date" name="expires_at" required class="w-full bg-transparent border-none outline-none text-slate-100 text-sm font-bold">
+                                </div>
+                            </div>
                         </div>
 
-                        <div>
-                            <x-input-label for="doc_expires" :value="__('Fecha de Vencimiento')" class="text-gray-400" />
-                            <x-text-input id="doc_expires" class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100" type="date" name="expires_at" required />
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Archivo (PDF o Imagen)</label>
+                            <input type="file" name="file" required accept=".pdf,image/*" 
+                                class="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition-all cursor-pointer bg-slate-900/50 border border-slate-700 rounded-xl p-1.5" />
                         </div>
 
-                        <div>
-                            <x-input-label for="doc_file" :value="__('Archivo (PDF/Imagen)')" class="text-gray-400" />
-                            <input id="doc_file" type="file" name="file" required accept=".pdf,image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-gray-900 border border-gray-700 rounded-md" />
-                        </div>
-
-                        <div class="pt-4 flex justify-end">
-                            <x-primary-button class="bg-blue-600 hover:bg-blue-700">Subir Documento</x-primary-button>
+                        <div class="pt-6 flex justify-end">
+                            <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                                Subir Documento
+                            </button>
                         </div>
                     </form>
                 </div>
 
-                <div class="mt-8 flex justify-end">
-                    <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
+                <div class="mt-10 pt-6 border-t border-slate-800 flex justify-end">
+                    <button @click="$dispatch('close')" class="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer">
                         {{ __('Cerrar') }}
-                    </x-secondary-button>
+                    </button>
                 </div>
             </div>
         </x-modal>
     </div>
 
     <!-- Modal Detalle de Reserva -->
+    <!-- Modal Detalle Reserva -->
     <x-modal name="reservation-detail-modal" :show="false" focusable maxWidth="4xl">
-        <div class="bg-gray-800 text-gray-100 rounded-lg overflow-hidden" x-data="{
-            showEarlyTermination: false,
-            getDates() {
-                if (!viewingVehicle || !viewingVehicle.reservation) return [];
-                const start = new Date(viewingVehicle.reservation.start_date.replace(/-/g, '/')); 
-                const end = new Date(viewingVehicle.reservation.end_date.replace(/-/g, '/'));
-                const days = [];
-                let current = new Date(start);
-                let safeGuard = 0;
-                while (current <= end && safeGuard < 365) {
-                    days.push(new Date(current));
-                    current.setDate(current.getDate() + 1);
-                    safeGuard++;
+        <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" 
+            x-data="{ 
+                showEarlyTermination: false,
+                getDates() {
+                    if (!viewingVehicle || !viewingVehicle.reservation) return [];
+                    const start = new Date(viewingVehicle.reservation.start_date?.replace(/-/g, '/') || new Date()); 
+                    const end = new Date(viewingVehicle.reservation.end_date?.replace(/-/g, '/') || new Date());
+                    const days = [];
+                    let current = new Date(start);
+                    let safeGuard = 0;
+                    while (current <= end && safeGuard < 365) {
+                        days.push(new Date(current));
+                        current.setDate(current.getDate() + 1);
+                        safeGuard++;
+                    }
+                    return days;
                 }
-                return days;
-            }
-        }">
+            }">
             <!-- Header -->
-            <div class="px-6 py-4 bg-gray-900 border-b border-gray-700 flex justify-between items-center">
-                <h2 class="text-xl font-bold text-gray-100 flex items-center">
-                    <span class="text-indigo-500 mr-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </span> 
-                    Detalle de Reserva
-                </h2>
-                <button @click="$dispatch('close')" class="text-gray-400 hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shadow-inner">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight uppercase">{{ __('Detalles de la Comisión') }}</h3>
+                        <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5" x-text="'Reserva #' + (viewingVehicle.reservation?.id || '---')"></p>
+                    </div>
+                </div>
+                <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    <!-- Columna Izquierda: Vehículo (4 columnas) -->
-                    <div class="md:col-span-4 space-y-4">
-                        <!-- Foto Vehículo -->
-                        <div class="h-48 bg-gray-900 rounded-lg overflow-hidden border border-gray-700 shadow-md relative group">
-                            <template x-if="viewingVehicle.imageUrl">
-                                <img :src="viewingVehicle.imageUrl" alt="Foto Vehículo"
-                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                            </template>
-                            <template x-if="!viewingVehicle.imageUrl">
-                                <div class="w-full h-full flex items-center justify-center text-gray-500 flex-col">
-                                    <svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    <span class="text-sm">Sin imagen</span>
-                                </div>
-                            </template>
-                            <!-- Badge Estado -->
-                            <div class="absolute top-2 right-2 flex flex-col gap-1 items-end">
-                                <span class="px-2 py-1 text-xs font-bold rounded bg-blue-600 text-white shadow-sm border border-blue-400">
-                                    RESERVADO
-                                </span>
-                                <!-- Badge EN VIAJE cuando el estado de la reserva es in_trip -->
-                                <template x-if="viewingVehicle.reservation_status === 'in_trip'">
-                                    <span class="px-2 py-1 text-xs font-bold rounded bg-indigo-600 text-white shadow-sm border border-indigo-400">
-                                        EN VIAJE
-                                    </span>
-                                </template>
-                            </div>
+            <div class="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Columna Info -->
+                    <div class="space-y-6">
+                        <!-- Destino -->
+                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800/50 shadow-inner">
+                            <span class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Destino de la Operación</span>
+                            <div class="text-lg font-black text-white mb-1" x-text="viewingVehicle.reservation?.destination"></div>
+                            <span class="px-3 py-1 text-[9px] font-black uppercase rounded-xl border tracking-widest" 
+                                :class="viewingVehicle.reservation?.destination_type === 'outside' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'"
+                                x-text="viewingVehicle.reservation?.destination_type === 'outside' ? 'Comisión fuera de la ciudad' : 'Operación Local'"></span>
                         </div>
 
-                        <!-- Info Vehículo -->
-                        <div class="bg-gray-700/50 p-4 rounded-lg border border-gray-700">
-                            <h3 class="text-lg font-bold text-white mb-1" x-text="viewingVehicle.brand + ' ' + viewingVehicle.model"></h3>
-                            <div class="flex items-center text-gray-300 font-mono text-sm mb-2">
-                                <span class="bg-gray-800 px-2 py-0.5 rounded border border-gray-600 mr-2" x-text="viewingVehicle.plate"></span>
-                                <span x-text="viewingVehicle.year"></span>
+                        <!-- Cronograma -->
+                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800/50 shadow-inner">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cronograma del Servicio</span>
+                                <div class="font-black text-xs font-mono" 
+                                    :class="viewingVehicle.reservation?.days_remaining < 1 ? 'text-rose-500' : 'text-emerald-400'" 
+                                    x-text="viewingVehicle.reservation?.days_remaining >= 0 ? viewingVehicle.reservation?.days_remaining + ' Días Restantes' : 'Expirado'"></div>
                             </div>
-                            <div class="flex items-center justify-between text-xs text-gray-400 border-t border-gray-600 pt-2 mt-2">
-                                <span>Combustible:</span>
-                                <span class="font-bold" 
-                                    :class="viewingVehicle.fuel_type === 'diesel' ? 'text-yellow-400' : 'text-green-400'"
-                                    x-text="viewingVehicle.fuel_type === 'diesel' ? 'PETRÓLEO' : 'BENCINA'"></span>
+                            <div class="flex items-center justify-between gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800 mb-6">
+                                <div class="flex-1 text-center">
+                                    <div class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Inicio</div>
+                                    <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.start_date.split(' ')[0]"></div>
+                                    <div class="text-[10px] font-bold text-slate-400 mt-0.5" x-text="viewingVehicle.reservation?.start_date.split(' ')[1] + ' hrs'"></div>
+                                </div>
+                                <div class="w-10 h-[1px] bg-slate-800"></div>
+                                <div class="flex-1 text-center">
+                                    <div class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Retorno</div>
+                                    <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.end_date.split(' ')[0]"></div>
+                                    <div class="text-[10px] font-bold text-slate-400 mt-0.5" x-text="viewingVehicle.reservation?.end_date.split(' ')[1] + ' hrs'"></div>
+                                </div>
+                            </div>
+
+                            <!-- Mini Calendar Timeline -->
+                            <div class="space-y-3">
+                                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest pl-1">Progreso Diario</span>
+                                <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                                    <template x-for="date in getDates()" :key="date.getTime()">
+                                        <div class="flex-shrink-0 w-11 h-14 rounded-2xl flex flex-col items-center justify-center border transition-all duration-300 shadow-lg"
+                                            :class="{
+                                                'bg-blue-600 border-blue-400 text-white shadow-blue-600/20 scale-110 z-10': date.toDateString() === new Date().toDateString(),
+                                                'bg-slate-950/40 border-slate-800 text-slate-600 opacity-40': date < new Date().setHours(0,0,0,0),
+                                                'bg-slate-900 border-slate-800 text-slate-400': date > new Date()
+                                            }">
+                                            <span class="text-[7px] uppercase font-black tracking-tighter" x-text="date.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0,3)"></span>
+                                            <span class="text-sm font-black leading-none mt-1" x-text="date.getDate()"></span>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Columna Derecha: Reserva y Personas (8 columnas) -->
-                    <div class="md:col-span-8 flex flex-col h-full">
-                        
-                        <!-- Tarjetas de Personas (Grid 2 columnas) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <!-- Solicitante -->
-                            <div class="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-lg relative overflow-hidden">
-                                <div class="absolute top-0 right-0 p-2 opacity-10">
-                                    <svg class="w-16 h-16 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                    <!-- Columna Personal -->
+                    <div class="space-y-6">
+                        <!-- Solicitante -->
+                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800/50 shadow-inner group/card">
+                            <span class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Personal Solicitante</span>
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shadow-inner font-black text-xl group-hover/card:scale-110 transition-transform">
+                                    <span x-text="viewingVehicle.reservation?.user_name?.charAt(0)"></span>
                                 </div>
-                                <h4 class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3 border-b border-indigo-500/30 pb-1">Solicitante</h4>
-                                <div class="flex items-start z-10 relative">
-                                    <div class="flex-shrink-0 mr-3">
-                                        <template x-if="viewingVehicle.reservation?.user_photo">
-                                            <img :src="viewingVehicle.reservation?.user_photo" class="h-12 w-12 rounded-full object-cover border-2 border-indigo-500 shadow-sm">
-                                        </template>
-                                        <template x-if="!viewingVehicle.reservation?.user_photo">
-                                            <div class="h-12 w-12 rounded-full bg-indigo-800 flex items-center justify-center text-white font-bold text-lg border-2 border-indigo-500 shadow-sm">
-                                                <span x-text="viewingVehicle.reservation?.user_name.charAt(0)"></span>
-                                            </div>
-                                        </template>
+                                <div>
+                                    <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.user_name"></div>
+                                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5" x-text="viewingVehicle.reservation?.user_cargo || 'Personal Autorizado'"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conductor -->
+                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800/50 shadow-inner group/card" 
+                            :class="{'border-emerald-500/30 bg-emerald-500/5': viewingVehicle.reservation?.has_external_conductor}">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Conductor Designado</span>
+                                <template x-if="viewingVehicle.reservation?.has_external_conductor">
+                                    <span class="px-2 py-0.5 bg-emerald-500 text-slate-950 text-[8px] font-black uppercase rounded-lg tracking-widest">Externo</span>
+                                </template>
+                            </div>
+                            
+                            <template x-if="viewingVehicle.reservation?.has_external_conductor">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-inner font-black text-xl">
+                                        <span x-text="viewingVehicle.reservation?.conductor_name?.charAt(0)"></span>
                                     </div>
                                     <div>
-                                        <div class="font-bold text-white text-base leading-tight mb-0.5" x-text="viewingVehicle.reservation?.user_name"></div>
-                                        <div class="text-xs text-gray-300 font-mono mb-1" x-text="viewingVehicle.reservation?.user_rut"></div>
-                                        <div class="text-xs text-gray-400 truncate max-w-[150px]" x-text="viewingVehicle.reservation?.user_email"></div>
+                                        <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.conductor_name"></div>
+                                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5" x-text="'RUT: ' + viewingVehicle.reservation?.conductor_rut"></div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Conductor (Solo si es distinto o siempre mostrar? Mostrar siempre pero diferenciar si es el mismo) -->
-                            <div class="bg-gray-700/30 border border-gray-600 p-4 rounded-lg relative overflow-hidden"
-                                :class="{'bg-yellow-900/10 border-yellow-500/30': viewingVehicle.reservation?.conductor_name !== 'Mismo solicitante'}">
-                                <h4 class="text-yellow-500 text-xs font-bold uppercase tracking-widest mb-3 border-b border-gray-600 pb-1"
-                                    :class="{'border-yellow-500/30': viewingVehicle.reservation?.conductor_name !== 'Mismo solicitante'}">
-                                    Conductor Asignado
-                                </h4>
-                                
-                                <template x-if="viewingVehicle.reservation?.has_external_conductor">
-                                    <!-- Si hay conductor asignado distinto -->
-                                    <div class="flex items-start">
-                                        <div class="flex-shrink-0 mr-3">
-                                             <template x-if="viewingVehicle.reservation?.conductor_photo">
-                                                <img :src="viewingVehicle.reservation?.conductor_photo" class="h-12 w-12 rounded-full object-cover border-2 border-yellow-500 shadow-sm">
-                                            </template>
-                                            <template x-if="!viewingVehicle.reservation?.conductor_photo">
-                                                <div class="h-12 w-12 rounded-full bg-yellow-900 flex items-center justify-center text-yellow-100 font-bold text-lg border-2 border-yellow-500 shadow-sm">
-                                                    <span x-text="viewingVehicle.reservation?.conductor_name.charAt(0)"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-white text-base leading-tight mb-0.5" x-text="viewingVehicle.reservation?.conductor_name"></div>
-                                            <div class="text-xs text-gray-300 font-mono" x-text="viewingVehicle.reservation?.conductor_rut"></div>
-                                            <div class="mt-1">
-                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800">
-                                                    Responsable
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-
-                                <template x-if="!viewingVehicle.reservation?.has_external_conductor">
-                                    <!-- Si es el mismo solicitante -->
-                                    <div class="flex items-center justify-center h-full pb-4 text-gray-400 italic text-sm">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                        Mismo solicitante
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Acompañantes -->
-                        <!-- Acompañantes -->
-                        <div class="mb-6" x-show="viewingVehicle.reservation?.companions && viewingVehicle.reservation?.companions.length > 0" x-data="{ open: false }">
-                            <button @click="open = !open" type="button" class="w-full flex justify-between items-center text-left focus:outline-none group">
-                                <h4 class="text-gray-400 text-xs font-bold uppercase mb-2 flex items-center group-hover:text-gray-200 transition-colors">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    Acompañantes (<span x-text="viewingVehicle.reservation?.companions.length"></span>)
-                                </h4>
-                                <svg class="w-4 h-4 text-gray-500 transform transition-transform duration-200" 
-                                    :class="{'rotate-180': open}" 
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
+                            </template>
                             
-                            <div x-show="open" x-collapse
-                                class="bg-gray-700/30 border border-gray-600 rounded-lg overflow-hidden mt-2">
-                                <ul class="divide-y divide-gray-600 max-h-40 overflow-y-auto custom-scrollbar">
-                                    <template x-for="(companion, index) in viewingVehicle.reservation?.companions" :key="index">
-                                        <li class="p-3 flex items-center justify-between hover:bg-gray-700/50 transition">
-                                            <div class="flex items-center">
-                                                 <div class="h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-xs border mr-3"
-                                                    :class="companion.type === 'Interno' ? 'bg-indigo-600 border-indigo-400' : 'bg-green-600 border-green-400'">
-                                                    <span x-text="companion.name.charAt(0)"></span>
-                                                </div>
-                                                <div>
-                                                    <p class="text-xs font-bold text-white leading-tight" x-text="companion.name"></p>
-                                                    <p class="text-[10px] text-gray-400" x-text="companion.type + ' - ' + (companion.department || 'Sin Depto')"></p>
-                                                </div>
-                                            </div>
-                                             <span class="text-[10px] text-gray-500 font-mono" x-text="companion.rut"></span>
-                                        </li>
-                                    </template>
-                                </ul>
-                            </div>
+                            <template x-if="!viewingVehicle.reservation?.has_external_conductor">
+                                <div class="flex items-center gap-3 text-slate-500 italic py-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">Mismo personal solicitante</span>
+                                </div>
+                            </template>
                         </div>
 
-                        <!-- Info Reserva -->
-                        <div class="bg-gray-900 rounded-xl p-4 mb-auto border border-gray-700">
-                             <div class="flex justify-between items-start mb-4">
-                                <div>
-                                    <h4 class="text-gray-400 text-xs font-bold uppercase mb-1">Tipo de Viaje</h4>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium"
-                                        :class="viewingVehicle.reservation?.destination_type === 'outside' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'">
-                                        <span x-text="viewingVehicle.reservation?.destination_type === 'outside' ? 'Fuera de Ciudad' : 'Local'"></span>
-                                    </span>
-                                </div>
-                                <div class="text-right">
-                                    <h4 class="text-gray-400 text-xs font-bold uppercase mb-1">Estado Tiempo</h4>
-                                    <div class="font-bold text-xl font-mono" 
-                                        :class="viewingVehicle.reservation?.days_remaining < 1 ? 'text-red-500' : 'text-green-400'" 
-                                        x-text="viewingVehicle.reservation?.days_remaining >= 0 ? viewingVehicle.reservation?.days_remaining + ' días restantes' : 'Vencido hace ' + Math.abs(viewingVehicle.reservation?.days_remaining) + ' días'"></div>
-                                </div>
+                        <!-- Acompañantes -->
+                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800/50 shadow-inner" x-show="viewingVehicle.reservation?.companions?.length > 0">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Acompañantes</span>
+                                <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-lg text-[9px] font-black text-blue-400" x-text="viewingVehicle.reservation?.companions?.length"></span>
                             </div>
-
-                            <!-- Fechas Grande -->
-                            <div class="flex items-center justify-between bg-gray-800/50 rounded-lg p-3 border border-gray-700 mb-4">
-                                <div class="text-center w-5/12">
-                                     <div class="text-xs text-gray-500 uppercase font-bold mb-1">Inicio</div>
-                                     <div class="text-white font-bold text-lg" x-text="viewingVehicle.reservation?.start_date.split(' ')[0]"></div>
-                                     <div class="text-sm text-gray-400" x-text="viewingVehicle.reservation?.start_date.split(' ')[1]"></div>
-                                </div>
-                                <div class="text-gray-600">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                </div>
-                                <div class="text-center w-5/12">
-                                     <div class="text-xs text-gray-500 uppercase font-bold mb-1">Término</div>
-                                     <div class="text-white font-bold text-lg" x-text="viewingVehicle.reservation?.end_date.split(' ')[0]"></div>
-                                     <div class="text-sm text-gray-400" x-text="viewingVehicle.reservation?.end_date.split(' ')[1]"></div>
-                                </div>
+                            <div class="flex -space-x-3 overflow-hidden mb-4">
+                                <template x-for="(companion, index) in viewingVehicle.reservation?.companions" :key="index">
+                                    <div class="inline-block h-10 w-10 rounded-2xl ring-4 ring-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-300 border border-slate-700 hover:scale-110 hover:z-20 transition-all cursor-help" :title="companion.name">
+                                        <span x-text="companion.name.charAt(0)"></span>
+                                    </div>
+                                </template>
                             </div>
-
-                             <!-- Timeline / Mini Calendar -->
-                             <div>
-                                <h4 class="text-gray-500 text-xs font-bold uppercase mb-2">Cronograma del Periodo</h4>
-                                <div class="flex space-x-1 overflow-x-auto pb-1 custom-scrollbar">
-                                    <template x-for="date in getDates()" :key="date.getTime()">
-                                        <div class="flex-shrink-0 w-10 h-12 rounded flex flex-col items-center justify-center border transition-all duration-300"
-                                            :class="{
-                                                'bg-indigo-600 border-indigo-500 text-white shadow z-10': date.toDateString() === new Date().toDateString(),
-                                                'bg-gray-800 border-gray-600 text-gray-400 opacity-60': date < new Date().setHours(0,0,0,0),
-                                                'bg-gray-800 border-gray-700 text-gray-300': date > new Date()
-                                            }">
-                                            <span class="text-[8px] uppercase font-bold" x-text="date.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0,3)"></span>
-                                            <span class="text-sm font-bold leading-none" x-text="date.getDate()"></span>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
+                            <button type="button" @click="$dispatch('open-modal', 'companions-list-modal')" class="text-[9px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2">
+                                Ver nómina completa
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-6 border-t border-gray-700 pt-4">
-                    <div x-show="!showEarlyTermination" class="flex justify-end space-x-3">
-                        <button @click="showEarlyTermination = true" 
-                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors border border-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                            Finalizar Asignación
+                <!-- Sección de Término -->
+                <div class="pt-8 border-t border-slate-800">
+                    <div x-show="!showEarlyTermination" class="flex justify-end gap-4">
+                        <button @click="showEarlyTermination = true" class="px-8 py-3 bg-rose-600/10 text-rose-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl border border-rose-500/20 hover:bg-rose-600 hover:text-white transition-all cursor-pointer">
+                            {{ __('Finalizar Asignación Ahora') }}
                         </button>
-                        <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
-                            {{ __('Cerrar') }}
-                        </x-secondary-button>
                     </div>
 
-                    <!-- Sección de Término Anticipado -->
-                    <div x-show="showEarlyTermination" x-transition:enter="transition ease-out duration-300"
-                        x-transition:enter-start="opacity-0 transform scale-95"
-                        x-transition:enter-end="opacity-100 transform scale-100"
-                        class="bg-red-900/20 border border-red-900/50 rounded-lg p-4 mt-2">
-                        
-                        <h4 class="text-red-400 font-bold text-sm mb-2 flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            Confirmar Término de Asignación
-                        </h4>
-                        
-                        <p class="text-xs text-gray-300 mb-4">
-                            Estás a punto de finalizar esta asignación antes de tiempo. El vehículo quedará <strong>DISPONIBLE</strong> inmediatamente.
-                            <br>Por favor, indica el motivo de este cambio.
-                        </p>
+                    <div x-show="showEarlyTermination" x-transition class="bg-rose-500/5 border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl">
+                        <div class="flex items-center gap-5 mb-8">
+                            <div class="w-14 h-14 rounded-2xl bg-rose-600/20 text-rose-500 flex items-center justify-center border border-rose-500/20 animate-pulse">
+                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-black text-white uppercase tracking-tight">Confirmación de Término</h4>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Esta acción liberará el vehículo para nuevas reservas</p>
+                            </div>
+                        </div>
 
-                        <form method="POST" :action="'/requests/' + viewingVehicle.reservation?.id + '/finish-early'">
+                        <form method="POST" :action="'/requests/' + viewingVehicle.reservation?.id + '/finish-early'" class="space-y-6">
                             @csrf
-                            <!-- Input Razón -->
-                            <div class="mb-4">
-                                <label for="early_termination_reason" class="block text-xs font-medium text-gray-400 mb-1">Motivo del Término (Obligatorio)</label>
-                                <textarea name="early_termination_reason" rows="2" required
-                                    class="w-full bg-gray-900 border-gray-700 rounded-md text-white text-sm focus:ring-red-500 focus:border-red-500"
-                                    placeholder="Ej: Trabajo terminado antes de lo previsto..."></textarea>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-rose-400 transition-colors pl-1">Motivo del Término (Obligatorio)</label>
+                                <div class="border border-slate-800 rounded-[1.5rem] bg-slate-950 p-5 focus-within:border-rose-500 transition-all shadow-inner">
+                                    <textarea name="early_termination_reason" rows="3" required class="w-full bg-transparent border-none outline-none text-white placeholder-slate-800 text-sm font-medium resize-none" placeholder="Indique la razón del término anticipado..."></textarea>
+                                </div>
                             </div>
 
-                            <div class="flex justify-end space-x-3">
-                                <button type="button" @click="showEarlyTermination = false" class="px-3 py-2 bg-gray-700 text-gray-300 hover:bg-gray-600 rounded-md text-sm transition-colors border border-gray-600">
-                                    Cancelar
+                            <div class="flex justify-end gap-4">
+                                <button type="button" @click="showEarlyTermination = false" class="px-8 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors cursor-pointer">
+                                    {{ __('Volver') }}
                                 </button>
-                                <button type="submit" class="px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-sm font-bold transition-colors shadow-sm">
-                                    Confirmar Término
+                                <button type="submit" class="px-10 py-3 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-rose-500 shadow-xl shadow-rose-600/20 transition-all cursor-pointer">
+                                    {{ __('Confirmar y Liberar Vehículo') }}
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+
+            <div class="px-8 py-6 bg-slate-950/50 backdrop-blur-md border-t border-slate-800 flex items-center justify-end">
+                <button @click="$dispatch('close')" class="px-8 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                    {{ __('Cerrar Detalle') }}
+                </button>
+            </div>
         </div>
     </x-modal>
 
     <!-- Modal Lista de Acompañantes -->
-    <x-modal name="companions-list-modal" :show="false" focusable>
-        <div class="p-6 bg-gray-800 text-gray-100">
-            <h2 class="text-xl font-bold text-gray-100 mb-4 border-b border-gray-700 pb-2 flex items-center">
-                <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                Lista de Acompañantes
-            </h2>
-            
-            <div class="overflow-y-auto max-h-96">
+    <x-modal name="companions-list-modal" :show="false" focusable maxWidth="2xl">
+        <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+            <!-- Header -->
+            <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shadow-inner">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight uppercase">{{ __('Nómina de Acompañantes') }}</h3>
+                        <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Lista de personal registrado para este viaje</p>
+                    </div>
+                </div>
+                <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-8 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
                 <template x-if="viewingCompanions && viewingCompanions.length > 0">
-                    <ul class="divide-y divide-gray-700">
+                    <div class="space-y-4">
                         <template x-for="(companion, index) in viewingCompanions" :key="index">
-                            <li class="py-3 flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 mr-3">
-                                        <div class="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm border-2"
-                                            :class="companion.type === 'Interno' ? 'bg-indigo-600 border-indigo-400' : 'bg-green-600 border-green-400'">
-                                            <span x-text="companion.name.charAt(0)"></span>
-                                        </div>
+                            <div class="flex items-center justify-between bg-slate-950/40 p-5 rounded-2xl border border-slate-800/50 hover:border-slate-700 transition-all group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-slate-900 group-hover:bg-indigo-600/10 group-hover:text-indigo-400 transition-colors flex items-center justify-center text-slate-500 font-black text-lg border border-slate-800 shadow-inner">
+                                        <span x-text="companion.name.charAt(0)"></span>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-white" x-text="companion.name"></p>
-                                        <p class="text-xs text-gray-400">RUT: <span x-text="companion.rut || 'N/A'"></span></p>
-                                        <p class="text-xs text-gray-500" x-show="companion.position && companion.position !== 'N/A'">
-                                            <span x-text="companion.position"></span>
-                                        </p>
+                                        <div class="text-sm font-black text-white" x-text="companion.name"></div>
+                                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5" x-text="companion.type + ' — ' + (companion.department || 'Externo')"></div>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                        :class="companion.type === 'Interno' ? 'bg-indigo-100 text-indigo-800' : 'bg-green-100 text-green-800'">
-                                        <span x-text="companion.type"></span>
-                                    </span>
-                                    <p class="text-xs text-gray-400 mt-1" x-text="companion.department"></p>
+                                    <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest">RUT</div>
+                                    <div class="text-[11px] font-mono font-bold text-slate-400 mt-0.5" x-text="companion.rut || '---'"></div>
                                 </div>
-                            </li>
+                            </div>
                         </template>
-                    </ul>
+                    </div>
                 </template>
                 <template x-if="!viewingCompanions || viewingCompanions.length === 0">
-                    <p class="text-gray-500 text-center py-4">No se pudo cargar la lista de acompañantes.</p>
+                    <div class="text-center py-12 border-2 border-dashed border-slate-800 rounded-[2.5rem] bg-slate-950/20">
+                        <p class="text-[10px] text-slate-600 font-black uppercase tracking-widest italic">No se encontraron registros de personal adjunto</p>
+                    </div>
                 </template>
             </div>
 
-            <div class="mt-6 flex justify-end">
-                <x-secondary-button @click="$dispatch('close')" class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
-                    {{ __('Cerrar') }}
-                </x-secondary-button>
+            <div class="px-8 py-6 bg-slate-950/50 backdrop-blur-md border-t border-slate-800 flex items-center justify-end">
+                <button @click="$dispatch('close')" class="px-8 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                    {{ __('Regresar al Detalle') }}
+                </button>
             </div>
         </div>
     </x-modal>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const initFlatpickr = () => {
+                flatpickr(".flatpickr-date", {
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "d/m/Y",
+                    locale: "es",
+                    theme: "dark",
+                    disableMobile: "true"
+                });
+            };
+
+            initFlatpickr();
+
+            // Re-init on modal open if needed
+            window.addEventListener('open-modal', () => {
+                setTimeout(initFlatpickr, 100);
+            });
+        });
+    </script>
 </x-app-layout>
