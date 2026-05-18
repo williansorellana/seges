@@ -87,16 +87,12 @@ class DashboardController extends Controller
                 ])
             ],
 
-            'renditions' => [
-                'name' => 'Módulo Rendiciones',
-                'description' => 'Solicitudes de fondos, rendiciones, firmas y flujos de aprobación.',
-                'theme' => 'orange',
-                'icon' => '📄',
+            'finances' => [
+                'name' => 'Módulo Finanzas',
+                'description' => 'Aprobación de fondos, revisión de rendiciones y auditoría financiera.',
+                'theme' => 'rose',
+                'icon' => '💰',
                 'actions' => array_filter([
-                    ['label' => 'Crear Planificación', 'route' => 'route-plannings.create'],
-                    ['label' => 'Mis Solicitudes', 'route' => 'route-plannings.index'],
-                    ['label' => 'Mis Rendiciones', 'route' => 'renditions.index'],
-                    
                     in_array($user->role, ['admin', 'jefatura']) ? 
                         ['label' => 'Aprobaciones', 'route' => 'renditions.approvals'] : null,
                         
@@ -105,8 +101,21 @@ class DashboardController extends Controller
                         
                     in_array($user->role, ['admin']) || $user->departamento === 'Controlling' ? 
                         ['label' => 'Panel Controlling', 'route' => 'renditions.controlling'] : null,
-                        
-                    ['label' => 'Historial', 'route' => 'renditions.history']
+
+                    in_array($user->role, ['admin', 'jefatura']) || in_array($user->departamento, ['Finanzas', 'Controlling']) ? 
+                        ['label' => 'Historial General', 'route' => 'renditions.history'] : null,
+                ])
+            ],
+
+            'renditions' => [
+                'name' => 'Módulo Rendiciones',
+                'description' => 'Solicitudes de fondos, rendiciones y seguimiento de gastos personales.',
+                'theme' => 'orange',
+                'icon' => '📄',
+                'actions' => array_filter([
+                    ['label' => 'Crear Planificación', 'route' => 'route-plannings.create'],
+                    ['label' => 'Mis Solicitudes', 'route' => 'route-plannings.index'],
+                    ['label' => 'Mis Rendiciones', 'route' => 'renditions.index'],
                 ])
             ],
         ];

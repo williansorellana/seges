@@ -8,132 +8,155 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
+            {{-- Toast Notification --}}
             @if (session('success'))
-                <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
+                    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
+                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-full opacity-0"
+                    class="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-[#1e293b] border border-emerald-500/30 rounded-xl shadow-2xl shadow-emerald-500/10 p-4 flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-white">¡Operación exitosa!</p>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ session('success') }}</p>
+                    </div>
+                    <button @click="show = false" class="flex-shrink-0 text-slate-500 hover:text-slate-300 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-100 dark:border-gray-700">
+            {{-- ════════════════════════════════════════════ --}}
+            {{-- SECCIÓN 1: AUDITORÍA DE REQUERIMIENTOS      --}}
+            {{-- ════════════════════════════════════════════ --}}
+            <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
                 
-                <div class="p-6 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex items-center space-x-3">
-                    <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                {{-- Header --}}
+                <div class="p-6 border-b border-slate-700/40 flex items-center gap-4">
+                    <div class="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl ring-1 ring-blue-500/20">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Auditoría de Requerimientos</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Revisa y valida las planificaciones de viaje antes de pasarlas a Finanzas.</p>
+                        <h3 class="text-lg font-bold text-white">Auditoría de Requerimientos</h3>
+                        <p class="text-sm text-slate-400">Revisa y valida las planificaciones de viaje antes de pasarlas a Finanzas.</p>
                     </div>
+                    @if(!$plannings->isEmpty())
+                        <div class="ml-auto">
+                            <span class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20">{{ $plannings->total() }} pendiente{{ $plannings->total() !== 1 ? 's' : '' }}</span>
+                        </div>
+                    @endif
                 </div>
 
                 @if($plannings->isEmpty())
-                    <div class="p-10 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.331.108 2.175 1.071 2.175 2.206v6.518c0 1.078-.79 1.956-1.83 2.12M15 12.75h.008v.008H15v-.008zm0 3h.008v.008H15v-.008zm0 3h.008v.008H15v-.008zM11.25 12.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-                        </svg>
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Bandeja Vacía</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No hay solicitudes pendientes de validación en Controlling.</p>
+                    <div class="p-16 text-center">
+                        <div class="mx-auto w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-slate-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-white">Bandeja Vacía</h3>
+                        <p class="mt-1 text-sm text-slate-400 max-w-sm mx-auto">No hay solicitudes pendientes de validación en Controlling.</p>
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50">
+                        <table class="min-w-full divide-y divide-slate-700/40">
+                            <thead class="bg-slate-800/50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        ID / Solicitante
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Destino y Motivo
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Fondos Requeridos
-                                    </th>
-                                    <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Validación
-                                    </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">ID / Solicitante</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Destino y Motivo</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Fondos Requeridos</th>
+                                    <th scope="col" class="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">Validación</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody class="divide-y divide-slate-700/40">
                                 @foreach ($plannings as $plan)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors" x-data="{ showReject: false }">
+                                    <tr class="hover:bg-slate-800/60 transition-colors duration-200 group" x-data="{ showReject: false }">
                                         
-                                        <!-- ID y Usuario -->
-                                        <td class="px-6 py-4">
-                                            <div class="text-xs font-mono text-gray-500 mb-1">REQ-{{ str_pad($plan->id, 4, '0', STR_PAD_LEFT) }}</div>
-                                            <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-8 w-8">
-                                                    <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($plan->user->name) }}&color=3B82F6&background=EFF6FF" alt="">
-                                                </div>
-                                                <div class="ml-3">
-                                                    <div class="text-sm font-bold text-gray-900 dark:text-white">{{ $plan->user->name }}</div>
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $plan->user->departamento ?? 'Sin departamento' }}</div>
+                                        {{-- ID y Usuario --}}
+                                        <td class="px-6 py-5">
+                                            <div class="flex flex-col gap-2">
+                                                <span class="font-mono text-[12px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-md ring-1 ring-blue-500/20 self-start">REQ-{{ str_pad($plan->id, 4, '0', STR_PAD_LEFT) }}</span>
+                                                <div class="flex items-center gap-3">
+                                                    <img class="h-8 w-8 rounded-lg ring-1 ring-slate-600 object-cover" src="{{ $plan->user->profile_photo_path ? asset('storage/' . $plan->user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($plan->user->name . ' ' . $plan->user->last_name) . '&color=93C5FD&background=1e293b&bold=true&size=64' }}" alt="{{ $plan->user->name }} {{ $plan->user->last_name }}">
+                                                    <div>
+                                                        <div class="text-sm font-semibold text-white">{{ $plan->user->name }} {{ $plan->user->last_name }}</div>
+                                                        <div class="text-[11px] text-slate-500">{{ $plan->user->departamento ?? 'Sin departamento' }}</div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
 
-                                        <!-- Detalles Viaje -->
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $plan->destination }} 
-                                            </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1" title="{{ $plan->motive }}">{{ $plan->motive }}</div>
-                                            <div class="text-xs text-blue-600 mt-1 flex items-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                                        {{-- Detalles Viaje --}}
+                                        <td class="px-6 py-5">
+                                            <div class="text-sm font-semibold text-white">{{ $plan->motive }}</div>
+                                            <div class="text-xs text-slate-400 mt-0.5 line-clamp-1" title="{{ $plan->destination }}">{{ $plan->destination }}</div>
+                                            @if($plan->region)
+                                                <div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                    {{ $plan->region }}
+                                                </div>
+                                            @endif
+                                            <div class="flex items-center gap-1.5 text-[11px] text-blue-400 mt-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                                 {{ \Carbon\Carbon::parse($plan->start_date)->format('d M') }} al {{ \Carbon\Carbon::parse($plan->end_date)->format('d M') }}
                                             </div>
                                         </td>
 
-                                        <!-- Fondos Requeridos -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($plan->requires_funds)
-                                                <div class="text-sm font-bold text-gray-800 dark:text-gray-200">
-                                                    <span class="text-green-600 dark:text-green-400">$</span>{{ number_format($plan->requested_funds, 0, ',', '.') }}
-                                                </div>
-                                            @else
-                                                <div class="text-sm text-gray-500">No aplica</div>
-                                            @endif
-                                            
-                                            @if($plan->requires_amipass)
-                                                <div class="text-xs mt-1 text-green-700 dark:text-green-400 font-semibold flex items-center">
-                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                                    Amipass: {{ $plan->amipass_days }} días
-                                                </div>
-                                            @endif
+                                        {{-- Fondos Requeridos --}}
+                                        <td class="px-6 py-5 whitespace-nowrap">
+                                            <div class="flex flex-col gap-1.5">
+                                                @if($plan->requires_funds)
+                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 self-start">
+                                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                        ${{ number_format($plan->requested_funds, 0, ',', '.') }}
+                                                    </span>
+                                                @else
+                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-medium rounded-md bg-slate-700/50 text-slate-500 ring-1 ring-slate-600/30 self-start">No aplica</span>
+                                                @endif
+                                                @if($plan->requires_amipass)
+                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 self-start">
+                                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                                        Amipass: {{ $plan->amipass_days }} días
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
 
-                                        <!-- Acciones -->
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            
-                                            <div class="flex items-center justify-center space-x-2" x-show="!showReject">
-                                                <!-- Formulario Validar -->
+                                        {{-- Acciones --}}
+                                        <td class="px-6 py-5 whitespace-nowrap text-center">
+                                            <div class="flex items-center justify-center gap-2" x-show="!showReject">
                                                 <form action="{{ route('route-plannings.approve-controlling', $plan->id) }}" method="POST">
                                                     @csrf
-                                                    <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded shadow hover:bg-blue-700 transition" title="Validar y Escalar a Finanzas">
-                                                        Validar
+                                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5" title="Validar y Escalar a Finanzas">
+                                                        <span class="flex items-center gap-1.5">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                            Validar
+                                                        </span>
                                                     </button>
                                                 </form>
-                                                
-                                                <!-- Boton Rechazar -->
-                                                <button @click="showReject = true" class="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-bold rounded border border-red-200 hover:bg-red-100 transition" title="Rechazar Documento">
-                                                    Rechazar
+                                                <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all" title="Rechazar Documento">
+                                                    <span class="flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                        Rechazar
+                                                    </span>
                                                 </button>
                                             </div>
 
-                                            <!-- Formulario Rechazar (se expande) -->
-                                            <div x-show="showReject" x-cloak class="mt-2 text-left bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800" style="min-width: 250px;">
+                                            {{-- Reject Form --}}
+                                            <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2" style="min-width: 280px;">
                                                 <form action="{{ route('route-plannings.reject-controlling', $plan->id) }}" method="POST">
                                                     @csrf
-                                                    <label class="block text-xs font-medium text-red-800 dark:text-red-300 mb-1">Motivo / Error encontrado:</label>
-                                                    <textarea name="observation" rows="2" class="w-full text-sm border-red-300 rounded focus:ring-red-500 focus:border-red-500" required placeholder="Ej: Faltan especificaciones..."></textarea>
-                                                    <div class="mt-2 flex justify-end space-x-2">
-                                                        <button type="button" @click="showReject = false" class="text-xs text-gray-500 hover:text-gray-700">Cancelar</button>
-                                                        <button type="submit" class="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded shadow-sm hover:bg-red-700">Devolver</button>
+                                                    <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
+                                                    <textarea name="observation" rows="2" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
+                                                    <div class="mt-3 flex justify-end gap-2">
+                                                        <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
+                                                        <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
                                                     </div>
                                                 </form>
                                             </div>
-
                                         </td>
                                     </tr>
                                 @endforeach
@@ -141,62 +164,90 @@
                         </table>
                     </div>
                     
-                    <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="px-6 py-4 border-t border-slate-700/40">
                         {{ $plannings->links() }}
                     </div>
                 @endif
 
             </div>
 
-            <!-- SECCIÓN RENDICIONES -->
-            <div class="mt-8 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-100 dark:border-gray-700">
-                <div class="p-6 bg-indigo-50 dark:bg-indigo-900/20 border-b border-gray-200 dark:border-gray-700 flex items-center space-x-3">
-                    <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+            {{-- ════════════════════════════════════════════ --}}
+            {{-- SECCIÓN 2: AUDITORÍA DE RENDICIONES          --}}
+            {{-- ════════════════════════════════════════════ --}}
+            <div class="mt-8 bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
+                
+                {{-- Header --}}
+                <div class="p-6 border-b border-slate-700/40 flex items-center gap-4">
+                    <div class="p-2.5 bg-purple-500/10 text-purple-400 rounded-xl ring-1 ring-purple-500/20">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Auditoría de Rendiciones</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Verifica que las boletas coincidan con los fondos entregados.</p>
+                        <h3 class="text-lg font-bold text-white">Auditoría de Rendiciones</h3>
+                        <p class="text-sm text-slate-400">Verifica que las boletas coincidan con los fondos entregados.</p>
                     </div>
                 </div>
 
                 @if(isset($renditions) && $renditions->isEmpty())
-                    <div class="p-10 text-center">
-                        <p class="text-sm text-gray-500">No hay rendiciones pendientes de auditoría.</p>
+                    <div class="p-16 text-center">
+                        <div class="mx-auto w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-slate-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-white">Sin rendiciones</h3>
+                        <p class="mt-1 text-sm text-slate-400">No hay rendiciones pendientes de auditoría.</p>
                     </div>
                 @elseif(isset($renditions))
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50">
+                        <table class="min-w-full divide-y divide-slate-700/40">
+                            <thead class="bg-slate-800/50">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Colaborador / Viaje</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Entregado vs Rendido</th>
-                                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Auditoría</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Colaborador / Viaje</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Entregado vs Rendido</th>
+                                    <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">Auditoría</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                            <tbody class="divide-y divide-slate-700/40">
                                 @foreach($renditions as $ren)
-                                <tr x-data="{ showReject: false }">
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm font-bold text-gray-900 dark:text-white">{{ $ren->user->name }}</div>
-                                        <div class="text-xs text-gray-500">{{ $ren->routePlanning->destination }}</div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-xs text-gray-500">Entregado: ${{ number_format($ren->funds_received, 0, ',', '.') }}</div>
-                                        <div class="text-sm font-bold text-indigo-600">Rendido: ${{ number_format($ren->total_declared, 0, ',', '.') }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-center">
-                                        <div x-show="!showReject" class="flex justify-center space-x-2">
-                                            <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200">Auditar</a>
-                                            <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
-                                                @csrf <button type="submit" class="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">Validar</button>
-                                            </form>
-                                            <button @click="showReject = true" class="px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded">Rechazar</button>
+                                <tr x-data="{ showReject: false }" class="hover:bg-slate-800/60 transition-colors duration-200">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center gap-3">
+                                            <img class="h-8 w-8 rounded-lg ring-1 ring-slate-600 object-cover" src="{{ $ren->user->profile_photo_path ? asset('storage/' . $ren->user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($ren->user->name . ' ' . $ren->user->last_name) . '&color=C4B5FD&background=1e293b&bold=true&size=64' }}" alt="{{ $ren->user->name }} {{ $ren->user->last_name }}">
+                                            <div>
+                                                <div class="text-sm font-semibold text-white">{{ $ren->user->name }} {{ $ren->user->last_name }}</div>
+                                                <div class="text-[11px] text-slate-500">{{ $ren->routePlanning->destination }}</div>
+                                            </div>
                                         </div>
-                                        <div x-show="showReject" x-cloak class="mt-2 text-left bg-red-50 p-2 rounded">
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col gap-1">
+                                            <div class="text-xs text-slate-500">Entregado: <span class="text-slate-300 font-medium">${{ number_format($ren->funds_received, 0, ',', '.') }}</span></div>
+                                            <div class="text-sm font-bold text-purple-400">Rendido: ${{ number_format($ren->total_declared, 0, ',', '.') }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <div x-show="!showReject" class="flex justify-center gap-2">
+                                            <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-4 py-2 border border-slate-600 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-800 hover:border-slate-500 transition-all">
+                                                <span class="flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    Auditar
+                                                </span>
+                                            </a>
+                                            <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5">Validar</button>
+                                            </form>
+                                            <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all">Rechazar</button>
+                                        </div>
+                                        <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2">
                                             <form action="{{ route('renditions.reject-controlling-rendition', $ren->id) }}" method="POST">
-                                                @csrf <textarea name="observation" class="w-full text-xs rounded border-red-300" required placeholder="Motivo..."></textarea>
-                                                <button type="submit" class="mt-1 px-2 py-1 bg-red-600 text-white text-xs rounded">Devolver</button>
+                                                @csrf
+                                                <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
+                                                <textarea name="observation" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Motivo..."></textarea>
+                                                <div class="mt-3 flex justify-end gap-2">
+                                                    <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
+                                                    <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                </div>
                                             </form>
                                         </div>
                                     </td>
@@ -210,4 +261,5 @@
 
         </div>
     </div>
+
 </x-app-layout>

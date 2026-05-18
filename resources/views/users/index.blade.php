@@ -46,7 +46,7 @@
                             Papelera
                         </a>
                         <button x-data="" x-on:click.prevent="$dispatch('open-modal', 'create-user-modal')"
-                            class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 border border-transparent rounded-lg font-medium text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors shadow-sm">
+                            class="inline-flex items-center px-6 py-2.5 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-all hover:-translate-y-0.5">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
@@ -107,6 +107,12 @@
                                                 <div class="text-sm text-gray-500 dark:text-gray-400">
                                                     {{ $user->email }}
                                                 </div>
+                                                @if($user->jefatura)
+                                                    <div class="flex items-center gap-1 mt-0.5 text-[11px] text-amber-500 dark:text-amber-400">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                        <span>Jefe: {{ $user->jefatura->name }} {{ $user->jefatura->last_name }}</span>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
@@ -196,14 +202,11 @@
                                                 
                                                 <!-- Delete -->
                                                 @if(auth()->id() !== $user->id)
-                                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('¿Mover a la papelera?');">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors" title="Eliminar">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                                            </svg>
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" x-data="" x-on:click.prevent="$dispatch('open-modal', 'delete-user-{{ $user->id }}')" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors ml-2" title="Eliminar">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                        </svg>
+                                                    </button>
                                                 @endif
                                             @endif
                                         </div>
@@ -266,113 +269,195 @@
             </div>
         </x-modal>
 
-        <!-- Modal Editar Usuario -->
         <x-modal name="edit-user-{{ $user->id }}" :show="$errors->has('email') && old('user_id') == $user->id" focusable>
-            <form method="POST" action="{{ route('users.update', $user->id) }}" class="p-6 text-left">
+            @php
+                $editModules = $user->authorized_modules ?? [];
+                $editAllChecked = empty($editModules) || in_array('all', $editModules);
+                $editModulesJs = collect($editModules)->filter(fn($m) => $m !== 'all')->map(fn($m) => "'$m'")->implode(',');
+            @endphp
+            <form method="POST" action="{{ route('users.update', $user->id) }}" class="p-6 text-left"
+                x-data="{
+                    openRole: false,
+                    selectedRole: '{{ old('role', $user->role) }}',
+                    roleLabel: '{{ old('role', $user->role) == 'admin' ? 'Administrador' : (old('role', $user->role) == 'supervisor' ? 'Supervisor' : (old('role', $user->role) == 'jefatura' ? 'Jefatura' : (old('role', $user->role) == 'viewer' ? 'Visualizador' : 'Trabajador'))) }}',
+                    roles: [{v:'worker',l:'Trabajador'},{v:'supervisor',l:'Supervisor'},{v:'jefatura',l:'Jefatura'},{v:'admin',l:'Administrador'},{v:'viewer',l:'Visualizador'}],
+                    openEstado: false,
+                    selectedEstado: '{{ old('is_active', $user->is_active) ? '1' : '0' }}',
+                    estadoLabel: '{{ old('is_active', $user->is_active) ? 'Activo' : 'Inactivo' }}',
+                    allChecked: {{ $editAllChecked ? 'true' : 'false' }},
+                    modules: [{!! $editModulesJs !!}]
+                }"
+                x-init="$watch('allChecked', v => { if(v) modules = [] }); $watch('modules', v => { if(v.length > 0) allChecked = false })">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="user_id" value="{{ $user->id }}">
 
-                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">
-                    {{ __('Editar Usuario') }}
-                </h2>
+                <h2 class="text-lg font-medium text-gray-100 mb-6">Editar Usuario</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <x-input-label for="name_{{ $user->id }}" :value="__('Nombres')" />
-                        <x-text-input id="name_{{ $user->id }}" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required />
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Nombres</label>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="name" id="name_{{ $user->id }}" value="{{ old('name', $user->name) }}" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                        </div>
                         <x-input-error :messages="$errors->get('name')" class="mt-2" />
                     </div>
                     <div>
-                        <x-input-label for="last_name_{{ $user->id }}" :value="__('Apellidos')" />
-                        <x-text-input id="last_name_{{ $user->id }}" name="last_name" type="text" class="mt-1 block w-full" :value="old('last_name', $user->last_name)" required />
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Apellidos</label>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="last_name" id="last_name_{{ $user->id }}" value="{{ old('last_name', $user->last_name) }}" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                        </div>
                         <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
                     </div>
                     <div class="col-span-2">
-                        <x-input-label for="email_{{ $user->id }}" :value="__('Correo Electrónico')" />
-                        <x-text-input id="email_{{ $user->id }}" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required />
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Correo Electrónico</label>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="email" name="email" id="email_{{ $user->id }}" value="{{ old('email', $user->email) }}" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                        </div>
                         <x-input-error :messages="$errors->get('email')" class="mt-2" />
                     </div>
-                    <div>
-                        <x-input-label for="role_{{ $user->id }}" :value="__('Rol')" />
-                        <select id="role_{{ $user->id }}" name="role" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                            <option value="worker" {{ old('role', $user->role) == 'worker' ? 'selected' : '' }}>Trabajador</option>
-                            <option value="supervisor" {{ old('role', $user->role) == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                            <option value="jefatura" {{ old('role', $user->role) == 'jefatura' ? 'selected' : '' }}>Jefatura</option>
-                            <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrador</option>
-                            <option value="viewer" {{ old('role', $user->role) == 'viewer' ? 'selected' : '' }}>Visualizador</option>
-                        </select>
-                        <x-input-error :messages="$errors->get('role')" class="mt-2" />
+                    <!-- Rol -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Rol</label>
+                        <input type="hidden" name="role" x-model="selectedRole">
+                        <button type="button" @click="openRole = !openRole" @click.away="openRole = false" class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                            <span x-text="roleLabel" class="text-slate-100 text-sm"></span>
+                            <svg class="w-4 h-4 text-slate-500 transition-transform" :class="openRole ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <ul x-show="openRole" x-transition class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg max-h-60 rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto" style="display:none;">
+                            <template x-for="r in roles" :key="r.v">
+                                <li @click="selectedRole = r.v; roleLabel = r.l; openRole = false" class="text-gray-200 cursor-pointer select-none py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="selectedRole === r.v ? 'bg-blue-600/20 text-blue-400' : ''">
+                                    <span x-text="r.l"></span>
+                                </li>
+                            </template>
+                        </ul>
                     </div>
+                    <!-- Departamento -->
                     <div>
-                        <x-input-label for="departamento_{{ $user->id }}" :value="__('Departamento')" />
-                        <x-text-input id="departamento_{{ $user->id }}" name="departamento" type="text" class="mt-1 block w-full" :value="old('departamento', $user->departamento)" />
-                        <x-input-error :messages="$errors->get('departamento')" class="mt-2" />
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Departamento</label>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="departamento" id="departamento_{{ $user->id }}" value="{{ old('departamento', $user->departamento) }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                        </div>
                     </div>
+                    <!-- Jefatura -->
                     <div>
-                        <x-input-label for="jefatura_{{ $user->id }}" :value="__('Jefatura Asignada (Opcional)')" />
-                        <select id="jefatura_{{ $user->id }}" name="jefatura_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                            <option value="">-- Sin Jefatura --</option>
-                            @foreach($jefaturas as $jefe)
-                                <option value="{{ $jefe->id }}" {{ old('jefatura_id', $user->jefatura_id) == $jefe->id ? 'selected' : '' }}>{{ $jefe->name }} {{ $jefe->last_name }}</option>
-                            @endforeach
-                        </select>
-                        <x-input-error :messages="$errors->get('jefatura_id')" class="mt-2" />
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Jefatura Asignada (Opcional)</label>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
+                            <select name="jefatura_id" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color:transparent;">
+                                <option value="" class="bg-[#1e293b]">-- Sin Jefatura --</option>
+                                @foreach($jefaturas as $jefe)
+                                    <option value="{{ $jefe->id }}" {{ old('jefatura_id', $user->jefatura_id) == $jefe->id ? 'selected' : '' }} class="bg-[#1e293b]">{{ $jefe->name }} {{ $jefe->last_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <x-input-label for="is_active_{{ $user->id }}" :value="__('Estado')" />
-                        <select id="is_active_{{ $user->id }}" name="is_active" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                            <option value="1" {{ old('is_active', $user->is_active) ? 'selected' : '' }}>Activo</option>
-                            <option value="0" {{ !old('is_active', $user->is_active) ? 'selected' : '' }}>Inactivo</option>
-                        </select>
+                    <!-- Estado -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Estado</label>
+                        <input type="hidden" name="is_active" x-model="selectedEstado">
+                        <button type="button" @click="openEstado = !openEstado" @click.away="openEstado = false" class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                            <span x-text="estadoLabel" class="text-sm" :class="selectedEstado === '1' ? 'text-emerald-400' : 'text-slate-400'"></span>
+                            <svg class="w-4 h-4 text-slate-500 transition-transform" :class="openEstado ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <ul x-show="openEstado" x-transition class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto" style="display:none;">
+                            <li @click="selectedEstado = '1'; estadoLabel = 'Activo'; openEstado = false" class="text-emerald-400 cursor-pointer py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="selectedEstado === '1' ? 'bg-blue-600/20' : ''">Activo</li>
+                            <li @click="selectedEstado = '0'; estadoLabel = 'Inactivo'; openEstado = false" class="text-slate-400 cursor-pointer py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="selectedEstado === '0' ? 'bg-blue-600/20' : ''">Inactivo</li>
+                        </ul>
                     </div>
                 </div>
 
                 <!-- Módulos Autorizados -->
                 <div class="mt-4">
-                     <x-input-label :value="__('Módulos Autorizados')" class="mb-2" />
-                     @php
-                        $userModules = $user->authorized_modules ?? [];
-                        $allChecked = empty($userModules) || in_array('all', $userModules);
-                     @endphp
+                     <label class="block text-sm font-medium text-gray-300 mb-2">Módulos Autorizados</label>
                      <div class="grid grid-cols-2 gap-2">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="all" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ $allChecked ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Todos</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="all" x-model="allChecked" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-300">Todos</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="vehicles" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ in_array('vehicles', $userModules) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Vehículos</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="vehicles" x-model="modules" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-300">Vehículos</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="rooms" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ in_array('rooms', $userModules) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Salas</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="rooms" x-model="modules" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-300">Salas</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="assets" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ in_array('assets', $userModules) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Activos</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="assets" x-model="modules" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-300">Activos</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="renditions" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ in_array('renditions', $userModules) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Rendiciones</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="renditions" x-model="modules" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-300">Rendiciones</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="finances" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ in_array('finances', $userModules) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Finanzas</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="finances" x-model="modules" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-300">Finanzas</span>
                         </label>
                      </div>
                 </div>
 
                 <div class="mt-8 flex justify-end gap-3">
-                    <x-secondary-button x-on:click="$dispatch('close')">
-                        {{ __('Cancelar') }}
-                    </x-secondary-button>
-                    <x-primary-button>
-                        {{ __('Guardar Cambios') }}
-                    </x-primary-button>
+                    <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 border border-slate-600 text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-800 hover:border-slate-500 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5">
+                        Guardar Cambios
+                    </button>
                 </div>
             </form>
         </x-modal>
+
+        <!-- Modal Confirmar Eliminación -->
+        @if(auth()->id() !== $user->id)
+        <x-modal name="delete-user-{{ $user->id }}" focusable>
+            <div class="p-6 text-center">
+                <!-- Warning Icon -->
+                <div class="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-5 ring-4 ring-red-500/20">
+                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+
+                <h3 class="text-lg font-semibold text-white mb-2">¿Eliminar este usuario?</h3>
+                <p class="text-sm text-slate-400 mb-6">Esta acción moverá al usuario a la papelera. Podrás restaurarlo más tarde si lo necesitas.</p>
+
+                <!-- User Profile Card -->
+                <div class="flex items-center gap-4 bg-slate-800/60 border border-slate-700 rounded-xl p-4 mb-6 text-left">
+                    <div class="flex-shrink-0">
+                        @if ($user->profile_photo_path)
+                            <img class="h-12 w-12 rounded-full object-cover border-2 border-red-500/30" src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="{{ $user->name }}">
+                        @else
+                            <div class="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 font-bold text-lg border-2 border-red-500/30">
+                                {{ substr($user->name, 0, 1) }}
+                            </div>
+                        @endif
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-white truncate">{{ $user->name }} {{ $user->last_name }}</p>
+                        <p class="text-xs text-slate-400 truncate">{{ $user->email }}</p>
+                        <span class="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-700 text-slate-300">
+                            {{ ucfirst($user->role === 'worker' ? 'Trabajador' : ($user->role === 'supervisor' ? 'Supervisor' : ($user->role === 'viewer' ? 'Visualizador' : ($user->role === 'jefatura' ? 'Jefatura' : 'Administrador')))) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-center gap-3">
+                    <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 border border-slate-600 text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-800 hover:border-slate-500 transition-all">
+                        Cancelar
+                    </button>
+                    <form action="{{ route('users.destroy', $user->id) }}" method="POST">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="px-6 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">
+                            <svg class="w-4 h-4 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            Sí, eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </x-modal>
+        @endif
     @endforeach
 
     <!-- Modal Crear Usuario (Mantener igual) -->
@@ -388,155 +473,144 @@
                 {{ __('El usuario recibirá un correo para verificar su cuenta. La primera vez que ingrese deberá cambiar su contraseña obligatoriamente.') }}
             </p>
 
-            <div class="mt-6 space-y-4">
+            <div class="mt-6 space-y-4" x-data="{ openRole: false, selectedRole: '{{ old('role', 'worker') }}', roleLabel: '{{ old('role') == 'admin' ? 'Administrador' : (old('role') == 'supervisor' ? 'Supervisor' : (old('role') == 'jefatura' ? 'Jefatura' : (old('role') == 'viewer' ? 'Visualizador' : 'Trabajador'))) }}', roles: [{v:'worker',l:'Trabajador'},{v:'supervisor',l:'Supervisor'},{v:'jefatura',l:'Jefatura'},{v:'admin',l:'Administrador'},{v:'viewer',l:'Visualizador'}] }">
                 <!-- Nombre -->
                 <div>
-                    <x-input-label for="new_name" :value="__('Nombres')" />
-                    <x-text-input id="new_name" name="name" type="text" class="mt-1 block w-full" :value="old('name')"
-                        required />
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Nombres</label>
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                        <input type="text" name="name" id="new_name" value="{{ old('name') }}" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Juan Ignacio">
+                    </div>
                     <x-input-error :messages="$errors->get('name')" class="mt-2" />
                 </div>
 
                 <!-- Apellido -->
                 <div>
-                    <x-input-label for="new_last_name" :value="__('Apellidos')" />
-                    <x-text-input id="new_last_name" name="last_name" type="text" class="mt-1 block w-full"
-                        :value="old('last_name')" required />
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Apellidos</label>
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                        <input type="text" name="last_name" id="new_last_name" value="{{ old('last_name') }}" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Pérez González">
+                    </div>
                     <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
                 </div>
 
                 <!-- Email -->
                 <div>
-                    <x-input-label for="new_email" :value="__('Correo Electrónico')" />
-                    <x-text-input id="new_email" name="email" type="email" class="mt-1 block w-full"
-                        :value="old('email')" required />
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Correo Electrónico</label>
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                        <input type="email" name="email" id="new_email" value="{{ old('email') }}" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="usuario@empresa.cl">
+                    </div>
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                 </div>
 
-                <!-- Rol -->
-                <div>
-                    <x-input-label for="new_role" :value="__('Rol')" />
-                    <select id="new_role" name="role"
-                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                        <option value="worker" {{ old('role') == 'worker' ? 'selected' : '' }}>Trabajador</option>
-                        <option value="supervisor" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="jefatura" {{ old('role') == 'jefatura' ? 'selected' : '' }}>Jefatura</option>
-                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrador</option>
-                        <option value="viewer" {{ old('role') == 'viewer' ? 'selected' : '' }}>Visualizador</option>
-                    </select>
+                <!-- Rol (Custom Dropdown) -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Rol</label>
+                    <input type="hidden" name="role" x-model="selectedRole">
+                    <button type="button" @click="openRole = !openRole" @click.away="openRole = false" class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                        <span x-text="roleLabel" class="text-slate-100 text-sm"></span>
+                        <svg class="w-4 h-4 text-slate-500 transition-transform" :class="openRole ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <ul x-show="openRole" x-transition class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg max-h-60 rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto" style="display:none;">
+                        <template x-for="r in roles" :key="r.v">
+                            <li @click="selectedRole = r.v; roleLabel = r.l; openRole = false" class="text-gray-200 cursor-pointer select-none py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="selectedRole === r.v ? 'bg-blue-600/20 text-blue-400' : ''">
+                                <span x-text="r.l"></span>
+                            </li>
+                        </template>
+                    </ul>
                     <x-input-error :messages="$errors->get('role')" class="mt-2" />
                 </div>
 
                 <!-- Departamento -->
                 <div>
-                    <x-input-label for="new_departamento" :value="__('Departamento')" />
-                    <x-text-input id="new_departamento" name="departamento" type="text" class="mt-1 block w-full" :value="old('departamento')" />
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Departamento</label>
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                        <input type="text" name="departamento" id="new_departamento" value="{{ old('departamento') }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Operaciones">
+                    </div>
                     <x-input-error :messages="$errors->get('departamento')" class="mt-2" />
                 </div>
 
                 <!-- Jefatura -->
                 <div>
-                    <x-input-label for="new_jefatura" :value="__('Jefatura Asignada (Opcional)')" />
-                    <select id="new_jefatura" name="jefatura_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                        <option value="">-- Sin Jefatura --</option>
-                        @foreach($jefaturas as $jefe)
-                            <option value="{{ $jefe->id }}" {{ old('jefatura_id') == $jefe->id ? 'selected' : '' }}>{{ $jefe->name }} {{ $jefe->last_name }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Jefatura Asignada (Opcional)</label>
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
+                        <select id="new_jefatura" name="jefatura_id" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
+                            <option value="" class="bg-[#1e293b]">-- Sin Jefatura --</option>
+                            @foreach($jefaturas as $jefe)
+                                <option value="{{ $jefe->id }}" {{ old('jefatura_id') == $jefe->id ? 'selected' : '' }} class="bg-[#1e293b]">{{ $jefe->name }} {{ $jefe->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Módulos Autorizados -->
-                <div>
+                <div x-data="{ allChecked: true, modules: [] }" x-init="$watch('allChecked', v => { if(v) modules = [] }); $watch('modules', v => { if(v.length > 0) allChecked = false })">
                     <x-input-label :value="__('Módulos Autorizados')" class="mb-2" />
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="all"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" checked>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Todos</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="all" x-model="allChecked"
+                                class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Todos</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="vehicles"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Vehículos</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="vehicles" x-model="modules"
+                                class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Vehículos</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="rooms"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Salas</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="rooms" x-model="modules"
+                                class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Salas</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="assets"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Activos</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="assets" x-model="modules"
+                                class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Activos</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="renditions"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Rendiciones</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="renditions" x-model="modules"
+                                class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Rendiciones</span>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="authorized_modules[]" value="finances"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Finanzas</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="authorized_modules[]" value="finances" x-model="modules"
+                                class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Finanzas</span>
                         </label>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">Selecciona "Todos" para acceso completo según el rol.</p>
                 </div>
 
                 <div x-data="{ show: false }">
-                    <x-input-label for="new_password" :value="__('Contraseña Inicial')" />
-                    <div class="relative mt-1">
-                        <x-text-input id="new_password" 
-                            name="password" 
-                            x-bind:type="show ? 'text' : 'password'" 
-                            class="block w-full pr-10" 
-                            required
-                            autocomplete="new-password" />
-                        
-                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
-                            <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <svg x-show="show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.057 10.057 0 012.18-3.64m6.308-1.353a4.5 4.5 0 015.657 5.657m0 0l-5.657-5.657m0 0L3 3m3.343 3.343L3 3m18 18l-3.343-3.343" />
-                            </svg>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Contraseña Inicial</label>
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors relative">
+                        <input id="new_password" name="password" :type="show ? 'text' : 'password'" required autocomplete="new-password" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm pr-10">
+                        <button type="button" @click="show = !show" class="absolute right-3 text-slate-500 hover:text-slate-300 focus:outline-none">
+                            <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg x-show="show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.057 10.057 0 012.18-3.64m6.308-1.353a4.5 4.5 0 015.657 5.657m0 0l-5.657-5.657m0 0L3 3m3.343 3.343L3 3m18 18l-3.343-3.343" /></svg>
                         </button>
                     </div>
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>
 
                 <div x-data="{ show: false }">
-                    <x-input-label for="new_password_confirmation" :value="__('Confirmar Contraseña')" />
-                    <div class="relative mt-1">
-                        <x-text-input id="new_password_confirmation" 
-                            name="password_confirmation" 
-                            x-bind:type="show ? 'text' : 'password'" 
-                            class="block w-full pr-10" 
-                            required />
-
-                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
-                            <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <svg x-show="show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.057 10.057 0 012.18-3.64m6.308-1.353a4.5 4.5 0 015.657 5.657m0 0l-5.657-5.657m0 0L3 3m3.343 3.343L3 3m18 18l-3.343-3.343" />
-                            </svg>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Confirmar Contraseña</label>
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors relative">
+                        <input id="new_password_confirmation" name="password_confirmation" :type="show ? 'text' : 'password'" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm pr-10">
+                        <button type="button" @click="show = !show" class="absolute right-3 text-slate-500 hover:text-slate-300 focus:outline-none">
+                            <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg x-show="show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.057 10.057 0 012.18-3.64m6.308-1.353a4.5 4.5 0 015.657 5.657m0 0l-5.657-5.657m0 0L3 3m3.343 3.343L3 3m18 18l-3.343-3.343" /></svg>
                         </button>
                     </div>
                     <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                 </div>
             </div>
 
-            <div class="mt-6 flex justify-end">
-                <x-secondary-button x-on:click="$dispatch('close')">
-                    {{ __('Cancelar') }}
-                </x-secondary-button>
-
-                <x-primary-button class="ml-3">
-                    {{ __('Crear Usuario') }}
-                </x-primary-button>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 border border-slate-600 text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-800 hover:border-slate-500 transition-all">
+                    Cancelar
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5">
+                    Crear Usuario
+                </button>
             </div>
         </form>
     </x-modal>

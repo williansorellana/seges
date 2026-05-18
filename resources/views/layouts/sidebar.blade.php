@@ -9,7 +9,8 @@
         vehicleMenu: {{ request()->routeIs('vehicles.*', 'conductores.*', 'requests.*', 'admin.returns.*') ? 'true' : 'false' }},
         roomMenu: {{ request()->routeIs('rooms.*', 'reservations.*') ? 'true' : 'false' }},
         assetMenu: {{ request()->routeIs('assets.*', 'workers.*') ? 'true' : 'false' }},
-        renditionMenu: {{ request()->routeIs('route-plannings.*', 'renditions.*') ? 'true' : 'false' }}
+        renditionMenu: {{ request()->routeIs('route-plannings.*', 'renditions.index', 'renditions.create', 'renditions.show') && !request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances', 'renditions.history') ? 'true' : 'false' }},
+        financesMenu: {{ request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances', 'renditions.history') ? 'true' : 'false' }}
     }" :class="{
         'w-64': open, 
         'w-20': !open,
@@ -277,7 +278,30 @@
                         :class="{{ request()->routeIs('renditions.index') ? "'text-white bg-gray-800'" : "''" }}">
                         Mis rendiciones
                     </a>
-                    
+                </div>
+            </div>
+        @endif
+
+        <!-- Módulo Finanzas / Aprobaciones -->
+        @if(in_array(Auth::user()->role, ['admin', 'jefatura']) || in_array(Auth::user()->departamento, ['Finanzas', 'Controlling']))
+            <div>
+                <button
+                    @click="if(!open) { open = true; setTimeout(() => financesMenu = true, 100); } else { financesMenu = !financesMenu; }"
+                    class="w-full flex items-center px-2 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group focus:outline-none justify-between"
+                    :class="{'justify-center': !open, 'bg-gray-800 text-white': financesMenu}">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span x-show="open" class="ml-3 whitespace-nowrap font-medium" x-transition:enter="delay-75">Módulo Finanzas</span>
+                    </div>
+                    <svg x-show="open" class="w-4 h-4 transition-transform duration-200" :class="{'rotate-90': financesMenu}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                <div x-show="open && financesMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
                     @if(in_array(Auth::user()->role, ['admin', 'jefatura']))
                         <a href="{{ route('renditions.approvals') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
@@ -286,19 +310,19 @@
                         </a>
                     @endif
                     
-                    @if(in_array(Auth::user()->role, ['admin']) || Auth::user()->departamento === 'Finanzas')
-                        <a href="{{ route('renditions.finances') }}" wire:navigate
-                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                            :class="{{ request()->routeIs('renditions.finances') ? "'text-white bg-gray-800'" : "''" }}">
-                            Panel Finanzas
-                        </a>
-                    @endif
-                    
                     @if(in_array(Auth::user()->role, ['admin']) || Auth::user()->departamento === 'Controlling')
                         <a href="{{ route('renditions.controlling') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('renditions.controlling') ? "'text-white bg-gray-800'" : "''" }}">
                             Panel Controlling
+                        </a>
+                    @endif
+
+                    @if(in_array(Auth::user()->role, ['admin']) || Auth::user()->departamento === 'Finanzas')
+                        <a href="{{ route('renditions.finances') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('renditions.finances') ? "'text-white bg-gray-800'" : "''" }}">
+                            Panel Finanzas
                         </a>
                     @endif
                     

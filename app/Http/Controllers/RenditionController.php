@@ -59,6 +59,56 @@ class RenditionController extends Controller
         return redirect()->back()->with('success', 'Documento subido y monto recalculado correctamente.');
     }
 
+    public function updateExpense(Request $request, \App\Models\Rendition $rendition, \App\Models\RenditionExpense $expense)
+    {
+        if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
+            abort(403, 'No puedes editar gastos de esta rendición en su estado actual.');
+        }
+
+        $request->validate([
+            'date' => 'required|date',
+            'provider' => 'required|string|max:255',
+            'document_type' => 'required|in:boleta,factura,vale,otro',
+            'document_number' => 'nullable|string',
+            'amount' => 'required|numeric|min:1',
+            'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
+        ]);
+
+        $data = $request->only(['date', 'provider', 'document_type', 'document_number', 'amount']);
+
+        if ($request->hasFile('attachment')) {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($expense->attachment_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($expense->attachment_path);
+            }
+            $data['attachment_path'] = $request->file('attachment')->store('receipts', 'public');
+        }
+
+        $expense->update($data);
+
+        $rendition->total_declared = $rendition->expenses()->sum('amount');
+        $rendition->save();
+
+        return redirect()->back()->with('success', 'Gasto actualizado correctamente.');
+    }
+
+    public function destroyExpense(\App\Models\Rendition $rendition, \App\Models\RenditionExpense $expense)
+    {
+        if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
+            abort(403, 'No puedes eliminar gastos de esta rendición en su estado actual.');
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($expense->attachment_path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($expense->attachment_path);
+        }
+
+        $expense->delete();
+
+        $rendition->total_declared = $rendition->expenses()->sum('amount');
+        $rendition->save();
+
+        return redirect()->back()->with('success', 'Gasto eliminado y monto recalculado.');
+    }
+
     public function submitRendition(\App\Models\Rendition $rendition)
     {
         if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {

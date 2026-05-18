@@ -42,6 +42,8 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/', [RenditionController::class, 'index'])->name('index');
         Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
         Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
+        Route::put('/{rendition}/gastos/{expense}', [RenditionController::class, 'updateExpense'])->name('expenses.update');
+        Route::delete('/{rendition}/gastos/{expense}', [RenditionController::class, 'destroyExpense'])->name('expenses.destroy');
         Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');
         Route::get('/{rendition}/pdf', [RenditionController::class, 'downloadPdf'])->name('pdf');
         
@@ -69,22 +71,22 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura'])
     ->name('dashboard');
 
     // Panel de Vehiculos
 Route::get('/vehicles/dashboard', [VehicleController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura'])
     ->name('vehicles.dashboard');
 
     // Gestión de Activos
 Route::get('/assets/dashboard', [AssetController::class, 'dashboard'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer,jefatura'])
     ->name('assets.dashboard');
 
     // Gestion de Salas
 Route::get('/salas/dashboard', [RoomReservationController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer,jefatura'])
     ->name('salas.dashboard');
 
 Route::get('/reservar-sala', function () {
@@ -136,8 +138,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservar-sala', [RoomReservationController::class, 'index'])->name('reservations.catalog');
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
 
-    // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver) - NO Viewer
-    Route::middleware(['role:admin,supervisor,worker,driver'])->group(function () {
+    // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver, Jefatura) - NO Viewer
+    Route::middleware(['role:admin,supervisor,worker,driver,jefatura'])->group(function () {
         Route::post('/reservar-sala', [RoomReservationController::class, 'store'])->name('reservations.store');
         Route::get('/mis-reservas-salas', [RoomReservationController::class, 'myReservations'])->name('reservations.my_reservations');
         Route::put('/mis-reservas-salas/{id}/cancel', [RoomReservationController::class, 'cancel'])->name('reservations.cancel');

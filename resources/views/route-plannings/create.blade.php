@@ -191,6 +191,18 @@
                             </label>
                         </div>
 
+                        <!-- Acompañantes -->
+                        <div class="col-span-1 md:col-span-2">
+                            <label for="companions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Acompañantes
+                                <span class="text-xs text-gray-400 font-normal ml-1">(Opcional)</span>
+                            </label>
+                            <div class="search-label w-full" style="align-items: flex-start; min-height: 70px;">
+                                <textarea name="companions" id="companions" rows="2" placeholder="Ej: Juan Pérez, María González, Carlos López..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm resize-y" style="background: none; color: #f1f5f9;"></textarea>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Escribe los nombres de las personas que te acompañarán, separados por coma.</p>
+                        </div>
+
                     </div>
 
                     <!-- 2. Solicitudes Financieras -->
