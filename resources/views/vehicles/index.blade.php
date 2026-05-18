@@ -524,7 +524,7 @@
         </div>
 
 
-        <x-modal name="create-vehicle-modal" :show="$errors->any()" focusable maxWidth="4xl">
+        <x-modal name="create-vehicle-modal" :show="$errors->any()" focusable maxWidth="3xl">
             <form method="POST" action="{{ route('vehicles.store') }}" class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative"
                 enctype="multipart/form-data"
                 x-data="{
@@ -568,28 +568,28 @@
                         });
                     }
                 }">
-                <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+                <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20 shadow-inner">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         </div>
                         <div>
-                            <h3 class="text-xl font-black text-white tracking-tight uppercase">{{ __('Nuevo Vehículo') }}</h3>
-                            <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Registro oficial en flota</p>
+                            <h3 class="text-lg font-black text-white tracking-tight uppercase">{{ __('Nuevo Vehículo') }}</h3>
+                            <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Registro oficial en flota</p>
                         </div>
                     </div>
                     <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
                 @csrf
-                <div class="p-8 space-y-10 max-h-[70vh] overflow-y-auto custom-scrollbar" x-data="{ photoPreview: null, isCompressing: false }">
+                <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar" x-data="{ photoPreview: null, isCompressing: false }">
                     
                     <!-- Foto del Vehículo -->
-                    <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800 shadow-inner group/photo">
-                        <label class="block text-[10px] font-black text-slate-500 mb-6 uppercase tracking-[0.2em]">{{ __('Fotografía Principal') }}</label>
-                        <div class="flex flex-col sm:flex-row items-center gap-8">
+                    <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/photo">
+                        <label class="block text-[9px] font-black text-slate-500 mb-4 uppercase tracking-[0.2em]">{{ __('Fotografía Principal') }}</label>
+                        <div class="flex flex-col sm:flex-row items-center gap-5">
                             <div class="relative">
                                 <div class="absolute -inset-1 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover/photo:opacity-40 transition-opacity"></div>
                                 <template x-if="!photoPreview">
@@ -631,13 +631,13 @@
                 </div>
 
                     <!-- Datos Técnicos -->
-                    <div class="space-y-6">
-                        <h4 class="text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
-                            <span class="w-8 h-[1px] bg-indigo-500/30"></span>
+                    <div class="space-y-4">
+                        <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="w-6 h-[1px] bg-indigo-500/30"></span>
                             {{ __('Especificaciones Técnicas') }}
                         </h4>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Patente</label>
                                 <div class="search-label">
@@ -694,18 +694,18 @@
                     </div>
 
                     <!-- Documentación -->
-                    <div class="space-y-6">
-                        <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
-                            <span class="w-8 h-[1px] bg-blue-500/30"></span>
+                    <div class="space-y-4">
+                        <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="w-6 h-[1px] bg-blue-500/30"></span>
                             {{ __('Documentación Legal Inicial') }}
                         </h4>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <!-- SOAP -->
-                            <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800 shadow-inner group/doc">
-                                <div class="flex items-center justify-between mb-6">
-                                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ __('Seguro Obligatorio (SOAP)') }}</span>
-                                    <svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Seguro Obligatorio (SOAP)') }}</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                 </div>
                                 <div class="space-y-4">
                                     <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
@@ -720,10 +720,10 @@
                             </div>
 
                             <!-- Permiso Circulación -->
-                            <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800 shadow-inner group/doc">
-                                <div class="flex items-center justify-between mb-6">
-                                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ __('Permiso de Circulación') }}</span>
-                                    <svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Permiso de Circulación') }}</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                 </div>
                                 <div class="space-y-4">
                                     <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
@@ -738,12 +738,12 @@
                             </div>
 
                             <!-- Revisión Técnica -->
-                            <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800 shadow-inner group/doc md:col-span-2">
-                                <div class="flex items-center justify-between mb-6">
-                                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ __('Certificado de Revisión Técnica') }}</span>
-                                    <svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc md:col-span-2">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Certificado de Revisión Técnica') }}</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner h-fit self-end">
                                     <div class="group/date">
                                         <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
@@ -759,12 +759,12 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="px-8 py-6 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-4 sticky bottom-0 z-10">
-                    <button type="button" @click="$dispatch('close')" class="px-6 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                <div class="px-6 py-5 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-3 sticky bottom-0 z-10">
+                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                         {{ __('Cancelar') }}
                     </button>
-                    <button type="submit" class="px-8 py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 transition-all flex items-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                         {{ __('Guardar Vehículo') }}
                     </button>
                 </div>
@@ -805,7 +805,7 @@
         </x-modal>
 
         <!-- Modal Editar Vehículo -->
-        <x-modal name="edit-vehicle-modal" :show="false" focusable maxWidth="4xl">
+        <x-modal name="edit-vehicle-modal" :show="false" focusable maxWidth="3xl">
             <form method="POST" :action="editAction" enctype="multipart/form-data"
                 class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
                 @csrf
@@ -814,24 +814,24 @@
                 <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-600/5 rounded-full blur-[80px] pointer-events-none"></div>
 
                 <!-- Header -->
-                <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+                <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 shadow-inner">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         </div>
                         <div>
-                            <h3 class="text-xl font-black text-white tracking-tight uppercase">{{ __('Editar Vehículo') }}</h3>
-                            <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Actualización de ficha técnica</p>
+                            <h3 class="text-lg font-black text-white tracking-tight uppercase">{{ __('Editar Vehículo') }}</h3>
+                            <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Actualización de ficha técnica</p>
                         </div>
                     </div>
                     <button type="button" @click="$dispatch('close')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-2 hover:bg-slate-800 rounded-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
-                <div class="p-8 space-y-10 max-h-[70vh] overflow-y-auto custom-scrollbar" x-data="{ photoPreview: null }">
+                <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar" x-data="{ photoPreview: null }">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Patente</label>
                         <div class="search-label">
@@ -876,7 +876,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Combustible</label>
                         <div class="search-label">
@@ -913,18 +913,18 @@
                 </div>
 
                 <!-- Documentación -->
-                <div class="space-y-6 pt-6 border-t border-slate-800">
-                    <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-blue-500/30"></span>
+                <div class="space-y-4 pt-5 border-t border-slate-800">
+                    <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span class="w-6 h-[1px] bg-blue-500/30"></span>
                         {{ __('Actualizar Documentación') }}
                     </h4>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <!-- Seguro (SOAP) -->
-                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800 shadow-inner group/doc">
-                            <div class="flex items-center justify-between mb-6">
-                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ __('Seguro Obligatorio (SOAP)') }}</span>
-                                <svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Seguro Obligatorio (SOAP)') }}</span>
+                                <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
                             <div class="space-y-4">
                                 <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
@@ -938,10 +938,10 @@
                         </div>
 
                         <!-- Permiso Circulación -->
-                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800 shadow-inner group/doc">
-                            <div class="flex items-center justify-between mb-6">
-                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ __('Permiso de Circulación') }}</span>
-                                <svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Permiso de Circulación') }}</span>
+                                <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
                             <div class="space-y-4">
                                 <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
@@ -955,12 +955,12 @@
                         </div>
 
                         <!-- Revisión Técnica -->
-                        <div class="bg-slate-950/40 p-6 rounded-[2rem] border border-slate-800 shadow-inner group/doc md:col-span-2">
-                            <div class="flex items-center justify-between mb-6">
-                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ __('Certificado de Revisión Técnica') }}</span>
-                                <svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <div class="bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800 shadow-inner group/doc md:col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{{ __('Certificado de Revisión Técnica') }}</span>
+                                <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner h-fit self-end">
                                 <div class="group/date">
                                     <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
@@ -974,12 +974,12 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="px-8 py-6 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-4 sticky bottom-0 z-10">
-                    <button type="button" @click="$dispatch('close')" class="px-6 py-3 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                <div class="px-6 py-5 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-3 sticky bottom-0 z-10">
+                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
                         {{ __('Cancelar') }}
                     </button>
-                    <button type="submit" class="px-8 py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 transition-all flex items-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                         {{ __('Actualizar Vehículo') }}
                     </button>
                 </div>
