@@ -92,9 +92,38 @@
                     }
                 </style>
 
+
                 <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ requiresFunds: false, requiresAmipass: false }">
                     @csrf
+                    
+                    @php
+                        $now = now();
 
+                        $thisWeekWednesdayLimit = now()
+                            ->startOfWeek()
+                            ->addDays(2)
+                            ->setTime(13, 0);
+
+                        if ($now->lessThanOrEqualTo($thisWeekWednesdayLimit)) {
+                            $fundsDate = now()
+                                ->startOfWeek()
+                                ->addDays(4);
+                        } else {
+                            $fundsDate = now()
+                                ->startOfWeek()
+                                ->addDays(11);
+                        }
+                    @endphp
+
+                    <div class="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+                        <strong>Importante:</strong>
+                        Las solicitudes ingresadas antes del miércoles a las 13:00 hrs tendrán fondos disponibles el viernes de la misma semana.
+                        Las solicitudes ingresadas después de ese horario quedarán para el viernes de la semana siguiente.
+                        <br>
+                        <span class="font-semibold">
+                            Según la fecha actual, la disponibilidad estimada sería: {{ $fundsDate->format('d/m/Y') }}.
+                        </span>
+                    </div>
                     @if ($errors->any())
                         <div class="mb-4 bg-red-50 border border-red-200 text-red-600 rounded-lg p-4">
                             <ul class="list-disc pl-5 text-sm">

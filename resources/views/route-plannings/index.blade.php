@@ -78,6 +78,9 @@
                                     <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
                                         Estado
                                     </th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Historial
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-[#1e293b] divide-y divide-gray-100 dark:divide-slate-700/40">
@@ -204,6 +207,50 @@
                                                     </span>
                                                     @break
                                             @endswitch
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            @if($plan->workflowHistories->isEmpty())
+                                                <span class="text-xs text-gray-400">Sin movimientos</span>
+                                            @else
+                                                <div class="space-y-2 max-w-xs">
+                                                    @foreach($plan->workflowHistories->sortByDesc('created_at')->take(3) as $history)
+                                                        <div class="text-xs border-l-2 pl-2
+                                                            @if(str_contains($history->action, 'rejected'))
+                                                                border-red-500
+                                                            @elseif(str_contains($history->action, 'approved'))
+                                                                border-green-500
+                                                            @else
+                                                                border-indigo-500
+                                                            @endif
+                                                        ">
+                                                            <div class="font-semibold text-gray-800 dark:text-gray-100">
+                                                                {{ $history->user->name ?? 'Sistema' }}
+                                                            </div>
+
+                                                            <div class="text-gray-500 dark:text-gray-400">
+                                                                @php
+                                                                    $actionLabels = [
+                                                                        'approved_by_jefatura' => 'Aprobado por Jefatura',
+                                                                        'rejected_by_jefatura' => 'Rechazado por Jefatura',
+                                                                        'approved_by_controlling' => 'Aprobado por Controlling',
+                                                                        'rejected_by_controlling' => 'Rechazado por Controlling',
+                                                                        'approved_by_finances' => 'Aprobado por Finanzas',
+                                                                        'rejected_by_finances' => 'Rechazado por Finanzas',
+                                                                    ];
+
+                                                                    $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
+                                                                @endphp
+
+                                                                {{ $actionLabel }}
+                                                            </div>
+
+                                                            <div class="text-gray-400">
+                                                                {{ $history->created_at->format('d/m/Y H:i') }}
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

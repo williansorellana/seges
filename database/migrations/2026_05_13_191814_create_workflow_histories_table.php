@@ -23,6 +23,8 @@ return new class extends Migration
 
             $table->text('comment')->nullable();
 
+            $table->text('observation')->nullable();
+
             $table->string('ip_address')->nullable();
 
             $table->timestamps();

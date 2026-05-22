@@ -105,10 +105,11 @@ class RenditionController extends Controller
         $data = $request->only(['date', 'provider', 'document_type', 'document_number', 'amount']);
 
         if ($request->hasFile('attachment')) {
-            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($expense->attachment_path)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($expense->attachment_path);
+            if (Storage::disk('local')->exists($expense->attachment_path)) {
+                Storage::disk('local')->delete($expense->attachment_path);
             }
-            $data['attachment_path'] = $request->file('attachment')->store('receipts', 'public');
+
+            $data['attachment_path'] = $request->file('attachment')->store('receipts', 'local');
         }
 
         $expense->update($data);
@@ -125,8 +126,8 @@ class RenditionController extends Controller
             abort(403, 'No puedes eliminar gastos de esta rendición en su estado actual.');
         }
 
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($expense->attachment_path)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($expense->attachment_path);
+        if (Storage::disk('local')->exists($expense->attachment_path)) {
+            Storage::disk('local')->delete($expense->attachment_path);
         }
 
         $expense->delete();
@@ -148,9 +149,17 @@ class RenditionController extends Controller
         $rendition->save();
         if ($rendition->user->jefatura) {
             $rendition->user->jefatura->notify(new WorkflowNotification(
-            'Nueva rendición pendiente',
-            'El trabajador ' . $rendition->user->name . ' envió una rendición para revisión.',
-            route('renditions.approvals')
+                'Nueva rendición pendiente',
+                'El trabajador ' . $rendition->user->name . ' envió una rendición para revisión.',
+                route('renditions.approvals')
+            ));
+        } else {
+            $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+
+            Notification::send($controllingUsers, new WorkflowNotification(
+                'Nueva rendición pendiente',
+                'El trabajador ' . $rendition->user->name . ' envió una rendición directamente a Controlling.',
+                route('renditions.controlling')
             ));
         }
 
@@ -617,6 +626,17 @@ class RenditionController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $totalDeclared = $rendition->expenses()->sum('amount');
+        $difference = $rendition->funds_received - $totalDeclared;
+
+        $rendition->total_declared = $totalDeclared;
+        $rendition->total_approved = $totalDeclared;
+        $rendition->difference = $difference;
+
+        $rendition->refund_to_company = $difference > 0;
+        $rendition->refund_to_worker = $difference < 0;
+        $rendition->refund_resolved_at = now();
+
         $rendition->status = 'approved';
         $rendition->save();
 
@@ -627,7 +647,11 @@ class RenditionController extends Controller
             'action' => 'approved_by_finances',
             'from_status' => 'pending_finances',
             'to_status' => 'approved',
-            'observation' => 'Rendición aprobada por Finanzas.',
+            'observation' => $difference > 0
+                ? 'Rendición aprobada por Finanzas. Queda saldo a devolver a la empresa.'
+                : ($difference < 0
+                    ? 'Rendición aprobada por Finanzas. Queda saldo a favor del trabajador.'
+                    : 'Rendición aprobada por Finanzas. Rendición exacta.'),
             'ip_address' => request()->ip(),
         ]);
 

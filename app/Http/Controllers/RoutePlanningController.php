@@ -14,7 +14,7 @@ class RoutePlanningController extends Controller
 {
     public function index()
     {
-        $query = \App\Models\RoutePlanning::query();
+        $query = \App\Models\RoutePlanning::with(['workflowHistories.user']);
 
         /*
         |--------------------------------------------------------------------------
@@ -390,6 +390,17 @@ class RoutePlanningController extends Controller
 
         $planning->save();
 
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\RoutePlanning::class,
+            'workflowable_id' => $planning->id,
+            'user_id' => auth()->id(),
+            'action' => 'approved_by_controlling',
+            'from_status' => WorkflowHelper::STATUS_PENDING_CONTROLLING,
+            'to_status' => WorkflowHelper::STATUS_PENDING_FINANCES,
+            'observation' => 'Solicitud aprobada por Controlling.',
+            'ip_address' => request()->ip(),
+        ]);
+
         $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
 
         Notification::send($financeUsers, new WorkflowNotification(
@@ -423,6 +434,17 @@ class RoutePlanningController extends Controller
             'action' => 'rejected'
         ]);
 
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\RoutePlanning::class,
+            'workflowable_id' => $planning->id,
+            'user_id' => auth()->id(),
+            'action' => 'rejected_by_controlling',
+            'from_status' => WorkflowHelper::STATUS_PENDING_CONTROLLING,
+            'to_status' => WorkflowHelper::STATUS_REJECTED,
+            'observation' => $request->observation,
+            'ip_address' => request()->ip(),
+        ]);
+
         $planning->user->notify(new WorkflowNotification(
             'Planificación rechazada',
             'Tu planificación fue rechazada por Controlling. Revisa las observaciones.',
@@ -443,6 +465,17 @@ class RoutePlanningController extends Controller
         $planning->digital_signature = hash('sha256', $planning->id . $planning->user_id . now());
         $planning->signed_at = now();
         $planning->save();
+
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\RoutePlanning::class,
+            'workflowable_id' => $planning->id,
+            'user_id' => auth()->id(),
+            'action' => 'approved_by_finances',
+            'from_status' => WorkflowHelper::STATUS_PENDING_FINANCES,
+            'to_status' => WorkflowHelper::STATUS_APPROVED,
+            'observation' => 'Solicitud aprobada por Finanzas.',
+            'ip_address' => request()->ip(),
+        ]);
 
         // Crear automáticamente el borrador de Rendición asociada
         \App\Models\Rendition::create([
@@ -476,6 +509,17 @@ class RoutePlanningController extends Controller
             'user_id' => auth()->id(),
             'observation' => $request->observation,
             'action' => 'rejected'
+        ]);
+
+        WorkflowHistory::create([
+            'workflowable_type' => \App\Models\RoutePlanning::class,
+            'workflowable_id' => $planning->id,
+            'user_id' => auth()->id(),
+            'action' => 'rejected_by_finances',
+            'from_status' => WorkflowHelper::STATUS_PENDING_FINANCES,
+            'to_status' => WorkflowHelper::STATUS_REJECTED,
+            'observation' => $request->observation,
+            'ip_address' => request()->ip(),
         ]);
 
         $planning->user->notify(new WorkflowNotification(
