@@ -133,6 +133,22 @@
                                                     <p class="text-base font-black text-white group-hover:text-blue-400 transition-colors uppercase tracking-tight">{{ $expense->provider }}</p>
                                                     <div class="flex items-center gap-2 mt-1">
                                                         <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded-md">{{ $expense->document_type }}</span>
+                                                        @php
+                                                            $categoryLabels = [
+                                                                'bencina' => 'Bencina',
+                                                                'peaje' => 'Peaje',
+                                                                'estacionamiento_transbordador' => 'Estac./Transb.',
+                                                                'alojamiento' => 'Alojamiento',
+                                                                'comida' => 'Comida',
+                                                                'otros' => 'Otros',
+                                                            ];
+
+                                                            $categoryLabel = $categoryLabels[$expense->expense_category] ?? 'Otros';
+                                                        @endphp
+
+                                                        <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                                                            {{ $categoryLabel }}
+                                                        </span>
                                                         <span class="w-1 h-1 rounded-full bg-slate-700"></span>
                                                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">{{ \Carbon\Carbon::parse($expense->date)->format('d M, Y') }}</span>
                                                         @if($expense->document_number) 
@@ -311,6 +327,30 @@
                                                                     </select>
                                                                 </div>
                                                             </div>
+
+                                                            <div class="group">
+                                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">
+                                                                    Concepto del Gasto
+                                                                </label>
+
+                                                                <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                                                                    <select
+                                                                        name="expense_category"
+                                                                        class="w-full bg-transparent border-none text-white text-sm font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900"
+                                                                        required
+                                                                    >
+                                                                        <option value="bencina" {{ $expense->expense_category == 'bencina' ? 'selected' : '' }}>Bencina</option>
+                                                                        <option value="peaje" {{ $expense->expense_category == 'peaje' ? 'selected' : '' }}>Peaje</option>
+                                                                        <option value="estacionamiento_transbordador" {{ $expense->expense_category == 'estacionamiento_transbordador' ? 'selected' : '' }}>
+                                                                            Estacionamiento / Transbordador
+                                                                        </option>
+                                                                        <option value="alojamiento" {{ $expense->expense_category == 'alojamiento' ? 'selected' : '' }}>Alojamiento</option>
+                                                                        <option value="comida" {{ $expense->expense_category == 'comida' ? 'selected' : '' }}>Comida</option>
+                                                                        <option value="otros" {{ $expense->expense_category == 'otros' ? 'selected' : '' }}>Otros</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+
                                                             <div class="group">
                                                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Nº Documento</label>
                                                                 <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 transition-all">
@@ -404,6 +444,27 @@
                                                 <option value="factura">Factura</option>
                                                 <option value="vale">Vale de Peaje/Estacionamiento</option>
                                                 <option value="otro">Otro</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="group">
+                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">
+                                            Concepto del Gasto
+                                        </label>
+
+                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                                            <select
+                                                name="expense_category"
+                                                class="w-full bg-transparent border-none text-white text-sm font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-950"
+                                                required
+                                            >
+                                                <option value="bencina">Bencina</option>
+                                                <option value="peaje">Peaje</option>
+                                                <option value="estacionamiento_transbordador">Estacionamiento / Transbordador</option>
+                                                <option value="alojamiento">Alojamiento</option>
+                                                <option value="comida">Comida</option>
+                                                <option value="otros">Otros</option>
                                             </select>
                                         </div>
                                     </div>

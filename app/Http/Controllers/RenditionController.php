@@ -66,6 +66,7 @@ class RenditionController extends Controller
             'date' => 'required|date',
             'provider' => 'required|string|max:255',
             'document_type' => 'required|in:boleta,factura,vale,otro',
+            'expense_category' => 'required|in:bencina,peaje,estacionamiento_transbordador,alojamiento,comida,otros',
             'document_number' => 'nullable|string',
             'amount' => 'required|numeric|min:1',
             'attachment' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120'
@@ -77,6 +78,7 @@ class RenditionController extends Controller
             'date' => $request->date,
             'provider' => $request->provider,
             'document_type' => $request->document_type,
+            'expense_category' => $request->expense_category,
             'document_number' => $request->document_number,
             'amount' => $request->amount,
             'attachment_path' => $path
@@ -98,12 +100,13 @@ class RenditionController extends Controller
             'date' => 'required|date',
             'provider' => 'required|string|max:255',
             'document_type' => 'required|in:boleta,factura,vale,otro',
+            'expense_category' => 'required|in:bencina,peaje,estacionamiento_transbordador,alojamiento,comida,otros',
             'document_number' => 'nullable|string',
             'amount' => 'required|numeric|min:1',
             'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
         ]);
 
-        $data = $request->only(['date', 'provider', 'document_type', 'document_number', 'amount']);
+        $data = $request->only(['date', 'provider', 'document_type', 'expense_category', 'document_number', 'amount']);
 
         if ($request->hasFile('attachment')) {
             if (Storage::disk('local')->exists($expense->attachment_path)) {
@@ -242,7 +245,7 @@ class RenditionController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
             'renditions.pdf',
             compact('rendition')
-        );
+        )->setPaper('letter', 'portrait');
 
         return $pdf->download(
             'rendicion-RND-' . str_pad($rendition->id, 4, '0', STR_PAD_LEFT) . '.pdf'
