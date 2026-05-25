@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use App\Notifications\NewVehicleRequestNotification;
 use App\Notifications\VehicleReturnedNotification;
+use App\Notifications\VehicleRequestCancelledNotification;
 
 class VehicleRequestController extends Controller
 {
@@ -76,7 +77,7 @@ class VehicleRequestController extends Controller
 
         $vehicles = Vehicle::whereNotIn('status', ['maintenance', 'out_of_service'])->get();
 
-        $conductors = in_array($user->role, ['admin', 'supervisor']) ? \App\Models\Conductor::all() : collect([]);
+        $conductors = in_array($user->role, ['admin', 'supervisor','worker']) ? \App\Models\Conductor::all() : collect([]);
 
         // Obtener usuarios activos para acompañantes
         $users = \App\Models\User::where('is_active', true)
@@ -176,7 +177,7 @@ class VehicleRequestController extends Controller
             ]);
 
             // Manejo de nuevo conductor si se solicita
-            if (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
+            if (in_array($user->role, ['admin', 'supervisor', 'worker']) && $request->has('is_third_party') && !$request->conductor_id && $request->input('new_conductor_name')) {
 
                 // Verificar si se debe guardar permanentemente
                 if ($request->has('save_conductor_permanently') && $request->save_conductor_permanently) {
@@ -545,6 +546,23 @@ class VehicleRequestController extends Controller
         $vehicleRequest->update([
             'status' => 'cancelled',
         ]);
+        // Notificar supervisores autorizados
+        $supervisors = User::where('is_active', 1)
+            ->where('role', 'supervisor')
+            ->where(function ($q) {
+                $q->whereJsonContains('authorized_modules', 'vehicles')
+                ->orWhereJsonContains('authorized_modules', 'all');
+            })
+            ->get();
+
+        Notification::send(
+            $supervisors,
+            new VehicleRequestCancelledNotification($vehicleRequest)
+        );
+
+        $vehicleRequest->user->notify(
+            new \App\Notifications\VehicleRequestStatusNotification($vehicleRequest, 'cancelled', 'Su solicitud ha sido cancelada exitosamente.')
+        );
 
         return back()->with('success', 'Solicitud cancelada correctamente.');
 
@@ -558,6 +576,64 @@ class VehicleRequestController extends Controller
         return back()->with('error', 'No se pudo cancelar la solicitud. Intente nuevamente.');
     }
     }
+
+    public function manage(Request $request)
+    { 
+        $query = VehicleRequest::with(['user', 'vehicle' => function ($query) {
+            $query->withTrashed();
+        }])->orderBy('created_at', 'desc');
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $requests = $query->paginate(15)->withQueryString();
+
+        return view('requests.manage', compact('requests'));
+    }
+
+    public function cancelBySupervisor(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'cancellation_reason' => 'required|string|max:255',
+            ], [
+                'cancellation_reason.required' => 'Debe ingresar un motivo para cancelar la solicitud.',
+            ]);
+
+            $vehicleRequest = VehicleRequest::with(['user', 'vehicle'])->findOrFail($id);
+
+            if (!in_array($vehicleRequest->status, ['pending', 'approved'])) {
+                return back()->with('error', 'Esta solicitud ya no puede ser cancelada.');
+            }
+
+            $reason = $request->cancellation_reason;
+
+            $vehicleRequest->update([
+                'status' => 'cancelled',
+                'rejection_reason' => $reason,
+            ]);
+
+            $vehicleRequest->user->notify(
+                new \App\Notifications\VehicleRequestStatusNotification(
+                    $vehicleRequest,
+                    'cancelled',
+                    $reason
+                )
+            );
+
+            return back()->with('success', 'Solicitud cancelada correctamente y usuario notificado.');
+
+        } catch (Exception $e) {
+            Log::error('Error al cancelar solicitud desde supervisor', [
+                'supervisor_id' => Auth::id(),
+                'vehicle_request_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'No se pudo cancelar la solicitud.');
+        }
+    }   
 
 
     /**

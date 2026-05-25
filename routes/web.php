@@ -89,6 +89,9 @@ Route::middleware('auth')->group(function () {
     // Gestión de Salas - Catálogo y Disponibilidad (Accesible para todos, incl. Viewer)
     Route::get('/reservar-sala', [RoomReservationController::class, 'index'])->name('reservations.catalog');
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
+    Route::get('/admin/rooms/agenda', [RoomReservationController::class, 'agenda'])
+        ->middleware(['role:admin,supervisor,worker,driver,viewer'])
+        ->name('rooms.agenda');
 
     // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver) - NO Viewer
     Route::middleware(['role:admin,supervisor,worker,driver'])->group(function () {
@@ -108,7 +111,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/room-reservations/{id}/reject', [RoomReservationController::class, 'reject'])->name('room-reservations.reject');
         Route::put('/room-reservations/{id}/cancel-admin', [RoomReservationController::class, 'cancelByAdmin'])->name('room-reservations.cancel_admin');
 
-        Route::get('/admin/rooms/agenda', [RoomReservationController::class, 'agenda'])->name('rooms.agenda');
+        
 
         Route::get('/admin/rooms/history', [RoomReservationController::class, 'history'])->name('rooms.history');
         Route::get('/admin/rooms/report', [RoomReservationController::class, 'downloadMonthlyReport'])->name('rooms.report');
@@ -142,6 +145,12 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:supervisor'])->group(function () {
         Route::post('/requests/{id}/approve', [VehicleRequestController::class, 'approve'])->name('requests.approve');
         Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');
+
+        Route::get('/gestion-solicitudes-vehiculos', [VehicleRequestController::class, 'manage'])
+            ->name('requests.manage');
+
+        Route::post('/requests/{id}/cancel-supervisor', [VehicleRequestController::class, 'cancelBySupervisor'])
+            ->name('requests.cancel.supervisor');
     });
 
     Route::get('/mis-reservas', [VehicleRequestController::class, 'index'])->name('requests.index');

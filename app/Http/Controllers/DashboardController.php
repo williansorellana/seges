@@ -24,6 +24,9 @@ class DashboardController extends Controller
                     ['label' => 'Ver tus reservas', 'route' => 'requests.index'],
 
                     // SOLO supervisor
+                    $user->role === 'supervisor'
+                        ? ['label' => 'Gestión de Solicitudes', 'route' => 'requests.manage'] : null,
+
                     $user->role === 'supervisor'  
                         ? ['label' => 'Gestión de Vehículos', 'route' => 'vehicles.index'] : null,
 

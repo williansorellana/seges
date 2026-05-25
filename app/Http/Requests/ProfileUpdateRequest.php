@@ -28,7 +28,7 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'rut' => ['nullable', 'string', 'max:20', Rule::unique(User::class)->ignore($this->user()->id)],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'regex:/^9\d{8}$/'],
+            'phone' => ['nullable', 'digits:9', 'starts_with:9'],
             'cargo' => ['nullable', 'string', 'max:255'],
             'departamento' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'max:1024'], // Máx 1MB
