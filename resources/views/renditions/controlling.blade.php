@@ -27,6 +27,22 @@
                 </div>
             @endif
 
+            @if ($errors->any())
+                <div class="mb-8 bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 shadow-2xl">
+                    <h3 class="text-sm font-black text-rose-400 flex items-center gap-2 mb-4 uppercase tracking-widest">
+                        No se pudo completar la acción
+                    </h3>
+
+                    <ul class="space-y-2">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm text-rose-300 font-medium">
+                                {{ $error }}
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- ════════════════════════════════════════════ --}}
             {{-- SECCIÓN 1: AUDITORÍA DE REQUERIMIENTOS      --}}
             {{-- ════════════════════════════════════════════ --}}
@@ -223,6 +239,21 @@
                                         <div class="flex flex-col gap-1">
                                             <div class="text-xs text-slate-500">Entregado: <span class="text-slate-300 font-medium">${{ number_format($ren->funds_received, 0, ',', '.') }}</span></div>
                                             <div class="text-sm font-bold text-purple-400">Rendido: ${{ number_format($ren->total_declared, 0, ',', '.') }}</div>
+                                            <div class="mt-3 flex flex-wrap gap-2">
+                                                <span class="px-2 py-1 rounded-lg bg-slate-700/40 text-slate-300 text-[9px] font-black uppercase tracking-widest border border-slate-600/40">
+                                                    {{ $ren->total_expenses_count }} docs
+                                                </span>
+
+                                                @if($ren->observed_expenses_count > 0)
+                                                    <span class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-400 text-[9px] font-black uppercase tracking-widest border border-rose-500/20">
+                                                        {{ $ren->observed_expenses_count }} observado(s)
+                                                    </span>
+                                                @else
+                                                    <span class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20">
+                                                        Sin observados
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-5 text-center">
@@ -235,7 +266,17 @@
                                             </a>
                                             <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5">Validar</button>
+
+                                                <button
+                                                    type="submit"
+                                                    class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer
+                                                        {{ $ren->observed_expenses_count > 0
+                                                            ? 'bg-slate-700 text-slate-400 border border-rose-500/30 hover:bg-slate-600'
+                                                            : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5'
+                                                        }}"
+                                                >
+                                                    Validar
+                                                </button>
                                             </form>
                                             <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all">Rechazar</button>
                                         </div>

@@ -51,7 +51,7 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        $rendition->load('routePlanning','expenses','observations.user','workflowHistories.user');
+        $rendition->load('routePlanning','expenses','observations.user','workflowHistories.user', 'digitalSignatures.user');
 
         return view('renditions.show', compact('rendition'));
     }
@@ -336,7 +336,19 @@ class RenditionController extends Controller
         if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING) abort(403);
 
         $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_controlling')->orderBy('created_at', 'asc')->paginate(5, ['*'], 'plannings_page');
-        $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])->where('status', 'pending_controlling')->orderBy('updated_at', 'asc')->paginate(5, ['*'], 'renditions_page');
+        $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user','expenses'])
+    ->withCount([
+        'expenses as observed_expenses_count' => function ($query) {
+            $query->where('is_valid', false);
+        },
+        'expenses as valid_expenses_count' => function ($query) {
+            $query->where('is_valid', true);
+        },
+        'expenses as total_expenses_count',
+    ])
+    ->where('status', 'pending_controlling')
+    ->orderBy('updated_at', 'asc')
+    ->paginate(5, ['*'], 'renditions_page');
 
         return view('renditions.controlling', compact('plannings', 'renditions'));
     }
@@ -490,6 +502,14 @@ class RenditionController extends Controller
         // estado válido
         if ($rendition->status !== 'pending_controlling') {
             abort(403, 'La rendición no está pendiente de Controlling.');
+        }
+
+        if ($rendition->expenses()->where('is_valid', false)->exists()) {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'expenses' => 'No puedes aprobar esta rendición porque existen documentos observados.'
+                ]);
         }
 
         // aprobar
@@ -770,6 +790,86 @@ class RenditionController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Pago/devolución marcado como realizado correctamente.');
+    }
+
+    public function validateExpense(\App\Models\RenditionExpense $expense)
+    {
+        $user = auth()->user();
+
+        $rendition = $expense->rendition;
+
+        if (
+            $user->role !== 'admin'
+            &&
+            $user->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
+        ) {
+            abort(403);
+        }
+
+        if ($rendition->status !== 'pending_controlling') {
+            abort(403, 'Solo puedes validar documentos cuando la rendición está pendiente de Controlling.');
+        }
+
+        $expense->is_valid = true;
+        $expense->rejection_reason = null;
+        $expense->save();
+
+        \App\Models\WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'expense_validated_by_controlling',
+            'from_status' => $rendition->status,
+            'to_status' => $rendition->status,
+            'observation' => 'Documento validado por Controlling: ' . $expense->provider,
+            'ip_address' => request()->ip(),
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Documento marcado como válido.');
+    }
+
+    public function invalidateExpense(Request $request, \App\Models\RenditionExpense $expense)
+    {
+        $user = auth()->user();
+
+        $rendition = $expense->rendition;
+
+        if (
+            $user->role !== 'admin'
+            &&
+            $user->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
+        ) {
+            abort(403);
+        }
+
+        if ($rendition->status !== 'pending_controlling') {
+            abort(403, 'Solo puedes observar documentos cuando la rendición está pendiente de Controlling.');
+        }
+
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        $expense->is_valid = false;
+        $expense->rejection_reason = $request->rejection_reason;
+        $expense->save();
+
+        \App\Models\WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'expense_observed_by_controlling',
+            'from_status' => $rendition->status,
+            'to_status' => $rendition->status,
+            'observation' => 'Documento observado por Controlling: ' . $request->rejection_reason,
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Documento observado correctamente.');
     }
 
     public function history()

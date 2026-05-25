@@ -144,10 +144,117 @@
                                             </div>
                                             <div class="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2 mt-4 sm:mt-0">
                                                 <p class="text-xl font-black text-white leading-none tracking-tight">${{ number_format($expense->amount, 0, ',', '.') }}</p>
+                                                @if(auth()->user()->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING && $rendition->status === 'pending_controlling')
+                                                    <div class="flex items-center gap-2 mt-2">
+                                                        @if($expense->is_valid)
+                                                            <span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                                                Válido
+                                                            </span>
+                                                        @else
+                                                            <span class="px-2 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                                                Observado
+                                                            </span>
+                                                        @endif
+
+                                                        @if($expense->rejection_reason)
+                                                            <span class="text-[10px] text-rose-300 font-medium">
+                                                                {{ $expense->rejection_reason }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endif
                                                 <div class="flex items-center gap-2">
                                                     <a href="{{ route('renditions.expenses.attachment', $expense) }}" target="_blank" class="p-2 bg-indigo-600/10 text-indigo-400 rounded-xl hover:bg-indigo-600 hover:text-white transition-all cursor-pointer shadow-lg shadow-indigo-600/5" title="Ver Documento">
                                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                                     </a>
+                                                    @if(auth()->user()->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING && $rendition->status === 'pending_controlling')
+                                                        <form action="{{ route('renditions.expenses.validate', $expense->id) }}" method="POST">
+                                                            @csrf
+                                                            <button
+                                                                type="submit"
+                                                                class="p-2 bg-emerald-600/10 text-emerald-400 rounded-xl hover:bg-emerald-600 hover:text-white transition-all cursor-pointer shadow-lg shadow-emerald-600/5"
+                                                                title="Marcar como válido">
+                                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+
+                                                        <div x-data="{ showObserveExpense: false }">
+                                                            <button
+                                                                type="button"
+                                                                @click="showObserveExpense = true"
+                                                                class="p-2 bg-rose-600/10 text-rose-500 rounded-xl hover:bg-rose-600 hover:text-white transition-all cursor-pointer shadow-lg shadow-rose-600/5"
+                                                                title="Observar documento">
+                                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+
+                                                            <div
+                                                                x-show="showObserveExpense"
+                                                                x-cloak
+                                                                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md"
+                                                                x-transition>
+                                                                <div
+                                                                    class="bg-slate-900 border border-rose-500/30 rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
+                                                                    @click.away="showObserveExpense = false">
+                                                                    
+                                                                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+
+                                                                    <div class="relative z-10">
+                                                                        <div class="flex items-center gap-4 mb-6">
+                                                                            <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20">
+                                                                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008z" />
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a1.5 1.5 0 001.29 2.25h17.78A1.5 1.5 0 0022.18 18L13.71 3.86a1.5 1.5 0 00-2.42 0z" />
+                                                                                </svg>
+                                                                            </div>
+
+                                                                            <div>
+                                                                                <h3 class="text-xl font-black text-white uppercase tracking-tight">
+                                                                                    Observar Documento
+                                                                                </h3>
+                                                                                <p class="text-[10px] text-rose-400 font-black uppercase tracking-[0.2em] mt-1">
+                                                                                    Revisión Controlling
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <form action="{{ route('renditions.expenses.invalidate', $expense->id) }}" method="POST">
+                                                                            @csrf
+
+                                                                            <label class="block text-[10px] font-black text-slate-500 mb-3 uppercase tracking-[0.2em]">
+                                                                                Motivo de observación
+                                                                            </label>
+
+                                                                            <textarea
+                                                                                name="rejection_reason"
+                                                                                rows="4"
+                                                                                class="w-full text-sm bg-slate-950 border border-slate-800 text-white rounded-2xl focus:ring-rose-500 focus:border-rose-500 placeholder-slate-700 font-bold"
+                                                                                required
+                                                                                placeholder="Ej: Documento ilegible, monto no coincide, falta información..."></textarea>
+
+                                                                            <div class="mt-6 flex justify-end gap-3">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    @click="showObserveExpense = false"
+                                                                                    class="px-6 py-3 text-xs font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors cursor-pointer">
+                                                                                    Cancelar
+                                                                                </button>
+
+                                                                                <button
+                                                                                    type="submit"
+                                                                                    class="px-7 py-3 bg-rose-600 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">
+                                                                                    Observar
+                                                                                </button>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
                                                     @if($rendition->status === 'draft' || $rendition->status === 'rejected')
                                                         <button type="button" @click="showEditModal = true" class="p-2 bg-blue-600/10 text-blue-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all cursor-pointer shadow-lg shadow-blue-600/5" title="Editar">
                                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -565,62 +672,173 @@
                         </div>
                     </div>
                     
-                    <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 border border-gray-100 dark:border-gray-700">
-                        <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-wider">
+                    <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden">
+                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+
+                        <h4 class="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             Historial de Aprobaciones
                         </h4>
 
                         @if($rendition->workflowHistories->isEmpty())
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                            <p class="text-sm text-slate-500 font-medium">
                                 Aún no hay movimientos registrados para esta rendición.
                             </p>
                         @else
                             <div class="space-y-4">
                                 @foreach($rendition->workflowHistories->sortByDesc('created_at') as $history)
-                                    <div class="border-l-4 pl-4
-                                        @if(str_contains($history->action, 'rejected') || str_contains($history->action, 'returned'))
-                                            border-red-500
-                                        @elseif(str_contains($history->action, 'approved'))
-                                            border-green-500
-                                        @else
-                                            border-indigo-500
-                                        @endif
-                                    ">
-                                        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ $history->user->name ?? 'Sistema' }}
+                                    @php
+                                        $actionLabels = [
+                                            'submitted_by_worker' => 'Enviado por trabajador',
+                                            'approved_by_jefatura' => 'Aprobado por Jefatura',
+                                            'rejected_by_jefatura' => 'Rechazado por Jefatura',
+                                            'approved_by_controlling' => 'Aprobado por Controlling',
+                                            'rejected_by_controlling' => 'Rechazado por Controlling',
+                                            'approved_by_finances' => 'Aprobado por Finanzas',
+                                            'rejected_by_finances' => 'Rechazado por Finanzas',
+                                            'payment_completed_by_finances' => 'Cierre financiero confirmado por Finanzas',
+                                            'expense_validated_by_controlling' => 'Documento validado por Controlling',
+                                            'expense_observed_by_controlling' => 'Documento observado por Controlling',
+                                        ];
+
+                                        $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
+
+                                        $isRejected = str_contains($history->action, 'rejected') || str_contains($history->action, 'observed') || str_contains($history->action, 'returned');
+                                        $isApproved = str_contains($history->action, 'approved') || str_contains($history->action, 'validated') || str_contains($history->action, 'completed');
+                                    @endphp
+
+                                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80 relative overflow-hidden">
+                                        <div class="absolute left-0 top-0 h-full w-1
+                                            @if($isRejected)
+                                                bg-rose-500
+                                            @elseif($isApproved)
+                                                bg-emerald-500
+                                            @else
+                                                bg-blue-500
+                                            @endif
+                                        "></div>
+
+                                        <div class="pl-3">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <p class="text-sm font-black text-white uppercase tracking-tight">
+                                                        {{ $history->user->name ?? 'Sistema' }}
+                                                    </p>
+
+                                                    <p class="text-[11px] text-slate-400 font-bold mt-1">
+                                                        {{ $actionLabel }}
+                                                    </p>
+                                                </div>
+
+                                                <span class="text-[10px] text-slate-600 font-black uppercase tracking-tighter whitespace-nowrap">
+                                                    {{ $history->created_at->format('d/m/Y H:i') }}
+                                                </span>
+                                            </div>
+
+                                            <div class="mt-3 flex flex-wrap gap-2">
+                                                <span class="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 text-[9px] font-black uppercase tracking-widest border border-slate-700">
+                                                    {{ $history->from_status ?? 'N/A' }}
+                                                </span>
+
+                                                <span class="text-slate-600 text-xs font-black">→</span>
+
+                                                <span class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 text-[9px] font-black uppercase tracking-widest border border-slate-700">
+                                                    {{ $history->to_status ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            @if($history->observation)
+                                                <div class="mt-4 text-sm text-slate-300 bg-slate-900/80 rounded-2xl p-3 border border-slate-800 leading-relaxed">
+                                                    {{ $history->observation }}
+                                                </div>
+                                            @endif
+
+                                            @if($history->ip_address)
+                                                <p class="mt-3 text-[10px] text-slate-600 font-mono">
+                                                    IP: {{ $history->ip_address }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden">
+                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+
+                        <h4 class="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            Firmas Digitales
+                        </h4>
+
+                        @if($rendition->digitalSignatures->isEmpty())
+                            <p class="text-sm text-slate-500 font-medium">
+                                Aún no existen firmas digitales registradas para esta rendición.
+                            </p>
+                        @else
+                            <div class="space-y-4">
+                                @foreach($rendition->digitalSignatures->sortBy('signed_at') as $signature)
+                                    @php
+                                        $signatureLabels = [
+                                            'rendition_worker_signature' => 'Firma del trabajador',
+                                            'rendition_jefatura_signature' => 'Firma de jefatura',
+                                            'planning_worker_signature' => 'Firma planificación trabajador',
+                                            'jefatura_approval' => 'Firma aprobación jefatura',
+                                        ];
+
+                                        $signatureLabel = $signatureLabels[$signature->signature_type] ?? ucfirst(str_replace('_', ' ', $signature->signature_type));
+                                    @endphp
+
+                                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p class="text-sm font-black text-white uppercase tracking-tight">
+                                                    {{ $signatureLabel }}
+                                                </p>
+
+                                                <p class="text-[11px] text-slate-400 font-bold mt-1">
+                                                    Firmado por: {{ $signature->user->name ?? 'Usuario no disponible' }}
+                                                </p>
+
+                                                <p class="text-[11px] text-slate-500 font-bold mt-1">
+                                                    Fecha: {{ $signature->signed_at ? $signature->signed_at->format('d/m/Y H:i') : 'Sin fecha' }}
+                                                </p>
+
+                                                @if($signature->ip_address)
+                                                    <p class="text-[10px] text-slate-600 font-bold mt-1">
+                                                        IP: {{ $signature->ip_address }}
+                                                    </p>
+                                                @endif
+                                            </div>
+
+                                            <span class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest">
+                                                Verificada
+                                            </span>
                                         </div>
 
-                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            @php
-                                                $actionLabels = [
-                                                    'submitted_by_worker' => 'Enviado por trabajador',
-                                                    'approved_by_jefatura' => 'Aprobado por Jefatura',
-                                                    'rejected_by_jefatura' => 'Rechazado por Jefatura',
-                                                    'approved_by_controlling' => 'Aprobado por Controlling',
-                                                    'rejected_by_controlling' => 'Rechazado por Controlling',
-                                                    'approved_by_finances' => 'Aprobado por Finanzas',
-                                                    'rejected_by_finances' => 'Rechazado por Finanzas',
-                                                ];
+                                        <div class="mt-4 pt-4 border-t border-slate-800">
+                                            <p class="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-2">
+                                                Hash SHA-256
+                                            </p>
 
-                                                $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
-                                            @endphp
-
-                                            Acción: {{ $actionLabel }}
+                                            <p class="text-[10px] text-slate-400 font-mono break-all bg-slate-950 rounded-xl p-3 border border-slate-800">
+                                                {{ $signature->hash }}
+                                            </p>
                                         </div>
 
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                                            Estado: {{ $history->from_status ?? 'N/A' }} → {{ $history->to_status }}
-                                        </div>
+                                        @if($signature->verification_token)
+                                            <div class="mt-3">
+                                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-1">
+                                                    Token de verificación
+                                                </p>
 
-                                        @if($history->observation)
-                                            <div class="mt-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40 rounded p-2">
-                                                {{ $history->observation }}
+                                                <p class="text-[10px] text-slate-500 font-mono break-all">
+                                                    {{ $signature->verification_token }}
+                                                </p>
                                             </div>
                                         @endif
-
-                                        <div class="text-[11px] text-gray-400 mt-1">
-                                            {{ $history->created_at->format('d/m/Y H:i') }}
-                                        </div>
                                     </div>
                                 @endforeach
                             </div>

@@ -36,4 +36,9 @@ class Rendition extends Model
     {
         return $this->morphMany(\App\Models\WorkflowHistory::class, 'workflowable');
     }
+
+    public function digitalSignatures()
+    {
+        return $this->morphMany(\App\Models\DigitalSignature::class, 'signable');
+    }
 }

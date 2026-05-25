@@ -9,9 +9,10 @@ class DigitalSignature extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'snapshot' => 'array',
-
         'signed_at' => 'datetime',
+        'snapshot' => 'array',
+        'signed_snapshot' => 'array',
+        'signed_snapshots' => 'array',
     ];
 
     public function signable()
