@@ -59,6 +59,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/{rendition}/reject-jefatura', [RenditionController::class, 'rejectByJefatura'])->name('reject-jefatura-rendition');
         Route::post('/{rendition}/approve-controlling', [RenditionController::class, 'approveByControlling'])->name('approve-controlling-rendition');
         Route::post('/{rendition}/reject-controlling', [RenditionController::class, 'rejectByControlling'])->name('reject-controlling-rendition');
+        Route::post('/{rendition}/payment-completed', [RenditionController::class, 'markPaymentCompleted'])->name('payment-completed');
         Route::post('/{rendition}/approve-finances', [RenditionController::class, 'approveByFinances'])->name('approve-finances-rendition');
         Route::post('/{rendition}/reject-finances', [RenditionController::class, 'rejectByFinances'])->name('reject-finances-rendition');
     });

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\WorkflowNotification;
 use Illuminate\Support\Facades\Notification;
 use App\Models\WorkflowHistory;
+use App\Services\DigitalSignatureService;
 
 class RenditionController extends Controller
 {
@@ -138,15 +139,59 @@ class RenditionController extends Controller
         return redirect()->back()->with('success', 'Gasto eliminado y monto recalculado.');
     }
 
-    public function submitRendition(\App\Models\Rendition $rendition)
+    public function submitRendition(Request $request, \App\Models\Rendition $rendition)
     {
         if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
             abort(403, 'No autorizado.');
         }
 
+        $request->validate([
+            'user_observation' => 'nullable|string|max:1000',
+        ]);
+
+        if ($rendition->expenses()->count() === 0) {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'expenses' => 'Debes subir al menos un documento antes de enviar la rendición.'
+                ]);
+        }
+
+        $signatureService = new DigitalSignatureService();
+
+        $signatureService->sign(
+            model: $rendition,
+            user: auth()->user(),
+            snapshot: [
+                'rendition_id' => $rendition->id,
+                'route_planning_id' => $rendition->route_planning_id,
+                'worker_name' => auth()->user()->name,
+                'worker_rut' => auth()->user()->rut ?? null,
+                'funds_received' => $rendition->funds_received,
+                'total_declared' => $rendition->expenses()->sum('amount'),
+                'expenses_count' => $rendition->expenses()->count(),
+                'signed_at' => now()->toDateTimeString(),
+                'user_observation' => $request->user_observation,
+            ],
+            type: 'rendition_worker_signature'
+        );
+
         // Envía a jefatura si tiene, si no, directo a controlling.
+        $fromStatus = $rendition->status;
+
         $rendition->status = auth()->user()->jefatura_id ? 'pending_jefatura' : 'pending_controlling';
         $rendition->save();
+
+        \App\Models\WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => auth()->id(),
+            'action' => 'submitted_by_worker',
+            'from_status' => $fromStatus,
+            'to_status' => $rendition->status,
+            'observation' => $request->user_observation,
+            'ip_address' => $request->ip(),
+        ]);
         if ($rendition->user->jefatura) {
             $rendition->user->jefatura->notify(new WorkflowNotification(
                 'Nueva rendición pendiente',
@@ -208,19 +253,11 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cargar rendición asociada
-        |--------------------------------------------------------------------------
-        */
+        // Cargar rendición asociada
 
         $rendition = $expense->rendition;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permisos
-        |--------------------------------------------------------------------------
-        */
+        // Permisos
 
         $isOwner = $rendition->user_id === $user->id;
 
@@ -246,21 +283,12 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validar existencia archivo
-        |--------------------------------------------------------------------------
-        */
-
+        // Validar
         if (!Storage::disk('local')->exists($expense->attachment_path)) {
             abort(404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Descargar
-        |--------------------------------------------------------------------------
-        */
+        // Descargar archivo
 
         $fullPath = Storage::disk('local')->path($expense->attachment_path);
 
@@ -289,8 +317,17 @@ class RenditionController extends Controller
         if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES) abort(403);
 
         $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_finances')->orderBy('created_at', 'asc')->paginate(5, ['*'], 'plannings_page');
-        $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])->where('status', 'pending_finances')->orderBy('updated_at', 'asc')->paginate(5, ['*'], 'renditions_page');
-
+        $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])
+            ->where(function ($query) {
+                $query->where('status', 'pending_finances')
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('status', 'approved')
+                            ->where('payment_completed', false);
+                    });
+            })
+            ->orderBy('updated_at', 'asc')
+            ->paginate(5, ['*'], 'renditions_page');
+            
         return view('renditions.finances', compact('plannings', 'renditions'));
     }
 
@@ -308,11 +345,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permisos
-        |--------------------------------------------------------------------------
-        */
+        // Permisos
 
         if (
             $user->role !== 'admin'
@@ -322,21 +355,33 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Estado válido
-        |--------------------------------------------------------------------------
-        */
+        // Estado válido
 
         if ($rendition->status !== 'pending_jefatura') {
             abort(403, 'La rendición no está pendiente de Jefatura.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Aprobar
-        |--------------------------------------------------------------------------
-        */
+        //Aprobar
+    
+        $signatureService = new DigitalSignatureService();
+
+        $signatureService->sign(
+            model: $rendition,
+            user: $user,
+            snapshot: [
+                'rendition_id' => $rendition->id,
+                'route_planning_id' => $rendition->route_planning_id,
+                'worker_name' => $rendition->user->name,
+                'worker_rut' => $rendition->user->rut ?? null,
+                'approved_by' => $user->name,
+                'approver_role' => $user->role,
+                'funds_received' => $rendition->funds_received,
+                'total_declared' => $rendition->total_declared,
+                'expenses_count' => $rendition->expenses()->count(),
+                'approved_at' => now()->toDateTimeString(),
+            ],
+            type: 'rendition_jefatura_signature'
+        );
 
         $rendition->status = 'pending_controlling';
         $rendition->save();
@@ -370,11 +415,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permisos
-        |--------------------------------------------------------------------------
-        */
+        // Permisos
 
         if (
             $user->role !== 'admin'
@@ -384,40 +425,24 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Estado válido
-        |--------------------------------------------------------------------------
-        */
+        // estado válido
 
         if ($rendition->status !== 'pending_jefatura') {
             abort(403, 'La rendición no está pendiente de Jefatura.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validar observación
-        |--------------------------------------------------------------------------
-        */
+        // validar observación
 
         $request->validate([
             'observation' => 'required|string|max:1000'
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Rechazar
-        |--------------------------------------------------------------------------
-        */
+        // rechazar
 
         $rendition->status = 'rejected';
         $rendition->save();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Registrar observación
-        |--------------------------------------------------------------------------
-        */
+        // registrar observación
 
         $rendition->observations()->create([
             'user_id' => $user->id,
@@ -452,11 +477,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permisos
-        |--------------------------------------------------------------------------
-        */
+        // permisos
 
         if (
             $user->role !== 'admin'
@@ -466,21 +487,12 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Estado válido
-        |--------------------------------------------------------------------------
-        */
-
+        // estado válido
         if ($rendition->status !== 'pending_controlling') {
             abort(403, 'La rendición no está pendiente de Controlling.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Aprobar
-        |--------------------------------------------------------------------------
-        */
+        // aprobar
 
         $rendition->status = 'pending_finances';
         $rendition->save();
@@ -514,11 +526,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permisos
-        |--------------------------------------------------------------------------
-        */
+        // Permisos
 
         if (
             $user->role !== 'admin'
@@ -528,40 +536,24 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Estado válido
-        |--------------------------------------------------------------------------
-        */
+        // Estado válido
 
         if ($rendition->status !== 'pending_controlling') {
             abort(403, 'La rendición no está pendiente de Controlling.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validar observación
-        |--------------------------------------------------------------------------
-        */
+        // Validar observación
 
         $request->validate([
             'observation' => 'required|string|max:1000'
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Rechazar
-        |--------------------------------------------------------------------------
-        */
+        // rechazar
 
         $rendition->status = 'rejected';
         $rendition->save();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Registrar observación
-        |--------------------------------------------------------------------------
-        */
+        // registrar observación
 
         $rendition->observations()->create([
             'user_id' => $user->id,
@@ -596,11 +588,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permisos
-        |--------------------------------------------------------------------------
-        */
+        // permisos
 
         if (
             $user->role !== 'admin'
@@ -610,21 +598,13 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Estado válido
-        |--------------------------------------------------------------------------
-        */
+        // estado válido
 
         if ($rendition->status !== 'pending_finances') {
             abort(403, 'La rendición no está pendiente de Finanzas.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Aprobar
-        |--------------------------------------------------------------------------
-        */
+        // aprobar
 
         $totalDeclared = $rendition->expenses()->sum('amount');
         $difference = $rendition->funds_received - $totalDeclared;
@@ -661,11 +641,7 @@ class RenditionController extends Controller
             route('renditions.index')
         ));
 
-        /*
-        |--------------------------------------------------------------------------
-        | Aprobar planificación original
-        |--------------------------------------------------------------------------
-        */
+        // aprobar planificación original
 
         if ($rendition->routePlanning) {
 
@@ -683,11 +659,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permisos
-        |--------------------------------------------------------------------------
-        */
+        // permisos
 
         if (
             $user->role !== 'admin'
@@ -697,40 +669,25 @@ class RenditionController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Estado válido
-        |--------------------------------------------------------------------------
-        */
+        // estado válido
 
         if ($rendition->status !== 'pending_finances') {
             abort(403, 'La rendición no está pendiente de Finanzas.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validar observación
-        |--------------------------------------------------------------------------
-        */
+        // validar observación
 
         $request->validate([
             'observation' => 'required|string|max:1000'
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Rechazar
-        |--------------------------------------------------------------------------
-        */
+        // rechazar
+
 
         $rendition->status = 'rejected';
         $rendition->save();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Registrar observación
-        |--------------------------------------------------------------------------
-        */
+        // registrar observación
 
         $rendition->observations()->create([
             'user_id' => $user->id,
@@ -761,15 +718,65 @@ class RenditionController extends Controller
         );
     }
 
+    public function markPaymentCompleted(Request $request, \App\Models\Rendition $rendition)
+    {
+        $user = auth()->user();
+
+        if (
+            $user->role !== 'admin'
+            &&
+            $user->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
+        ) {
+            abort(403);
+        }
+
+        if ($rendition->status !== 'approved') {
+            abort(403, 'La rendición debe estar aprobada antes de cerrar el pago o devolución.');
+        }
+
+        if ($rendition->payment_completed) {
+            return redirect()
+                ->back()
+                ->with('success', 'Esta rendición ya tenía el pago/devolución marcado como realizado.');
+        }
+
+        $request->validate([
+            'payment_observation' => 'nullable|string|max:1000',
+        ]);
+
+        $rendition->payment_completed = true;
+        $rendition->payment_completed_at = now();
+        $rendition->payment_completed_by = $user->id;
+        $rendition->payment_observation = $request->payment_observation;
+        $rendition->save();
+
+        \App\Models\WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'payment_completed_by_finances',
+            'from_status' => $rendition->status,
+            'to_status' => $rendition->status,
+            'observation' => $request->payment_observation ?: 'Finanzas marcó el pago/devolución como realizado.',
+            'ip_address' => $request->ip(),
+        ]);
+
+        $rendition->user->notify(new WorkflowNotification(
+            'Pago/devolución finalizado',
+            'Finanzas marcó como realizado el cierre financiero de tu rendición.',
+            route('renditions.show', $rendition->id)
+        ));
+
+        return redirect()
+            ->back()
+            ->with('success', 'Pago/devolución marcado como realizado correctamente.');
+    }
+
     public function history()
     {
         $user = auth()->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Admin
-        |--------------------------------------------------------------------------
-        */
+        // Admin puede ver todo el historial
 
         if ($user->role === 'admin') {
 
@@ -786,11 +793,7 @@ class RenditionController extends Controller
             return view('renditions.history', compact('plannings', 'renditions'));
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Finanzas / Controlling
-        |--------------------------------------------------------------------------
-        */
+        // Finanzas y Controlling pueden ver todo lo aprobado/rechazado
 
         if (in_array($user->departamento, [WorkflowHelper::DEPARTMENT_FINANCES, WorkflowHelper::DEPARTMENT_CONTROLLING])) {
 
@@ -807,11 +810,7 @@ class RenditionController extends Controller
             return view('renditions.history', compact('plannings', 'renditions'));
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Jefatura
-        |--------------------------------------------------------------------------
-        */
+        // Jefatura puede ver el historial de sus trabajadores
 
         if ($user->role === 'jefatura') {
 
@@ -834,11 +833,7 @@ class RenditionController extends Controller
             return view('renditions.history', compact('plannings', 'renditions'));
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Trabajador / Visualizador
-        |--------------------------------------------------------------------------
-        */
+        // Trabajadores pueden ver su propio historial
 
         $plannings = \App\Models\RoutePlanning::with('user')
             ->where('user_id', $user->id)

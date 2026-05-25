@@ -44,6 +44,22 @@
                 </div>
             @endif
 
+            @if ($errors->any())
+                <div class="mb-8 bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 shadow-2xl">
+                    <h3 class="text-sm font-black text-rose-400 flex items-center gap-2 mb-4 uppercase tracking-widest">
+                        Error al enviar rendición
+                    </h3>
+
+                    <ul class="space-y-2">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm text-rose-300 font-medium">
+                                {{ $error }}
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if($rendition->status === 'rejected' && $rendition->observations->count() > 0)
                 <div class="mb-8 bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                     <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/5 rounded-full blur-[60px] pointer-events-none"></div>
@@ -248,7 +264,14 @@
                             </h3>
                         </div>
                         <div class="p-8">
-                            <form action="{{ route('renditions.expenses.store', $rendition->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                            <form 
+                                action="{{ route('renditions.expenses.store', $rendition->id) }}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="space-y-8"
+                                x-data="{ loading: false }"
+                                @submit="loading = true"
+                            >
                                 @csrf
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     
@@ -301,9 +324,21 @@
                                 </div>
 
                                 <div class="pt-8 border-t border-slate-800 flex justify-end">
-                                    <button type="submit" class="px-10 py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all flex items-center gap-3 cursor-pointer">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
-                                        Subir y Guardar Gasto
+                                    <button type="submit" :disabled="loading" class="px-10 py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all flex items-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-blue-600">
+                                        <span x-show="!loading" class="flex items-center gap-3">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                            Subir y Guardar Gasto
+                                        </span>
+
+                                        <span x-show="loading" class="flex items-center gap-2">
+                                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                            </svg>
+                                            Procesando...
+                                        </span>
                                     </button>
                                 </div>
                             </form>
@@ -353,6 +388,37 @@
                                             </p>
                                         </div>
                                     </div>
+                                    @if($rendition->status === 'approved')
+                                    <div class="mt-4 p-4 rounded-3xl bg-slate-950/50 border border-slate-800/80">
+                                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                                            Resultado final Finanzas
+                                        </p>
+
+                                        @if($rendition->refund_to_company)
+                                            <p class="text-sm font-black text-emerald-400">
+                                                Trabajador debe devolver a empresa:
+                                                ${{ number_format(abs($rendition->difference), 0, ',', '.') }}
+                                            </p>
+
+                                        @elseif($rendition->refund_to_worker)
+                                            <p class="text-sm font-black text-amber-400">
+                                                Empresa debe reembolsar al trabajador:
+                                                ${{ number_format(abs($rendition->difference), 0, ',', '.') }}
+                                            </p>
+
+                                        @else
+                                            <p class="text-sm font-black text-blue-400">
+                                                Rendición exacta. No existen saldos pendientes.
+                                            </p>
+                                        @endif
+
+                                        @if($rendition->refund_resolved_at)
+                                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter mt-2">
+                                                Resuelto el {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endif
                                 </div>
                             </div>
 
@@ -380,21 +446,80 @@
                                             </div>
                                         </div>
 
-                                        <p class="text-base text-slate-300 mb-10 leading-relaxed font-medium">
-                                            ¿Está seguro de enviar esta rendición? <span class="text-white font-black">Ya no podrá agregar ni modificar documentos</span> una vez que el proceso sea enviado a revisión por el departamento de Finanzas.
+                                        <p class="text-base text-slate-300 mb-6 leading-relaxed font-medium">
+                                            ¿Está seguro de enviar esta rendición?
+                                            <span class="text-white font-black">Ya no podrá agregar ni modificar documentos</span>
+                                            una vez que el proceso sea enviado a revisión.
                                         </p>
 
-                                        <div class="flex justify-end gap-4">
-                                            <button type="button" @click="showSubmitModal = false" class="px-8 py-3.5 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors cursor-pointer">
-                                                Cancelar
-                                            </button>
-                                            <form action="{{ route('renditions.submit', $rendition->id) }}" method="POST">
-                                                @csrf
-                                                <button type="submit" class="px-10 py-3.5 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl shadow-emerald-600/30 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
-                                                    Aceptar y Enviar
+                                        <form 
+                                            action="{{ route('renditions.submit', $rendition->id) }}"
+                                            method="POST"
+                                            x-data="{ loading: false }"
+                                            @submit="loading = true"
+                                        >
+                                            @csrf
+
+                                            <div class="mb-8">
+                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">
+                                                    Observación adicional del trabajador
+                                                </label>
+
+                                                <textarea
+                                                    name="user_observation"
+                                                    rows="4"
+                                                    maxlength="1000"
+                                                    class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl text-sm text-white placeholder-slate-600 focus:border-emerald-500 focus:ring-emerald-500"
+                                                    placeholder="Opcional. Ej: Se adjuntan boletas correspondientes al viaje realizado..."
+                                                ></textarea>
+
+                                                <p class="mt-2 text-[10px] text-slate-600 font-bold uppercase tracking-tighter">
+                                                    Este comentario quedará registrado en el historial de la rendición.
+                                                </p>
+                                            </div>
+
+                                            <div class="flex justify-end gap-4">
+                                                <button
+                                                    type="button"
+                                                    @click="showSubmitModal = false"
+                                                    class="px-8 py-3.5 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors cursor-pointer"
+                                                >
+                                                    Cancelar
                                                 </button>
-                                            </form>
-                                        </div>
+
+                                                <button
+                                                    type="submit"
+                                                    :disabled="loading"
+                                                    class="px-10 py-3.5 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl shadow-emerald-600/30 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-emerald-600"
+                                                >
+                                                    <span x-show="!loading">
+                                                        Aceptar y Enviar
+                                                    </span>
+
+                                                    <span x-show="loading" class="flex items-center gap-2">
+                                                        <svg class="animate-spin h-4 w-4 text-white"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24">
+                                                            <circle class="opacity-25"
+                                                                cx="12"
+                                                                cy="12"
+                                                                r="10"
+                                                                stroke="currentColor"
+                                                                stroke-width="4">
+                                                            </circle>
+
+                                                            <path class="opacity-75"
+                                                                fill="currentColor"
+                                                                d="M4 12a8 8 0 018-8v8H4z">
+                                                            </path>
+                                                        </svg>
+
+                                                        Procesando...
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -466,7 +591,21 @@
                                         </div>
 
                                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            Acción: {{ str_replace('_', ' ', $history->action) }}
+                                            @php
+                                                $actionLabels = [
+                                                    'submitted_by_worker' => 'Enviado por trabajador',
+                                                    'approved_by_jefatura' => 'Aprobado por Jefatura',
+                                                    'rejected_by_jefatura' => 'Rechazado por Jefatura',
+                                                    'approved_by_controlling' => 'Aprobado por Controlling',
+                                                    'rejected_by_controlling' => 'Rechazado por Controlling',
+                                                    'approved_by_finances' => 'Aprobado por Finanzas',
+                                                    'rejected_by_finances' => 'Rechazado por Finanzas',
+                                                ];
+
+                                                $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
+                                            @endphp
+
+                                            Acción: {{ $actionLabel }}
                                         </div>
 
                                         <div class="text-xs text-gray-500 dark:text-gray-400">

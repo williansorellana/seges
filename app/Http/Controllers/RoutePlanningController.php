@@ -16,22 +16,14 @@ class RoutePlanningController extends Controller
     {
         $query = \App\Models\RoutePlanning::with(['workflowHistories.user']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Trabajador normal
-        |--------------------------------------------------------------------------
-        */
+        // Trabajador normal
 
         if (auth()->user()->role === WorkflowHelper::ROLE_WORKER) {
 
             $query->where('user_id', auth()->id());
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Jefatura
-        |--------------------------------------------------------------------------
-        */
+        // jefatura
 
         elseif (auth()->user()->role === WorkflowHelper::ROLE_JEFATURA) {
 
@@ -41,11 +33,7 @@ class RoutePlanningController extends Controller
                 });
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Controlling
-        |--------------------------------------------------------------------------
-        */
+        // controlling
 
         elseif (
             auth()->user()->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING
@@ -55,11 +43,7 @@ class RoutePlanningController extends Controller
             $query->where('status', 'pending_controlling');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Finanzas
-        |--------------------------------------------------------------------------
-        */
+        // finanzas
 
         elseif (
             auth()->user()->departamento === WorkflowHelper::DEPARTMENT_FINANCES
@@ -115,6 +99,29 @@ class RoutePlanningController extends Controller
         
         $planning->save();
 
+        $signatureService = new DigitalSignatureService();
+
+        $signatureService->sign(
+            model: $planning,
+            user: auth()->user(),
+            snapshot: [
+                'planning_id' => $planning->id,
+                'worker_name' => auth()->user()->name,
+                'worker_rut' => auth()->user()->rut ?? null,
+                'trip_type' => $planning->trip_type,
+                'motive' => $planning->motive,
+                'destination' => $planning->destination,
+                'start_date' => $planning->start_date,
+                'end_date' => $planning->end_date,
+                'requires_funds' => $planning->requires_funds,
+                'requested_funds' => $planning->requested_funds,
+                'requires_amipass' => $planning->requires_amipass,
+                'amipass_days' => $planning->amipass_days,
+                'signed_at' => now()->toDateTimeString(),
+            ],
+            type: 'planning_worker_signature'
+        );
+
         if ($planning->user->jefatura) {
             $planning->user->jefatura->notify(new WorkflowNotification(
                 'Nueva planificación pendiente',
@@ -142,11 +149,7 @@ class RoutePlanningController extends Controller
 
     public function approveByJefatura(\App\Models\RoutePlanning $planning)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Validación autorización
-        |--------------------------------------------------------------------------
-        */
+        // Validación autorización
 
         if (
             $planning->user->jefatura_id !== auth()->id()
@@ -155,11 +158,7 @@ class RoutePlanningController extends Controller
             abort(403, 'No autorizado.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Firma digital jefatura
-        |--------------------------------------------------------------------------
-        */
+        // Firma digital jefatura
 
         $signatureService = new DigitalSignatureService();
 
@@ -187,11 +186,7 @@ class RoutePlanningController extends Controller
             type: 'jefatura_approval'
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Workflow según tipo viaje
-        |--------------------------------------------------------------------------
-        */
+        // Workflow segun tipo viaje
 
         if ($planning->trip_type === 'reunion') {
 
@@ -249,11 +244,7 @@ class RoutePlanningController extends Controller
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Historial workflow
-        |--------------------------------------------------------------------------
-        */
+        // Historial workflow
 
         WorkflowHistory::create([
 
@@ -272,11 +263,7 @@ class RoutePlanningController extends Controller
             'observation' => 'Solicitud aprobada por jefatura.',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Respuesta
-        |--------------------------------------------------------------------------
-        */
+        // respuesta
 
         return redirect()
             ->back()
@@ -288,21 +275,13 @@ class RoutePlanningController extends Controller
 
     public function rejectByJefatura(Request $request, \App\Models\RoutePlanning $planning)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Validar observación
-        |--------------------------------------------------------------------------
-        */
+        // validar observación
 
         $request->validate([
             'observation' => 'required|string|max:500'
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validación autorización
-        |--------------------------------------------------------------------------
-        */
+        // Validación autorización
 
         if (
             $planning->user->jefatura_id !== auth()->id()
@@ -312,30 +291,17 @@ class RoutePlanningController extends Controller
             abort(403, 'No autorizado.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Estado válido
-        |--------------------------------------------------------------------------
-        */
+        // Estado válido
 
         if ($planning->status !== WorkflowHelper::STATUS_PENDING_JEFATURA) {
             abort(403, 'La planificación no está pendiente de Jefatura.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Rechazar planificación
-        |--------------------------------------------------------------------------
-        */
-
+        // Rechazar planificación
         $planning->status = WorkflowHelper::STATUS_REJECTED;
         $planning->save();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Registrar observación
-        |--------------------------------------------------------------------------
-        */
+        // Registrar observación
 
         $planning->observations()->create([
             'user_id' => auth()->id(),
@@ -343,11 +309,7 @@ class RoutePlanningController extends Controller
             'action' => 'rejected'
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Historial workflow
-        |--------------------------------------------------------------------------
-        */
+        // Historial workflow
 
         WorkflowHistory::create([
             'workflowable_type' => \App\Models\RoutePlanning::class,
@@ -359,11 +321,7 @@ class RoutePlanningController extends Controller
             'observation' => $request->observation,
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Notificar trabajador
-        |--------------------------------------------------------------------------
-        */
+        // Notificar al trabajador
 
         $planning->user->notify(new WorkflowNotification(
             'Planificación rechazada',

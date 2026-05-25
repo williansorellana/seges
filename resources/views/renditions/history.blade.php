@@ -160,6 +160,23 @@
                                         <div class="flex flex-col gap-1">
                                             <div class="text-xs text-slate-500">Asignado: <span class="text-slate-300 font-medium">${{ number_format($ren->funds_received, 0, ',', '.') }}</span></div>
                                             <div class="text-xs text-slate-500">Rendido: <span class="text-slate-300 font-medium">${{ number_format($ren->total_declared, 0, ',', '.') }}</span></div>
+                                            @if($ren->status === 'approved')
+                                                <div class="mt-2 text-xs">
+                                                    @if($ren->refund_to_company)
+                                                        <span class="text-emerald-600 font-bold">
+                                                            Devuelve a empresa: ${{ number_format(abs($ren->difference), 0, ',', '.') }}
+                                                        </span>
+                                                    @elseif($ren->refund_to_worker)
+                                                        <span class="text-amber-600 font-bold">
+                                                            Reembolso trabajador: ${{ number_format(abs($ren->difference), 0, ',', '.') }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-blue-600 font-bold">
+                                                            Rendición exacta
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                             <div class="mt-1 text-sm font-bold px-2.5 py-0.5 rounded-md w-fit ring-1 {{ $ren->funds_received - $ren->total_declared < 0 ? 'bg-amber-500/10 text-amber-400 ring-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' }}">
                                                 Saldo: ${{ number_format(abs($ren->funds_received - $ren->total_declared), 0, ',', '.') }}
                                             </div>

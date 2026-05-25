@@ -80,13 +80,39 @@
             <th>Total Gastos Rendidos</th>
             <td style="text-align: right;">${{ number_format($rendition->total_declared, 0, ',', '.') }}</td>
         </tr>
-        @php $diff = $rendition->funds_received - $rendition->total_declared; @endphp
+        @php
+            $diff = $rendition->status === 'approved'
+                ? $rendition->difference
+                : ($rendition->funds_received - $rendition->total_declared);
+        @endphp
+
         <tr class="total-row">
-            <th>Saldo a favor {{ $diff > 0 ? 'Empresa' : 'Trabajador' }}</th>
-            <td style="text-align: right;" class="{{ $diff < 0 ? 'badge-red' : 'badge-green' }}">
-                ${{ number_format(abs($diff), 0, ',', '.') }}
-            </td>
+            @if($diff > 0)
+                <th>Saldo a devolver a Empresa</th>
+                <td style="text-align: right;" class="badge-green">
+                    ${{ number_format(abs($diff), 0, ',', '.') }}
+                </td>
+            @elseif($diff < 0)
+                <th>Reembolso a favor del Trabajador</th>
+                <td style="text-align: right;" class="badge-red">
+                    ${{ number_format(abs($diff), 0, ',', '.') }}
+                </td>
+            @else
+                <th>Resultado Final</th>
+                <td style="text-align: right;" class="badge-green">
+                    Sin saldo pendiente
+                </td>
+            @endif
         </tr>
+
+        @if($rendition->status === 'approved' && $rendition->refund_resolved_at)
+            <tr>
+                <th>Fecha de cierre financiero</th>
+                <td style="text-align: right;">
+                    {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
+                </td>
+            </tr>
+        @endif
     </table>
 
     <table style="margin-top: 50px; border: none;">
@@ -98,7 +124,10 @@
             </td>
             <td style="border: none; text-align: center; width: 50%;">
                 ___________________________<br><br>
-                Aprobación Finanzas
+                Aprobación Finanzas<br>
+                @if($rendition->status === 'approved' && $rendition->refund_resolved_at)
+                    Cierre financiero: {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
+                @endif
             </td>
         </tr>
     </table>
