@@ -243,43 +243,59 @@ class RoomReservationController extends Controller
 
     public function agenda(Request $request)
     {
-        
         $month = $request->input('month', now()->month);
         $year  = $request->input('year', now()->year);
+        $selectedRoomId = $request->input('room_id');
+
+        $selectedRoom = null;
+
+        if ($selectedRoomId) {
+        $selectedRoom = MeetingRoom::find($selectedRoomId);
+        }
 
         $startOfMonth = Carbon::create($year, $month, 1)->startOfMonth();
         $endOfMonth = Carbon::create($year, $month, 1)->endOfMonth();
 
         $reservationsRaw = RoomReservation::with(['user','meetingRoom'])
             ->where('status', 'approved')
+            ->when($selectedRoomId, function ($query) use ($selectedRoomId) {
+            $query->where('meeting_room_id', $selectedRoomId);
+            })
             ->where(function ($query) use ($startOfMonth, $endOfMonth) {
-                $query->where('start_time', '<=', $endOfMonth)
-                      ->where('end_time', '>=', $startOfMonth);
+            $query->where('start_time', '<=', $endOfMonth)
+                  ->where('end_time', '>=', $startOfMonth);
             })
             ->orderBy('start_time', 'asc')
             ->get();
 
         $reservations = collect();
-        
-        foreach ($reservationsRaw as $reservation){
-            $start = \Carbon\Carbon::parse($reservation->start_time)->startOfDay();
-            $end = \Carbon\Carbon::parse($reservation->end_time)->startOfDay();
-            for ($date = $start->copy(); $date->lte($end); $date->addDay()){
-                if ($date->between($startOfMonth, $endOfMonth)){
-                     
-                    $key = $date ->format('Y-m-d');
 
-                    if(!$reservations->has($key)){
-                        $reservations->put($key, collect());
+        foreach ($reservationsRaw as $reservation) {
+            $start = Carbon::parse($reservation->start_time)->startOfDay();
+            $end = Carbon::parse($reservation->end_time)->startOfDay();
+
+            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+                if ($date->between($startOfMonth, $endOfMonth)) {
+
+                    $key = $date->format('Y-m-d');
+
+                    if (!$reservations->has($key)) {
+                    $reservations->put($key, collect());
                     }
 
                     $reservations[$key]->push($reservation);
                 }
             }
         }
-        
-        return view('rooms.agenda', compact('reservations', 'month', 'year'));
-    }
+
+        return view('rooms.agenda', compact(
+            'reservations',
+            'month',
+            'year',
+            'selectedRoom',
+            'selectedRoomId'
+        ));
+    }   
     public function cancelByAdmin(Request $request, $id)
     {
         $request->validate([

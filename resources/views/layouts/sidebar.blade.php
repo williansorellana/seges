@@ -95,6 +95,12 @@
                             :class="{{ request()->routeIs('vehicles.index') ? "'text-white bg-gray-800'" : "''" }}">
                             Gestión de Vehículos
                         </a>
+                        <a href="{{ route('requests.manage') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('requests.manage') ? "'text-white bg-gray-800'" : "''" }}">
+                            Gestión de Solicitudes
+                        </a>
+
                         <a href="{{ route('conductores.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('conductores.*') ? "'text-white bg-gray-800'" : "''" }}">

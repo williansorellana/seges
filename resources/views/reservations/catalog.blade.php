@@ -100,8 +100,8 @@
                             <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 truncate">
                                 {{ $room->location ?? 'Ubicación no definida' }}</p>
 
-                            <div class="mt-auto grid grid-cols-2 gap-3">
-                                <button @click="openAgendaModal({{ $room }})"
+                            <div class="mt-auto flex justify-center">
+                                <a href="{{ route('rooms.agenda', ['room_id' => $room->id]) }}"
                                     class="flex items-center justify-center w-full px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition text-sm font-medium border border-gray-600">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -109,15 +109,7 @@
                                         </path>
                                     </svg>
                                     Agenda
-                                </button>
-
-                                @if(Auth::user()->role !== 'viewer')
-                                    <button @click="openReservationModal({{ $room }})"
-                                        class="flex items-center justify-center w-full px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition text-sm font-medium shadow-lg shadow-blue-900/20"
-                                        {{ $room->status !== 'active' ? 'disabled' : '' }}>
-                                        Reservar
-                                    </button>
-                                @endif
+                                </a>
                             </div>
                         </div>
                     </div>

@@ -79,7 +79,7 @@
 
                     </div>
 
-                    <p p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                         Ingrese solo los 9 dígitos del celular. El prefijo +56 se agrega automáticamente.
                     </p>
 

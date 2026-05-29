@@ -2,9 +2,14 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Agenda de Salas') }}
-            </h2>
-            <a href="{{ route('rooms.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-bold hover:bg-gray-500 transition shadow-sm">
+                @if (isset($selectedRoom) && $selectedRoom)
+                    Agenda de {{ $selectedRoom->name }}
+                @else
+                    Agenda de Salas
+                @endif
+            </h2>                
+            <a href="{{ route('rooms.index') }}" 
+                class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-bold hover:bg-gray-500 transition shadow-sm">
                 ← Volver al Panel
             </a>
         </div>
@@ -33,6 +38,18 @@
             modalRoom: false, 
             modalUser: false, 
             modalCancel: false,
+            modalCreate: false,
+            fullDay: false,
+            startTime: '',
+            endTime: '',
+
+            applyFullDay() {
+                if          (this.fullDay && this.startTime) {
+                    const date = this.startTime.substring(0, 10);
+                    this.startTime = date + 'T09:00';
+                    this.endTime = date + 'T18:00';
+                }
+            },          
 
             // Datos
             cancelUrl: '',
@@ -67,6 +84,16 @@
          }">
         
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+            @if (isset($selectedRoom) && $selectedRoom && Auth::user()->role !== 'viewer')
+                <div class="mb-6 flex justify-end">
+                    <button 
+                        type="button"
+                        @click="modalCreate = true"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-bold hover:bg-blue-500 transition shadow-sm">
+                        + Reservar esta sala
+                    </button>
+                </div>
+            @endif
             
             @php
                 $currentDate = \Carbon\Carbon::create($year, $month, 1);
@@ -113,107 +140,127 @@
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden min-h-[400px]">
-                @if($reservations->isEmpty())
-                    <div class="flex flex-col items-center justify-center h-96 text-gray-400 dark:text-gray-500">
-                        <svg class="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <p class="text-lg font-medium">No hay reservas aprobadas.</p>
+                @php
+                    $startOfMonth = $currentDate->copy()->startOfMonth();
+                    $endOfMonth = $currentDate->copy()->endOfMonth();
+                    $daysInMonth = $currentDate->daysInMonth;
+                    $firstDayOfWeek = $startOfMonth->dayOfWeekIso; // 1 lunes - 7 domingo
+                @endphp
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="p-5 border-b border-gray-700">
+                        <div class="flex flex-wrap gap-3 text-xs font-bold">
+                            <span class="px-3 py-1 rounded bg-green-900/50 text-green-300 border border-green-700">
+                                Disponible
+                            </span>
+                            <span class="px-3 py-1 rounded bg-yellow-900/50 text-yellow-300 border border-yellow-700">
+                                Ocupación parcial
+                            </span>
+                            <span class="px-3 py-1 rounded bg-red-900/50 text-red-300 border border-red-700">
+                                Jornada completa ocupada
+                            </span>
+                        </div>
                     </div>
-                @else
-                    <div class="p-6 md:p-8">
-                        @foreach($reservations as $dateString => $dayReservations)
-                            @php $carbonDate = \Carbon\Carbon::parse($dateString); @endphp
-                            <div class="mb-10 last:mb-0 relative">
-                                <div class="flex items-center mb-6">
-                                    <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 capitalize mr-4 date-line relative">
-                                        {{ $carbonDate->locale('es')->translatedFormat('l j') }}
+
+                    <div class="grid grid-cols-7 text-center text-xs font-bold uppercase text-gray-400 border-b border-gray-700">
+                        <div class="py-3">Lun</div>
+                        <div class="py-3">Mar</div>
+                        <div class="py-3">Mié</div>
+                        <div class="py-3">Jue</div>
+                        <div class="py-3">Vie</div>
+                        <div class="py-3">Sáb</div>
+                        <div class="py-3">Dom</div>
+                    </div>
+
+                    <div class="grid grid-cols-7">
+                        {{-- Espacios vacíos antes del día 1 --}}
+                        @for($i = 1; $i < $firstDayOfWeek; $i++)
+                            <div class="min-h-[120px] border-r border-b border-gray-700 bg-gray-900/20"></div>
+                        @endfor
+
+                        @for($day = 1; $day <= $daysInMonth; $day++)
+                            @php
+                                $date = \Carbon\Carbon::create($year, $month, $day);
+                                $dateKey = $date->format('Y-m-d');
+                                $dayReservations = $reservations->get($dateKey, collect());
+
+                                $hasReservations = $dayReservations->count() > 0;
+
+                                $isFullDay = $dayReservations->contains(function ($reservation) use ($date) {
+                                    $start = $reservation->start_time;
+                                    $end = $reservation->end_time;
+
+                                    return $start->format('H:i') <= '09:00'
+                                     && $end->format('H:i') >= '18:00';
+                                });
+
+                                $boxClass = 'bg-green-900/20 border-green-800/40 hover:bg-green-900/40';
+                                $statusText = 'Disponible';
+                                $statusClass = 'text-green-300';
+
+                                if ($isFullDay) {
+                                    $boxClass = 'bg-red-900/30 border-red-800/60';
+                                    $statusText = 'Ocupada';
+                                    $statusClass = 'text-red-300';
+                                } elseif ($hasReservations) {
+                                    $boxClass = 'bg-yellow-900/30 border-yellow-800/60 hover:bg-yellow-900/40';
+                                    $statusText = 'Parcial';
+                                    $statusClass = 'text-yellow-300';
+                                }
+                            @endphp
+
+                            <div class="min-h-[120px] p-3 border-r border-b border-gray-700 {{ $boxClass }} transition">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-lg font-bold text-white">{{ $day }}</span>
+                                    <span class="text-[10px] font-bold uppercase {{ $statusClass }}">
+                                        {{ $statusText }}
                                     </span>
                                 </div>
-                                <div class="space-y-4 pl-2 md:pl-4">
-                                    @foreach($dayReservations as $reservation)
-                                        @php 
-                                            // == ZONA SEGURA: PROTECCIÓN CONTRA ELIMINADOS ==
-                                            $isFinished = $reservation->end_time->isPast(); 
-                                            $cancelUrl = route('room-reservations.cancel_admin', $reservation->id);
-                                            
-                                            $jsData = [
-                                                'start' => $reservation->start_time->format('H:i'),
-                                                'end' => $reservation->end_time->format('H:i'),
-                                                'full_start' => $reservation->start_time->format('d/m/Y H:i'),
-                                                'full_end' => $reservation->end_time->format('d/m/Y H:i'),
-                                                'purpose' => $reservation->purpose,
-                                                'resources' => $reservation->resources ?? 'Ninguno',
-                                                'attendees' => $reservation->attendees ?? 0,
-                                                'is_finished' => $isFinished,
-                                                'room_data' => [
-                                                    // Usamos '?->' para evitar error si la sala fue borrada
-                                                    'name' => $reservation->meetingRoom?->name ?? 'Sala Eliminada',
-                                                    'capacity' => $reservation->meetingRoom?->capacity ?? 0,
-                                                    'location' => $reservation->meetingRoom?->location ?? 'N/A',
-                                                    'description' => $reservation->meetingRoom?->description ?? '',
-                                                    'status' => $reservation->meetingRoom?->status ?? 'inactive',
-                                                    'image_url' => ($reservation->meetingRoom?->image_path) ? Storage::url($reservation->meetingRoom->image_path) : null,
-                                                ],
-                                                'user_data' => [
-                                                    // Usamos '?->' para evitar error si el usuario fue borrado
-                                                    'name' => $reservation->user?->name ?? 'Usuario Desconocido',
-                                                    'email' => $reservation->user?->email ?? 'sin-email@dimak.cl',
-                                                    'photo_url' => ($reservation->user?->profile_photo_path) ? Storage::url($reservation->user->profile_photo_path) : null,
-                                                    'initials' => substr($reservation->user?->name ?? 'X', 0, 1),
-                                                    'rut' => $reservation->user?->rut ?? 'N/A',
-                                                    'phone' => $reservation->user?->phone ?? 'N/A',
-                                                    'address' => $reservation->user?->address ?? 'N/A',
-                                                    'role' => ucfirst($reservation->user?->role ?? 'Invitado'),
-                                                    'status' => $reservation->user?->status ?? 'Inactivo',
-                                                    'verified' => ($reservation->user?->email_verified_at) ? 'Verificado' : 'Pendiente',
-                                                    'created_at' => optional($reservation->user?->created_at)->format('d/m/Y') ?? '-',
-                                                ]
-                                            ];
-                                        @endphp
 
-                                        <div class="flex items-center group hover:bg-gray-50 dark:hover:bg-gray-700/30 p-3 -ml-3 rounded-lg transition-colors border-l-4 {{ $isFinished ? 'opacity-70 bg-gray-50 dark:bg-gray-800/50' : '' }}"
-                                             style="border-color: {{ $isFinished ? '#9ca3af' : ['#60a5fa', '#f87171', '#fbbf24', '#34d399', '#a78bfa', '#f472b6'][$reservation->meeting_room_id % 6] }};">
-                                            
-                                            <div class="w-24 flex-shrink-0 pt-0.5">
-                                                <div class="text-sm font-bold {{ $isFinished ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200' }}">{{ $reservation->start_time->format('H:i') }}</div>
-                                                <div class="text-xs text-gray-400 dark:text-gray-500">{{ $reservation->end_time->format('H:i') }}</div>
+                                @if($hasReservations)
+                                    <div class="space-y-1 mb-3">
+                                        @foreach($dayReservations->take(2) as $reservation)
+                                            <div class="text-[11px] bg-gray-900/60 rounded px-2 py-1 text-gray-200">
+                                                {{ $reservation->start_time->format('H:i') }} - {{ $reservation->end_time->format('H:i') }}
                                             </div>
+                                        @endforeach
 
-                                            <div class="flex-1 min-w-0 pr-4">
-                                                <div class="flex justify-between items-center">
-                                                    <h4 class="text-base font-bold text-gray-900 dark:text-white leading-tight truncate">
-                                                        {{ $reservation->meetingRoom?->name ?? 'Sala Eliminada' }}
-                                                    </h4>
-                                                    @if($isFinished)<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Finalizada</span>@endif
-                                                </div>
-                                                <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    <span class="font-medium mr-1">Por:</span> {{ $reservation->user?->name ?? 'Usuario Desconocido' }}
-                                                </div>
+                                        @if($dayReservations->count() > 2)
+                                            <div class="text-[11px] text-gray-400">
+                                + {{ $dayReservations->count() - 2 }} más
                                             </div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="text-[11px] text-gray-400 mb-3">
+                                        Sin reservas
+                                    </div>
+                                @endif
 
-                                            <div class="flex space-x-2">
-                                                <button type="button" 
-                                                        @click.stop="openRes({{ json_encode($jsData) }})"
-                                                        class="p-2 rounded-full text-green-700 bg-green-200 hover:bg-green-300 dark:bg-green-800 dark:text-green-100 dark:hover:bg-green-700 transition shadow-sm" 
-                                                        title="Ver detalles">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                                </button>
-
-                                                @if(!$isFinished)
-                                                    <button type="button" 
-                                                            @click.stop="openCancel('{{ $cancelUrl }}')"
-                                                            class="p-2 rounded-full text-red-700 bg-red-200 hover:bg-red-300 dark:bg-red-900/80 dark:text-red-100 dark:hover:bg-red-800 transition shadow-sm" 
-                                                            title="Cancelar Reserva">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
+                                @if(!$isFullDay && isset($selectedRoom) && $selectedRoom && Auth::user()->role !== 'viewer')
+                                    <button
+                                        type="button"
+                                        @click="
+                                            startTime = '{{ $dateKey }}T09:00';
+                                            endTime = '{{ $dateKey }}T18:00';
+                                            fullDay = false;
+                                         modalCreate = true;
+                                        "
+                                        class="w-full mt-auto px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold">
+                                        Reservar
+                                    </button>
+                                @else
+                                    <button
+                                        type="button"
+                                        disabled
+                                        class="w-full mt-auto px-2 py-1 bg-gray-700 text-gray-400 rounded text-xs font-bold cursor-not-allowed">
+                                        No disponible
+                                    </button>
+                                @endif
                             </div>
-                        @endforeach
+                        @endfor
                     </div>
-                @endif
+                </div>              
             </div>
         </div>
 
@@ -397,6 +444,103 @@
                 </div>
             </div>
         </template>
+        @if(isset($selectedRoom) && $selectedRoom)
+        <template x-teleport="body">
+            <div x-show="modalCreate" x-cloak class="fixed inset-0 z-[9999] overflow-y-auto">
+                <div class="flex items-center justify-center min-h-screen px-4">
+                    <div class="fixed inset-0 bg-gray-900/70" @click="modalCreate = false"></div>
 
+                    <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md border border-gray-700 overflow-hidden">
+                        <form method="POST" action="{{ route('reservations.store') }}">
+                            @csrf
+
+                            <input type="hidden" name="meeting_room_id" value="{{ $selectedRoom->id }}">
+
+                            <div class="px-6 py-4 border-b border-gray-700">
+                                <h3 class="text-lg font-bold text-gray-100">
+                            Reservar {{ $selectedRoom->name }}
+                                </h3>
+                            </div>
+
+                            <div class="p-5 space-y-3">
+                                <label class="flex items-center gap-2 text-gray-200">
+                                    <input type="checkbox" x-model="fullDay" @change="applyFullDay()" class="rounded border-gray-600">
+                                    Jornada completa
+                                </label>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-300 mb-1">Inicio</label>
+                                    <input 
+                                        type="datetime-local" 
+                                        name="start_time"
+                                        x-model="startTime"
+                                        @change="applyFullDay()"
+                                        :readonly="fullDay" 
+                                        required
+                                        class="w-full bg-gray-900 border-gray-700 rounded text-white">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-300 mb-1">Término</label>
+                                    <input 
+                                        type="datetime-local" 
+                                        name="end_time"
+                                        x-model="endTime"
+                                        :readonly="fullDay"
+                                        required
+                                        class="w-full bg-gray-900 border-gray-700 rounded text-white">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-300 mb-1">Propósito</label>
+                                    <input 
+                                        type="text" 
+                                        name="purpose" 
+                                        required
+                                        placeholder="Ej: Reunión de equipo"
+                                        class="w-full bg-gray-900 border-gray-700 rounded text-white">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-300 mb-1">Asistentes</label>
+                                    <input 
+                                        type="number" 
+                                        name="attendees" 
+                                        min="1" 
+                                        value="1"
+                                        required
+                                        class="w-full bg-gray-900 border-gray-700 rounded text-white">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-300 mb-1">Recursos</label>
+                                    <textarea 
+                                        name="resources" 
+                                        rows="2"
+                                        placeholder="Opcional"
+                                        class="w-full bg-gray-900 border-gray-700 rounded text-white"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="px-5 py-4 flex justify-end gap-3 border-t border-gray-700">
+                                <button 
+                                    type="button" 
+                                    @click="modalCreate = false"
+                                    class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500">
+                                    Cancelar
+                                </button>
+
+                                <button 
+                                    type="submit"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500">
+                                    Confirmar reserva
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </template>
+        @endif      
     </div>
 </x-app-layout>
