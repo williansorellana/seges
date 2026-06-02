@@ -115,17 +115,61 @@
                                         </td>
 
                                         <td class="px-8 py-6 whitespace-nowrap">
+                                            @php
+                                                $requestedFunds = $plan->requested_funds ?? 0;
+                                                $amipassAmount = $plan->amipass_amount ?? 0;
+                                                $totalToRelease = $requestedFunds + $amipassAmount;
+                                            @endphp
+
                                             <div class="flex flex-col gap-2">
+                                                <div class="text-[18px] font-black text-emerald-400 bg-emerald-500/5 px-4 py-2 rounded-2xl border border-emerald-500/10 shadow-inner inline-flex items-center tracking-tighter w-fit">
+                                                    ${{ number_format($totalToRelease, 0, ',', '.') }}
+                                                </div>
+
                                                 @if($plan->requires_funds)
-                                                    <div class="text-[16px] font-black text-emerald-400 bg-emerald-500/5 px-4 py-2 rounded-2xl border border-emerald-500/10 shadow-inner inline-flex items-center tracking-tighter">
-                                                        ${{ number_format($plan->requested_funds, 0, ',', '.') }}
+                                                    <div class="flex justify-between max-w-[210px] gap-4">
+                                                        <span class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">
+                                                            Fondos:
+                                                        </span>
+                                                        <span class="text-[11px] text-slate-400 font-black tracking-tight">
+                                                            ${{ number_format($requestedFunds, 0, ',', '.') }}
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <div class="flex justify-between max-w-[210px] gap-4">
+                                                        <span class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">
+                                                            Fondos:
+                                                        </span>
+                                                        <span class="text-[11px] text-slate-500 font-black tracking-tight">
+                                                            No solicitado
+                                                        </span>
                                                     </div>
                                                 @endif
-                                                
+
                                                 @if($plan->requires_amipass)
-                                                    <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
-                                                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                                        Amipass: {{ $plan->amipass_days }} d
+                                                    <div class="flex justify-between max-w-[210px] gap-4">
+                                                        <span class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">
+                                                            Amipass:
+                                                        </span>
+                                                        <span class="text-[11px] text-emerald-400 font-black tracking-tight">
+                                                            ${{ number_format($amipassAmount, 0, ',', '.') }}
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="flex items-center gap-2 text-[9px] text-slate-500 font-black uppercase tracking-widest">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                                        </svg>
+                                                        {{ $plan->amipass_business_days ?? $plan->amipass_days }} día(s)
+                                                    </div>
+                                                @else
+                                                    <div class="flex justify-between max-w-[210px] gap-4">
+                                                        <span class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">
+                                                            Amipass:
+                                                        </span>
+                                                        <span class="text-[11px] text-slate-500 font-black tracking-tight">
+                                                            No solicitado
+                                                        </span>
                                                     </div>
                                                 @endif
                                             </div>

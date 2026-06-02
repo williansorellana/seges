@@ -716,12 +716,19 @@
                                     <dt class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Asignación Amipass</dt>
                                     <dd class="mt-1">
                                         @if($rendition->routePlanning->requires_amipass)
-                                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase rounded-lg border border-emerald-500/20">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                                {{ $rendition->routePlanning->amipass_days }} días
-                                            </span>
+                                            <div class="flex flex-col gap-1">
+                                                <span class="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1 w-fit uppercase tracking-widest">
+                                                    {{ $rendition->routePlanning->amipass_business_days ?? $rendition->routePlanning->amipass_days }} día(s)
+                                                </span>
+
+                                                <span class="text-sm font-black text-white tracking-tight">
+                                                    ${{ number_format($rendition->routePlanning->amipass_amount ?? 0, 0, ',', '.') }}
+                                                </span>
+                                            </div>
                                         @else
-                                            <span class="text-[10px] text-slate-600 font-bold uppercase tracking-tighter italic">No solicitado</span>
+                                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter italic">
+                                                No solicitado
+                                            </span>
                                         @endif
                                     </dd>
                                 </div>

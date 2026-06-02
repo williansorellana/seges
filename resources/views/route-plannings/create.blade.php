@@ -279,9 +279,46 @@
                             </label>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-12">Recarga diaria para almuerzo/comidas durante el viaje.</p>
                             
-                            <div x-show="requiresAmipass" x-transition.opacity class="ml-12" style="display: none;">
-                                <label for="amipass_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cantidad de Días</label>
-                                <input type="number" name="amipass_days" id="amipass_days" min="1" max="30" class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" placeholder="Ej: 3" x-bind:required="requiresAmipass">
+                            <div x-show="requiresAmipass" x-transition.opacity class="ml-12 space-y-4" style="display: none;">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="amipass_start_time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Hora de salida
+                                        </label>
+                                        <input
+                                            type="time"
+                                            name="amipass_start_time"
+                                            id="amipass_start_time"
+                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                            x-bind:required="requiresAmipass"
+                                        >
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Hora en que comienza el desplazamiento el primer día.
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label for="amipass_end_time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Hora de regreso
+                                        </label>
+                                        <input
+                                            type="time"
+                                            name="amipass_end_time"
+                                            id="amipass_end_time"
+                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                            x-bind:required="requiresAmipass"
+                                        >
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Hora estimada en que termina el viaje el último día.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-lg p-3">
+                                    <p class="text-xs text-green-800 dark:text-green-300 font-semibold">
+                                        El monto Amipass se calculará automáticamente usando las fechas del viaje, la hora de salida, la hora de regreso, el destino seleccionado, días hábiles, domingos y feriados definidos en la plantilla.
+                                    </p>
+                                </div>
                             </div>
                         </div>
 

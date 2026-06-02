@@ -275,10 +275,34 @@
 
     <div class="title" style="margin-bottom: 10px; font-size: 14px;">Resumen Financiero</div>
     <table>
+        @php
+            $planning = $rendition->routePlanning;
+            $normalFunds = $planning->requested_funds ?? 0;
+            $amipassAmount = $planning->amipass_amount ?? 0;
+        @endphp
+
         <tr>
-            <th>Fondos Entregados (Anticipo)</th>
+            <th>Fondos por rendir</th>
+            <td style="text-align: right;">${{ number_format($normalFunds, 0, ',', '.') }}</td>
+        </tr>
+
+        @if($planning->requires_amipass)
+            <tr>
+                <th>Amipass asignado</th>
+                <td style="text-align: right;">
+                    ${{ number_format($amipassAmount, 0, ',', '.') }}
+                    @if($planning->amipass_business_days || $planning->amipass_days)
+                        / {{ $planning->amipass_business_days ?? $planning->amipass_days }} día(s)
+                    @endif
+                </td>
+            </tr>
+        @endif
+
+        <tr>
+            <th>Total entregado / asignado</th>
             <td style="text-align: right;">${{ number_format($rendition->funds_received, 0, ',', '.') }}</td>
         </tr>
+
         <tr>
             <th>Total Gastos Rendidos</th>
             <td style="text-align: right;">${{ number_format($rendition->total_declared, 0, ',', '.') }}</td>
