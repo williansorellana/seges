@@ -218,14 +218,12 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
+        $rendition->load(['user', 'routePlanning', 'expenses']);
+
         $isOwner = $rendition->user_id === $user->id;
-
         $isAdmin = $user->role === 'admin';
-
         $isJefatura = $rendition->user->jefatura_id === $user->id;
-
         $isFinanzas = $user->departamento === WorkflowHelper::DEPARTMENT_FINANCES;
-
         $isControlling = $user->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING;
 
         if (
@@ -365,9 +363,12 @@ class RenditionController extends Controller
         if (
             $user->role !== 'admin'
             &&
-            $user->role !== 'jefatura'
+            (
+                $user->role !== 'jefatura'
+                || $rendition->user->jefatura_id !== $user->id
+            )
         ) {
-            abort(403);
+            abort(403, 'No autorizado.');
         }
 
         // Estado válido
@@ -435,9 +436,12 @@ class RenditionController extends Controller
         if (
             $user->role !== 'admin'
             &&
-            $user->role !== 'jefatura'
+            (
+                $user->role !== 'jefatura'
+                || $rendition->user->jefatura_id !== $user->id
+            )
         ) {
-            abort(403);
+            abort(403, 'No autorizado.');
         }
 
         // estado válido
@@ -507,6 +511,10 @@ class RenditionController extends Controller
             abort(403, 'La rendición no está pendiente de Controlling.');
         }
 
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes aprobar tu propia rendición.');
+        }
+
         if ($rendition->expenses()->where('is_valid', false)->exists()) {
             return redirect()
                 ->back()
@@ -563,6 +571,10 @@ class RenditionController extends Controller
 
         if ($rendition->status !== 'pending_controlling') {
             abort(403, 'La rendición no está pendiente de Controlling.');
+        }
+
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes rechazar tu propia rendición.');
         }
 
         // Validar observación
@@ -625,6 +637,10 @@ class RenditionController extends Controller
 
         if ($rendition->status !== 'pending_finances') {
             abort(403, 'La rendición no está pendiente de Finanzas.');
+        }
+
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes aprobar tu propia rendición.');
         }
 
         // aprobar
@@ -698,6 +714,10 @@ class RenditionController extends Controller
             abort(403, 'La rendición no está pendiente de Finanzas.');
         }
 
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes rechazar tu propia rendición.');
+        }
+
         // validar observación
 
         $request->validate([
@@ -757,6 +777,10 @@ class RenditionController extends Controller
             abort(403, 'La rendición debe estar aprobada antes de cerrar el pago o devolución.');
         }
 
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes cerrar el pago o devolución de tu propia rendición.');
+        }
+
         if ($rendition->payment_completed) {
             return redirect()
                 ->back()
@@ -813,6 +837,10 @@ class RenditionController extends Controller
             abort(403, 'Solo puedes validar documentos cuando la rendición está pendiente de Controlling.');
         }
 
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes validar documentos de tu propia rendición.');
+        }
+
         $expense->is_valid = true;
         $expense->rejection_reason = null;
         $expense->save();
@@ -849,6 +877,10 @@ class RenditionController extends Controller
 
         if ($rendition->status !== 'pending_controlling') {
             abort(403, 'Solo puedes observar documentos cuando la rendición está pendiente de Controlling.');
+        }
+
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes observar documentos de tu propia rendición.');
         }
 
         $request->validate([

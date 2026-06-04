@@ -392,8 +392,15 @@ class RoutePlanningController extends Controller
             abort(403, 'No autorizado.');
         }
 
-        $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
+        if ($planning->status !== WorkflowHelper::STATUS_PENDING_CONTROLLING) {
+            abort(403, 'La planificación no está pendiente de Controlling.');
+        }
 
+        if ($planning->user_id === auth()->id()) {
+            abort(403, 'No puedes aprobar tu propia planificación.');
+        }
+
+        $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
         $planning->save();
 
         WorkflowHistory::create([
@@ -427,8 +434,20 @@ class RoutePlanningController extends Controller
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (auth()->user()->role !== WorkflowHelper::ROLE_ADMIN && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING) {
+        if (
+            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            &&
+            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
+        ) {
             abort(403, 'No autorizado.');
+        }
+
+        if ($planning->status !== WorkflowHelper::STATUS_PENDING_CONTROLLING) {
+            abort(403, 'La planificación no está pendiente de Controlling.');
+        }
+
+        if ($planning->user_id === auth()->id()) {
+            abort(403, 'No puedes rechazar tu propia planificación.');
         }
 
         $planning->status = WorkflowHelper::STATUS_REJECTED;
@@ -457,18 +476,58 @@ class RoutePlanningController extends Controller
             route('route-plannings.index')
         ));
 
-        return redirect()->back()->with('success', 'Solicitud rechazada por Controlling. Se ha notificado al colaborador.');
+        return redirect()
+            ->back()
+            ->with('success', 'Solicitud rechazada por Controlling. Se ha notificado al colaborador.');
     }
 
     public function approveByFinances(\App\Models\RoutePlanning $planning)
     {
-        if (auth()->user()->role !== WorkflowHelper::ROLE_ADMIN && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES) {
+        if (
+            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            &&
+            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
+        ) {
             abort(403, 'No autorizado.');
         }
 
+        if ($planning->status !== WorkflowHelper::STATUS_PENDING_FINANCES) {
+            return redirect()
+                ->back()
+                ->with('error', 'Esta planificación no se encuentra pendiente de Finanzas.');
+        }
+
+        if ($planning->user_id === auth()->id()) {
+            abort(403, 'No puedes aprobar tu propia planificación.');
+        }
+
+        $signatureService = new DigitalSignatureService();
+
+        $signature = $signatureService->sign(
+            model: $planning,
+            user: auth()->user(),
+            snapshot: [
+                'planning_id' => $planning->id,
+                'worker_name' => $planning->user->name,
+                'worker_rut' => $planning->user->rut ?? null,
+                'destination' => $planning->destination,
+                'region' => $planning->region,
+                'trip_type' => $planning->trip_type,
+                'start_date' => $planning->start_date,
+                'end_date' => $planning->end_date,
+                'requested_funds' => $planning->requested_funds,
+                'requires_amipass' => $planning->requires_amipass,
+                'amipass_days' => $planning->amipass_days,
+                'amipass_business_days' => $planning->amipass_business_days,
+                'amipass_amount' => $planning->amipass_amount,
+                'approved_by' => auth()->user()->name,
+                'approved_at' => now()->toDateTimeString(),
+            ],
+            type: 'planning_finances_approval'
+        );
+
         $planning->status = WorkflowHelper::STATUS_APPROVED;
-        // Firma Digital: Hash SHA-256 para asegurar integridad
-        $planning->digital_signature = hash('sha256', $planning->id . $planning->user_id . now());
+        $planning->digital_signature = $signature->hash;
         $planning->signed_at = now();
         $planning->save();
 
@@ -486,12 +545,16 @@ class RoutePlanningController extends Controller
         // Crear automáticamente el borrador de Rendición asociada
         $fundsReceived = ($planning->requested_funds ?? 0) + ($planning->amipass_amount ?? 0);
 
-        \App\Models\Rendition::create([
-            'route_planning_id' => $planning->id,
-            'user_id' => $planning->user_id,
-            'funds_received' => $fundsReceived,
-            'status' => WorkflowHelper::STATUS_DRAFT
-        ]);
+        \App\Models\Rendition::firstOrCreate(
+            [
+                'route_planning_id' => $planning->id,
+                'user_id' => $planning->user_id,
+            ],
+            [
+                'funds_received' => $fundsReceived,
+                'status' => WorkflowHelper::STATUS_DRAFT,
+            ]
+        );
 
         $planning->user->notify(new WorkflowNotification(
             'Planificación aprobada',
@@ -506,8 +569,20 @@ class RoutePlanningController extends Controller
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (auth()->user()->role !== WorkflowHelper::ROLE_ADMIN && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES) {
+        if (
+            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            &&
+            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
+        ) {
             abort(403, 'No autorizado.');
+        }
+
+        if ($planning->status !== WorkflowHelper::STATUS_PENDING_FINANCES) {
+            abort(403, 'La planificación no está pendiente de Finanzas.');
+        }
+
+        if ($planning->user_id === auth()->id()) {
+            abort(403, 'No puedes rechazar tu propia planificación.');
         }
 
         $planning->status = WorkflowHelper::STATUS_REJECTED;
@@ -536,6 +611,33 @@ class RoutePlanningController extends Controller
             route('route-plannings.index')
         ));
 
-        return redirect()->back()->with('success', 'Solicitud rechazada por Finanzas. Se ha notificado al colaborador.');
+        return redirect()
+            ->back()
+            ->with('success', 'Solicitud rechazada por Finanzas. Se ha notificado al colaborador.');
+    }
+
+    public function downloadPdf(\App\Models\RoutePlanning $planning)
+    {
+        $user = auth()->user();
+
+        if (
+            $user->role !== WorkflowHelper::ROLE_ADMIN
+            && $planning->user_id !== $user->id
+            && $planning->user->jefatura_id !== $user->id
+            && !in_array($user->departamento, [
+                WorkflowHelper::DEPARTMENT_CONTROLLING,
+                WorkflowHelper::DEPARTMENT_FINANCES,
+            ])
+        ) {
+            abort(403, 'No autorizado.');
+        }
+
+        $planning->load(['user']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('route-plannings.pdf', [
+            'planning' => $planning,
+        ])->setPaper('letter', 'portrait');
+
+        return $pdf->download('Planificacion_REQ-' . str_pad($planning->id, 4, '0', STR_PAD_LEFT) . '.pdf');
     }
 }

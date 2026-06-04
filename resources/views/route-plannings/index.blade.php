@@ -144,22 +144,45 @@
 
                                         <!-- Requerimientos -->
                                         <td class="px-6 py-4 whitespace-nowrap">
+                                            @php
+                                                $requestedFunds = $plan->requested_funds ?? 0;
+                                                $amipassAmount = $plan->amipass_amount ?? 0;
+                                                $totalRequested = $requestedFunds + $amipassAmount;
+                                            @endphp
+
                                             <div class="flex flex-col gap-1.5">
+                                                <span class="px-2.5 py-1 inline-flex items-center text-xs font-black rounded-md bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 w-fit">
+                                                    Total: ${{ number_format($totalRequested, 0, ',', '.') }}
+                                                </span>
+
                                                 @if($plan->requires_funds)
-                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20">
-                                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                        ${{ number_format($plan->requested_funds, 0, ',', '.') }}
+                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 w-fit">
+                                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        Fondos: ${{ number_format($requestedFunds, 0, ',', '.') }}
                                                     </span>
                                                 @else
-                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-medium rounded-md bg-slate-700/50 text-slate-500 ring-1 ring-slate-600/30">Sin Fondos</span>
+                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-medium rounded-md bg-slate-700/50 text-slate-500 ring-1 ring-slate-600/30 w-fit">
+                                                        Sin fondos
+                                                    </span>
                                                 @endif
+
                                                 @if($plan->requires_amipass)
-                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
-                                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                                        Amipass: {{ $plan->amipass_days }} días
+                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 w-fit">
+                                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                                        </svg>
+                                                        Amipass: ${{ number_format($amipassAmount, 0, ',', '.') }}
+                                                    </span>
+
+                                                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                                                        {{ $plan->amipass_business_days ?? $plan->amipass_days }} día(s)
                                                     </span>
                                                 @else
-                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-medium rounded-md bg-slate-700/50 text-slate-500 ring-1 ring-slate-600/30">Sin Amipass</span>
+                                                    <span class="px-2.5 py-1 inline-flex items-center text-xs font-medium rounded-md bg-slate-700/50 text-slate-500 ring-1 ring-slate-600/30 w-fit">
+                                                        Sin Amipass
+                                                    </span>
                                                 @endif
                                             </div>
                                         </td>
@@ -187,15 +210,6 @@
                                                         <span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2 animate-pulse"></span>En Finanzas
                                                     </span>
                                                     @break
-                                                @case('pending_finances')
-                                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                                                        <svg class="animate-spin -ml-1 mr-2 h-3 w-3 text-purple-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                                        </svg>
-                                                        En Finanzas
-                                                    </span>
-                                                    @break
                                                 @case('approved')
                                                     <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
                                                         <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>Aprobada
@@ -207,6 +221,13 @@
                                                     </span>
                                                     @break
                                             @endswitch
+                                            <div class="mt-2">
+                                                <a href="{{ route('route-plannings.pdf', $plan->id) }}"
+                                                target="_blank"
+                                                class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md border border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">
+                                                    PDF
+                                                </a>
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 align-top">
                                             @if($plan->workflowHistories->isEmpty())

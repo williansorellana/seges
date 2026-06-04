@@ -23,7 +23,8 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/', [RoutePlanningController::class, 'index'])->name('index');
         Route::get('/crear', [RoutePlanningController::class, 'create'])->name('create');
         Route::post('/', [RoutePlanningController::class, 'store'])->name('store');
-        
+        Route::get('/{planning}/pdf', [RoutePlanningController::class, 'downloadPdf'])->name('pdf');
+
         // Acciones de Jefatura
         Route::post('/{planning}/approve-jefatura', [RoutePlanningController::class, 'approveByJefatura'])->name('approve-jefatura');
         Route::post('/{planning}/reject-jefatura', [RoutePlanningController::class, 'rejectByJefatura'])->name('reject-jefatura');

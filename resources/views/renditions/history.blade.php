@@ -38,6 +38,7 @@
                                     <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Fecha / Folio</th>
                                     <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Colaborador</th>
                                     <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Destino y Fechas</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Montos</th>
                                     <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado Final</th>
                                 </tr>
                             </thead>
@@ -75,17 +76,72 @@
                                         </div>
                                     </td>
 
+                                    <td class="px-6 py-5 whitespace-nowrap">
+                                        @php
+                                            $requestedFunds = $plan->requested_funds ?? 0;
+                                            $amipassAmount = $plan->amipass_amount ?? 0;
+                                            $totalRequested = $requestedFunds + $amipassAmount;
+                                        @endphp
+
+                                        <div class="flex flex-col gap-1.5">
+                                            <div class="text-sm font-black text-emerald-400">
+                                                Total: ${{ number_format($totalRequested, 0, ',', '.') }}
+                                            </div>
+
+                                            <div class="text-[11px] text-slate-500">
+                                                Fondos:
+                                                <span class="text-slate-300 font-bold">
+                                                    ${{ number_format($requestedFunds, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+
+                                            @if($plan->requires_amipass)
+                                                <div class="text-[11px] text-slate-500">
+                                                    Amipass:
+                                                    <span class="text-emerald-400 font-bold">
+                                                        ${{ number_format($amipassAmount, 0, ',', '.') }}
+                                                    </span>
+                                                </div>
+
+                                                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                                                    {{ $plan->amipass_business_days ?? $plan->amipass_days }} día(s)
+                                                </div>
+                                            @else
+                                                <div class="text-[11px] text-slate-600 font-bold">
+                                                    Sin Amipass
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
+
                                     <!-- Estado -->
                                     <td class="px-6 py-5 text-center">
-                                        @if($plan->status === 'approved')
-                                            <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
-                                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>Aprobado
-                                            </span>
-                                        @else
-                                            <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-red-500/10 text-red-400 ring-1 ring-red-500/20">
-                                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>Rechazado
-                                            </span>
-                                        @endif
+                                        <div class="flex flex-col items-center gap-2">
+                                            @if($plan->status === 'approved')
+                                                <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
+                                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                    Aprobado
+                                                </span>
+                                            @else
+                                                <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-red-500/10 text-red-400 ring-1 ring-red-500/20">
+                                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                    Rechazado
+                                                </span>
+                                            @endif
+
+                                            <a href="{{ route('route-plannings.pdf', $plan->id) }}"
+                                            target="_blank"
+                                            class="px-3 py-1.5 border border-slate-600 text-slate-300 text-[11px] font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-all inline-flex items-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                </svg>
+                                                PDF
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -127,7 +183,7 @@
                                 <tr>
                                     <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Fecha Cierre / Folio</th>
                                     <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Colaborador</th>
-                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Conciliación</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Conciliación / Cierre</th>
                                     <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado y Documento</th>
                                 </tr>
                             </thead>
@@ -157,29 +213,78 @@
 
                                     <!-- Montos / Conciliación -->
                                     <td class="px-6 py-5">
+                                        @php
+                                            $planning = $ren->routePlanning;
+                                            $normalFunds = $planning->requested_funds ?? 0;
+                                            $amipassAmount = $planning->amipass_amount ?? 0;
+                                            $realDifference = $ren->difference ?? ($ren->funds_received - $ren->total_declared);
+                                        @endphp
+
                                         <div class="flex flex-col gap-1">
-                                            <div class="text-xs text-slate-500">Asignado: <span class="text-slate-300 font-medium">${{ number_format($ren->funds_received, 0, ',', '.') }}</span></div>
-                                            <div class="text-xs text-slate-500">Rendido: <span class="text-slate-300 font-medium">${{ number_format($ren->total_declared, 0, ',', '.') }}</span></div>
+                                            <div class="text-xs text-slate-500">
+                                                Asignado:
+                                                <span class="text-slate-300 font-medium">
+                                                    ${{ number_format($ren->funds_received, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+
+                                            <div class="text-[11px] text-slate-600">
+                                                Fondos:
+                                                <span class="text-slate-400 font-bold">
+                                                    ${{ number_format($normalFunds, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+
+                                            @if($planning->requires_amipass)
+                                                <div class="text-[11px] text-slate-600">
+                                                    Amipass:
+                                                    <span class="text-emerald-400 font-bold">
+                                                        ${{ number_format($amipassAmount, 0, ',', '.') }}
+                                                    </span>
+                                                    <span class="text-slate-500">
+                                                        / {{ $planning->amipass_business_days ?? $planning->amipass_days }} día(s)
+                                                    </span>
+                                                </div>
+                                            @endif
+
+                                            <div class="text-xs text-slate-500">
+                                                Rendido:
+                                                <span class="text-slate-300 font-medium">
+                                                    ${{ number_format($ren->total_declared, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+
                                             @if($ren->status === 'approved')
                                                 <div class="mt-2 text-xs">
                                                     @if($ren->refund_to_company)
-                                                        <span class="text-emerald-600 font-bold">
-                                                            Devuelve a empresa: ${{ number_format(abs($ren->difference), 0, ',', '.') }}
+                                                        <span class="text-emerald-400 font-bold">
+                                                            Devuelve a empresa: ${{ number_format(abs($realDifference), 0, ',', '.') }}
                                                         </span>
                                                     @elseif($ren->refund_to_worker)
-                                                        <span class="text-amber-600 font-bold">
-                                                            Reembolso trabajador: ${{ number_format(abs($ren->difference), 0, ',', '.') }}
+                                                        <span class="text-amber-400 font-bold">
+                                                            Reembolso trabajador: ${{ number_format(abs($realDifference), 0, ',', '.') }}
                                                         </span>
                                                     @else
-                                                        <span class="text-blue-600 font-bold">
+                                                        <span class="text-blue-400 font-bold">
                                                             Rendición exacta
                                                         </span>
                                                     @endif
                                                 </div>
                                             @endif
-                                            <div class="mt-1 text-sm font-bold px-2.5 py-0.5 rounded-md w-fit ring-1 {{ $ren->funds_received - $ren->total_declared < 0 ? 'bg-amber-500/10 text-amber-400 ring-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' }}">
-                                                Saldo: ${{ number_format(abs($ren->funds_received - $ren->total_declared), 0, ',', '.') }}
+
+                                            <div class="mt-1 text-sm font-bold px-2.5 py-0.5 rounded-md w-fit ring-1 {{ $realDifference < 0 ? 'bg-amber-500/10 text-amber-400 ring-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' }}">
+                                                Saldo: ${{ number_format(abs($realDifference), 0, ',', '.') }}
                                             </div>
+
+                                            @if($ren->payment_completed)
+                                                <div class="mt-1 text-[10px] text-emerald-400 font-black uppercase tracking-widest">
+                                                    Cierre financiero confirmado
+                                                </div>
+                                            @elseif($ren->status === 'approved')
+                                                <div class="mt-1 text-[10px] text-amber-400 font-black uppercase tracking-widest">
+                                                    Cierre financiero pendiente
+                                                </div>
+                                            @endif
                                         </div>
                                     </td>
 
