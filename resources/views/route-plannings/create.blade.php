@@ -316,7 +316,7 @@
 
                                 <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-lg p-3">
                                     <p class="text-xs text-green-800 dark:text-green-300 font-semibold">
-                                        El monto Amipass se calculará automáticamente usando las fechas del viaje, la hora de salida, la hora de regreso, el destino seleccionado, días hábiles, domingos y feriados definidos en la plantilla.
+                                        El monto Amipass se calculará automáticamente según las fechas del viaje, la hora de salida y la hora de regreso registradas.
                                     </p>
                                 </div>
                             </div>
