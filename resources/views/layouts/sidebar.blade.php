@@ -1,10 +1,10 @@
-<div x-show="mobileSidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300"
+<div x-cloak x-show="mobileSidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300"
     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
     x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0" class="fixed inset-0 z-40 bg-black/50 md:hidden"
     @click="mobileSidebarOpen = false"></div>
 
-<aside x-data="{ 
+<aside x-cloak x-data="{ 
         open: true, 
         vehicleMenu: {{ request()->routeIs('vehicles.*', 'conductores.*', 'requests.*', 'admin.returns.*') ? 'true' : 'false' }},
         roomMenu: {{ request()->routeIs('rooms.*', 'reservations.*') ? 'true' : 'false' }},

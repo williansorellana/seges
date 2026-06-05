@@ -67,6 +67,8 @@ class ConductorController extends Controller
 
         if ($request->hasFile('fotografia')) {
             $data['fotografia'] = $request->file('fotografia')->store('conductores', 'public');
+        } elseif ($request->boolean('remove_fotografia')) {
+            $data['fotografia'] = null;
         }
 
         $conductor->update($data);
