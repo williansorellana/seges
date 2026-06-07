@@ -87,19 +87,41 @@
 
                                         <!-- Solicitado -->
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($plan->requires_funds)
-                                                <div class="text-sm font-semibold text-green-600 dark:text-green-400">
-                                                    ${{ number_format($plan->requested_funds, 0, ',', '.') }}
+                                            @php
+                                                $requestedFunds = $plan->requested_funds ?? 0;
+                                                $amipassAmount = $plan->amipass_amount ?? 0;
+                                                $totalRequested = $requestedFunds + $amipassAmount;
+                                            @endphp
+
+                                            <div class="flex flex-col gap-1.5">
+                                                <div class="text-sm font-black text-green-600 dark:text-green-400">
+                                                    Total: ${{ number_format($totalRequested, 0, ',', '.') }}
                                                 </div>
-                                            @else
-                                                <div class="text-sm text-gray-500">Sin Fondos</div>
-                                            @endif
-                                            
-                                            @if($plan->requires_amipass)
-                                                <div class="text-xs mt-1 px-2 py-0.5 inline-flex bg-green-100 text-green-800 rounded">
-                                                    Amipass: {{ $plan->amipass_days }} días
-                                                </div>
-                                            @endif
+
+                                                @if($plan->requires_funds)
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                        Fondos:
+                                                        <span class="font-bold text-gray-800 dark:text-gray-200">
+                                                            ${{ number_format($requestedFunds, 0, ',', '.') }}
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <div class="text-xs text-gray-500">
+                                                        Fondos: No solicitado
+                                                    </div>
+                                                @endif
+
+                                                @if($plan->requires_amipass)
+                                                    <div class="text-xs mt-1 px-2 py-0.5 inline-flex bg-green-100 text-green-800 rounded w-fit">
+                                                        Amipass: ${{ number_format($amipassAmount, 0, ',', '.') }}
+                                                        / {{ $plan->amipass_business_days ?? $plan->amipass_days }} día(s)
+                                                    </div>
+                                                @else
+                                                    <div class="text-xs text-gray-500">
+                                                        Amipass: No solicitado
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </td>
 
                                         <!-- Acciones -->
@@ -181,7 +203,19 @@
                                         <div class="text-sm font-bold text-gray-900 dark:text-white">{{ $ren->user->name }}</div>
                                         <div class="text-xs text-gray-500">Ref: {{ $ren->routePlanning->destination }}</div>
                                     </td>
-                                    <td class="px-6 py-4 font-bold text-indigo-600">${{ number_format($ren->total_declared, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col gap-1">
+                                            <div class="text-xs text-gray-500">
+                                                Asignado:
+                                                <span class="font-semibold text-gray-700 dark:text-gray-300">
+                                                    ${{ number_format($ren->funds_received, 0, ',', '.') }}
+                                                </span>
+                                            </div>
+                                            <div class="font-bold text-indigo-600">
+                                                Rendido: ${{ number_format($ren->total_declared, 0, ',', '.') }}
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 text-center">
                                         <div x-show="!showReject" class="flex justify-center space-x-2">
                                             <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200">Ver Boletas</a>

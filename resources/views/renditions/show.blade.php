@@ -11,10 +11,45 @@
                     <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">{{ $rendition->created_at->format('d M, Y') }}</span>
                 </div>
             </div>
-            <a href="{{ route('renditions.index') }}" class="px-5 py-2.5 bg-slate-900 text-slate-300 text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition-all flex items-center gap-2 shadow-lg shadow-black/20 group">
-                <svg class="w-4 h-4 text-slate-500 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                {{ __('Volver a mis rendiciones') }}
-            </a>
+            @php
+                $currentUser = auth()->user();
+
+                if ($currentUser->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_FINANCES) {
+                    $backRoute = route('renditions.finances');
+                    $backLabel = 'Volver a Finanzas';
+                } elseif ($currentUser->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING) {
+                    $backRoute = route('renditions.controlling');
+                    $backLabel = 'Volver a Controlling';
+                } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_JEFATURA) {
+                    $backRoute = route('renditions.approvals');
+                    $backLabel = 'Volver a Jefatura';
+                } else {
+                    $backRoute = route('renditions.index');
+                    $backLabel = 'Volver a mis rendiciones';
+                }
+            @endphp
+
+            <div class="flex items-center gap-3">
+                <a href="{{ route('renditions.pdf', $rendition->id) }}"
+                target="_blank"
+                class="px-5 py-2.5 bg-indigo-600 text-white text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-indigo-500 hover:bg-indigo-500 transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                    PDF Rendición
+                </a>
+
+                <a href="{{ route('route-plannings.pdf', $rendition->routePlanning->id) }}"
+                target="_blank"
+                class="px-5 py-2.5 bg-slate-900 text-slate-300 text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition-all flex items-center gap-2 shadow-lg shadow-black/20">
+                    PDF Planificación
+                </a>
+
+                <a href="{{ $backRoute }}"
+                class="px-5 py-2.5 bg-slate-900 text-slate-300 text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition-all flex items-center gap-2 shadow-lg shadow-black/20 group">
+                    <svg class="w-4 h-4 text-slate-500 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    {{ $backLabel }}
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -59,6 +94,18 @@
                     </ul>
                 </div>
             @endif
+
+            @php
+                $isOwner = $rendition->user_id === auth()->id();
+
+                $isControlling = auth()->user()->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING;
+
+                $canManageExpenses = $isOwner && in_array($rendition->status, ['draft', 'rejected']);
+
+                $canAuditExpenses = $isControlling
+                    && $rendition->status === 'pending_controlling'
+                    && !$isOwner;
+            @endphp
 
             @if($rendition->status === 'rejected' && $rendition->observations->count() > 0)
                 <div class="mb-8 bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
@@ -160,7 +207,7 @@
                                             </div>
                                             <div class="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2 mt-4 sm:mt-0">
                                                 <p class="text-xl font-black text-white leading-none tracking-tight">${{ number_format($expense->amount, 0, ',', '.') }}</p>
-                                                @if(auth()->user()->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING && $rendition->status === 'pending_controlling')
+                                                @if($canAuditExpenses)
                                                     <div class="flex items-center gap-2 mt-2">
                                                         @if($expense->is_valid)
                                                             <span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-black uppercase tracking-widest">
@@ -183,7 +230,7 @@
                                                     <a href="{{ route('renditions.expenses.attachment', $expense) }}" target="_blank" class="p-2 bg-indigo-600/10 text-indigo-400 rounded-xl hover:bg-indigo-600 hover:text-white transition-all cursor-pointer shadow-lg shadow-indigo-600/5" title="Ver Documento">
                                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                                     </a>
-                                                    @if(auth()->user()->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING && $rendition->status === 'pending_controlling')
+                                                    @if($canAuditExpenses)
                                                         <form action="{{ route('renditions.expenses.validate', $expense->id) }}" method="POST">
                                                             @csrf
                                                             <button
@@ -271,7 +318,7 @@
                                                             </div>
                                                         </div>
                                                     @endif
-                                                    @if($rendition->status === 'draft' || $rendition->status === 'rejected')
+                                                    @if($canManageExpenses)
                                                         <button type="button" @click="showEditModal = true" class="p-2 bg-blue-600/10 text-blue-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all cursor-pointer shadow-lg shadow-blue-600/5" title="Editar">
                                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                         </button>
@@ -282,7 +329,7 @@
                                                 </div>
                                             </div>
 
-                                            @if($rendition->status === 'draft' || $rendition->status === 'rejected')
+                                            @if($canManageExpenses)
                                             <!-- Edit Modal -->
                                             <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md" style="display: none;" x-transition>
                                                 <div class="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 max-w-xl w-full mx-auto shadow-2xl relative" @click.away="showEditModal = false">
@@ -399,7 +446,7 @@
                         </div>
                     </div>
 
-                    @if($rendition->status === 'draft' || $rendition->status === 'rejected')
+                    @if($canManageExpenses)
                     <!-- Formulario de Nuevo Gasto -->
                     <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
                         <div class="px-8 py-6 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
@@ -591,7 +638,7 @@
                             </div>
 
                             <!-- Botón Enviar -->
-                            @if($rendition->status === 'draft' || $rendition->status === 'rejected')
+                            @if($canManageExpenses)
                             <div class="mt-10 pt-8 border-t border-slate-800" x-data="{ showSubmitModal: false }">
                                 <button type="button" @click="showSubmitModal = true" class="w-full py-4 px-6 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-emerald-600/40 transition-all flex items-center justify-center gap-3 cursor-pointer group">
                                     <svg class="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

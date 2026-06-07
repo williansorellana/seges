@@ -175,33 +175,48 @@
                                             </div>
                                         </td>
 
-                                        <td class="px-8 py-6 text-center">
-                                            <div class="flex items-center justify-center gap-3 relative">
-                                                <div x-show="!showReject" class="flex gap-3 transition-all">
-                                                    <form action="{{ route('route-plannings.approve-finances', $plan->id) }}" method="POST">
-                                                        @csrf
-                                                        <button type="submit" class="px-6 py-3 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
-                                                            Liberar Fondos
-                                                        </button>
-                                                    </form>
-                                                    
-                                                    <button @click="showReject = true" class="px-6 py-3 bg-slate-800 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-700 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all cursor-pointer">
-                                                        Rechazar
-                                                    </button>
-                                                </div>
+                                        @php
+                                            $isOwnPlanning = $plan->user_id === auth()->id();
+                                        @endphp
 
-                                                <div x-show="showReject" x-cloak class="absolute right-0 top-0 w-72 bg-slate-900 p-5 rounded-[1.5rem] border border-rose-500/30 shadow-2xl z-20" x-transition>
-                                                    <form action="{{ route('route-plannings.reject-finances', $plan->id) }}" method="POST">
-                                                        @csrf
-                                                        <label class="block text-[10px] font-black text-rose-500 mb-3 uppercase tracking-[0.2em] text-left">Motivo de Rechazo</label>
-                                                        <textarea name="observation" rows="3" class="w-full text-xs bg-slate-950 border-slate-800 text-white rounded-xl focus:ring-rose-500 focus:border-rose-500 placeholder-slate-700 font-bold" required placeholder="Especifique el motivo..."></textarea>
-                                                        <div class="mt-4 flex justify-end gap-3">
-                                                            <button type="button" @click="showReject = false" class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors cursor-pointer">Cerrar</button>
-                                                            <button type="submit" class="px-5 py-2 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">Confirmar</button>
-                                                        </div>
-                                                    </form>
+                                        <td class="px-8 py-6 text-center">
+                                            @if($isOwnPlanning)
+                                                <div class="inline-flex flex-col items-center gap-2 px-5 py-4 rounded-2xl bg-slate-800/60 border border-slate-700/70">
+                                                    <span class="text-[10px] text-amber-400 font-black uppercase tracking-widest">
+                                                        Gestión bloqueada
+                                                    </span>
+                                                    <span class="text-[11px] text-slate-500 font-bold max-w-[190px] leading-relaxed">
+                                                        No puedes liberar o rechazar tu propia planificación.
+                                                    </span>
                                                 </div>
-                                            </div>
+                                            @else
+                                                <div class="flex items-center justify-center gap-3 relative">
+                                                    <div x-show="!showReject" class="flex gap-3 transition-all">
+                                                        <form action="{{ route('route-plannings.approve-finances', $plan->id) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit" class="px-6 py-3 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
+                                                                Liberar Fondos
+                                                            </button>
+                                                        </form>
+                                                        
+                                                        <button @click="showReject = true" class="px-6 py-3 bg-slate-800 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-700 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all cursor-pointer">
+                                                            Rechazar
+                                                        </button>
+                                                    </div>
+
+                                                    <div x-show="showReject" x-cloak class="absolute right-0 top-0 w-72 bg-slate-900 p-5 rounded-[1.5rem] border border-rose-500/30 shadow-2xl z-20" x-transition>
+                                                        <form action="{{ route('route-plannings.reject-finances', $plan->id) }}" method="POST">
+                                                            @csrf
+                                                            <label class="block text-[10px] font-black text-rose-500 mb-3 uppercase tracking-[0.2em] text-left">Motivo de Rechazo</label>
+                                                            <textarea name="observation" rows="3" class="w-full text-xs bg-slate-950 border-slate-800 text-white rounded-xl focus:ring-rose-500 focus:border-rose-500 placeholder-slate-700 font-bold" required placeholder="Especifique el motivo..."></textarea>
+                                                            <div class="mt-4 flex justify-end gap-3">
+                                                                <button type="button" @click="showReject = false" class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors cursor-pointer">Cerrar</button>
+                                                                <button type="submit" class="px-5 py-2 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">Confirmar</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -294,6 +309,10 @@
                                         </div>
                                     </td>
 
+                                    @php
+                                        $isOwnRendition = $ren->user_id === auth()->id();
+                                    @endphp
+
                                     <td class="px-8 py-6 text-center">
                                         <div class="flex items-center justify-center gap-3 relative" x-data="{ showReject: false, showPayment: false }">
 
@@ -307,34 +326,45 @@
                                                     Audit
                                                 </a>
 
-                                                @if($ren->status === 'pending_finances')
-                                                    <form action="{{ route('renditions.approve-finances-rendition', $ren->id) }}" method="POST">
-                                                        @csrf
-                                                        <button type="submit"
-                                                            class="px-6 py-2.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:-translate-y-1 transition-all cursor-pointer">
-                                                            Cerrar
+                                                @if($isOwnRendition)
+                                                    <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[190px]">
+                                                        <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
+                                                            Gestión bloqueada
+                                                        </div>
+                                                        <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
+                                                            No puedes cerrar, rechazar o confirmar el pago de tu propia rendición.
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    @if($ren->status === 'pending_finances')
+                                                        <form action="{{ route('renditions.approve-finances-rendition', $ren->id) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="px-6 py-2.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:-translate-y-1 transition-all cursor-pointer">
+                                                                Cerrar
+                                                            </button>
+                                                        </form>
+
+                                                        <button @click="showReject = true"
+                                                            class="p-2.5 bg-rose-600/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all cursor-pointer">
+                                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
                                                         </button>
-                                                    </form>
+                                                    @endif
 
-                                                    <button @click="showReject = true"
-                                                        class="p-2.5 bg-rose-600/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all cursor-pointer">
-                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                @endif
-
-                                                @if($ren->status === 'approved' && !$ren->payment_completed)
-                                                    <button @click="showPayment = true"
-                                                        class="px-6 py-2.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
-                                                        @if($ren->refund_to_worker)
-                                                            Pago realizado
-                                                        @elseif($ren->refund_to_company)
-                                                            Devolución recibida
-                                                        @else
-                                                            Cierre confirmado
-                                                        @endif
-                                                    </button>
+                                                    @if($ren->status === 'approved' && !$ren->payment_completed)
+                                                        <button @click="showPayment = true"
+                                                            class="px-6 py-2.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
+                                                            @if($ren->refund_to_worker)
+                                                                Pago realizado
+                                                            @elseif($ren->refund_to_company)
+                                                                Devolución recibida
+                                                            @else
+                                                                Cierre confirmado
+                                                            @endif
+                                                        </button>
+                                                    @endif
                                                 @endif
                                             </div>
 

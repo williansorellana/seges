@@ -141,38 +141,53 @@
                                             </div>
                                         </td>
 
+                                        @php
+                                            $isOwnPlanning = $plan->user_id === auth()->id();
+                                        @endphp
+
                                         {{-- Acciones --}}
                                         <td class="px-6 py-5 whitespace-nowrap text-center">
-                                            <div class="flex items-center justify-center gap-2" x-show="!showReject">
-                                                <form action="{{ route('route-plannings.approve-controlling', $plan->id) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5" title="Validar y Escalar a Finanzas">
+                                            @if($isOwnPlanning)
+                                                <div class="inline-flex flex-col items-center gap-2 px-5 py-4 rounded-2xl bg-slate-800/60 border border-slate-700/70">
+                                                    <span class="text-[10px] text-amber-400 font-black uppercase tracking-widest">
+                                                        Gestión bloqueada
+                                                    </span>
+                                                    <span class="text-[11px] text-slate-500 font-bold max-w-[190px] leading-relaxed">
+                                                        No puedes validar o rechazar tu propia planificación.
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <div class="flex items-center justify-center gap-2" x-show="!showReject">
+                                                    <form action="{{ route('route-plannings.approve-controlling', $plan->id) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5" title="Validar y Escalar a Finanzas">
+                                                            <span class="flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                                Validar
+                                                            </span>
+                                                        </button>
+                                                    </form>
+
+                                                    <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all" title="Rechazar Documento">
                                                         <span class="flex items-center gap-1.5">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                                            Validar
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                            Rechazar
                                                         </span>
                                                     </button>
-                                                </form>
-                                                <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all" title="Rechazar Documento">
-                                                    <span class="flex items-center gap-1.5">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                        Rechazar
-                                                    </span>
-                                                </button>
-                                            </div>
+                                                </div>
 
-                                            {{-- Reject Form --}}
-                                            <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2" style="min-width: 280px;">
-                                                <form action="{{ route('route-plannings.reject-controlling', $plan->id) }}" method="POST">
-                                                    @csrf
-                                                    <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
-                                                    <textarea name="observation" rows="2" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
-                                                    <div class="mt-3 flex justify-end gap-2">
-                                                        <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
-                                                        <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
-                                                    </div>
-                                                </form>
-                                            </div>
+                                                <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2" style="min-width: 280px;">
+                                                    <form action="{{ route('route-plannings.reject-controlling', $plan->id) }}" method="POST">
+                                                        @csrf
+                                                        <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
+                                                        <textarea name="observation" rows="2" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
+                                                        <div class="mt-3 flex justify-end gap-2">
+                                                            <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
+                                                            <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -256,6 +271,10 @@
                                             </div>
                                         </div>
                                     </td>
+
+                                    @php
+                                        $isOwnRendition = $ren->user_id === auth()->id();
+                                    @endphp
                                     <td class="px-6 py-5 text-center">
                                         <div x-show="!showReject" class="flex justify-center gap-2">
                                             <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-4 py-2 border border-slate-600 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-800 hover:border-slate-500 transition-all">
@@ -264,33 +283,49 @@
                                                     Auditar
                                                 </span>
                                             </a>
-                                            <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
-                                                @csrf
 
-                                                <button
-                                                    type="submit"
-                                                    class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer
-                                                        {{ $ren->observed_expenses_count > 0
-                                                            ? 'bg-slate-700 text-slate-400 border border-rose-500/30 hover:bg-slate-600'
-                                                            : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5'
-                                                        }}"
-                                                >
-                                                    Validar
-                                                </button>
-                                            </form>
-                                            <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all">Rechazar</button>
-                                        </div>
-                                        <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2">
-                                            <form action="{{ route('renditions.reject-controlling-rendition', $ren->id) }}" method="POST">
-                                                @csrf
-                                                <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
-                                                <textarea name="observation" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Motivo..."></textarea>
-                                                <div class="mt-3 flex justify-end gap-2">
-                                                    <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
-                                                    <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                            @if($isOwnRendition)
+                                                <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[190px]">
+                                                    <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
+                                                        Gestión bloqueada
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
+                                                        No puedes validar, rechazar u observar documentos de tu propia rendición.
+                                                    </div>
                                                 </div>
-                                            </form>
+                                            @else
+                                                <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
+                                                    @csrf
+
+                                                    <button
+                                                        type="submit"
+                                                        class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer
+                                                            {{ $ren->observed_expenses_count > 0
+                                                                ? 'bg-slate-700 text-slate-400 border border-rose-500/30 hover:bg-slate-600'
+                                                                : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5'
+                                                            }}"
+                                                    >
+                                                        Validar
+                                                    </button>
+                                                </form>
+
+                                                <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all">Rechazar</button>
+                                            @endif
                                         </div>
+
+                                        @if(!$isOwnRendition)
+                                            <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2">
+                                                <form action="{{ route('renditions.reject-controlling-rendition', $ren->id) }}" method="POST">
+                                                    @csrf
+                                                    <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
+                                                    <textarea name="observation" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Motivo..."></textarea>
+                                                    <div class="mt-3 flex justify-end gap-2">
+                                                        <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
+                                                        <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
