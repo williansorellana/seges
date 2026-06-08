@@ -259,7 +259,7 @@
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <span class="text-gray-500 sm:text-sm">$</span>
                                     </div>
-                                    <input type="number" name="requested_funds" id="requested_funds" min="0" class="pl-8 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="Ej: 50000" x-bind:required="requiresFunds">
+                                    <input type="number" name="requested_funds" id="requested_funds" min="1" class="pl-8 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="Ej: 50000" x-bind:required="requiresFunds">
                                 </div>
                             </div>
                         </div>

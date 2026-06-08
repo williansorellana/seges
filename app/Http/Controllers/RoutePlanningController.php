@@ -81,7 +81,7 @@ class RoutePlanningController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
 
             'requires_funds' => 'nullable|boolean',
-            'requested_funds' => 'nullable|numeric|min:0|required_if:requires_funds,1',
+            'requested_funds' => 'nullable|numeric|min:1|required_if:requires_funds,1',
 
             'requires_amipass' => 'nullable|boolean',
             'amipass_start_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',

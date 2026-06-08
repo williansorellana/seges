@@ -299,10 +299,12 @@
 
                                                     <button
                                                         type="submit"
-                                                        class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer
+                                                        @disabled($ren->observed_expenses_count > 0)
+                                                        title="{{ $ren->observed_expenses_count > 0 ? 'No se puede validar mientras existan documentos observados.' : 'Validar rendición y enviar a Finanzas.' }}"
+                                                        class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all
                                                             {{ $ren->observed_expenses_count > 0
-                                                                ? 'bg-slate-700 text-slate-400 border border-rose-500/30 hover:bg-slate-600'
-                                                                : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5'
+                                                                ? 'bg-slate-700 text-slate-400 border border-rose-500/30 cursor-not-allowed opacity-60'
+                                                                : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 cursor-pointer'
                                                             }}"
                                                     >
                                                         Validar

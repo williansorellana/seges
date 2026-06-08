@@ -143,6 +143,7 @@
             'pending_finances' => 'Pendiente Finanzas',
             'approved' => 'Aprobada',
             'rejected' => 'Rechazada',
+            'closed' => 'Cerrada',
         ];
 
         $statusLabel = $statusLabels[$rendition->status] ?? strtoupper($rendition->status);
@@ -358,11 +359,46 @@
 
         @if($rendition->status === 'approved' && $rendition->refund_resolved_at)
             <tr>
-                <th>Fecha de cierre financiero</th>
+                <th>Fecha aprobación Finanzas</th>
                 <td style="text-align: right;">
                     {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
                 </td>
             </tr>
+        @endif
+
+        @if($rendition->status === 'approved')
+            <tr>
+                <th>Estado cierre financiero</th>
+                <td style="text-align: right;">
+                    @if($rendition->payment_completed)
+                        <span class="badge-green">Cierre financiero confirmado</span>
+                    @elseif($rendition->refund_to_company)
+                        <span class="badge-red">Pendiente devolución a empresa</span>
+                    @elseif($rendition->refund_to_worker)
+                        <span class="badge-red">Pendiente reembolso al trabajador</span>
+                    @else
+                        <span class="badge-green">Sin saldo pendiente</span>
+                    @endif
+                </td>
+            </tr>
+
+            @if($rendition->payment_completed && $rendition->payment_completed_at)
+                <tr>
+                    <th>Fecha cierre financiero confirmado</th>
+                    <td style="text-align: right;">
+                        {{ \Carbon\Carbon::parse($rendition->payment_completed_at)->format('d/m/Y H:i') }}
+                    </td>
+                </tr>
+            @endif
+
+            @if($rendition->payment_observation)
+                <tr>
+                    <th>Observación cierre financiero</th>
+                    <td style="text-align: right;">
+                        {{ $rendition->payment_observation }}
+                    </td>
+                </tr>
+            @endif
         @endif
     </table>
 
@@ -377,11 +413,19 @@
                 ___________________________<br><br>
                 Aprobación Finanzas<br>
                 @if($rendition->status === 'approved' && $rendition->refund_resolved_at)
-                    Cierre financiero: {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
+                    Aprobado por Finanzas: {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}<br>
+
+                    @if($rendition->payment_completed && $rendition->payment_completed_at)
+                        Cierre confirmado: {{ \Carbon\Carbon::parse($rendition->payment_completed_at)->format('d/m/Y H:i') }}
+                    @elseif($rendition->refund_to_company || $rendition->refund_to_worker)
+                        Cierre financiero pendiente
+                    @else
+                        Sin saldo pendiente
+                    @endif
                 @elseif($rendition->status === 'rejected')
                     Rendición rechazada
                 @else
-                    Pendiente de cierre
+                    Pendiente de aprobación
                 @endif
             </td>
         </tr>

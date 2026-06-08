@@ -648,8 +648,40 @@
 
                                         @if($rendition->refund_resolved_at)
                                             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter mt-2">
-                                                Resuelto el {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
+                                                Aprobado por Finanzas el {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
                                             </p>
+                                        @endif
+
+                                        @if($rendition->status === 'approved')
+                                            @if($rendition->payment_completed)
+                                                <div class="mt-3 p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                                                    <p class="text-[10px] text-emerald-400 font-black uppercase tracking-widest">
+                                                        Cierre financiero confirmado
+                                                    </p>
+
+                                                    @if($rendition->payment_completed_at)
+                                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter mt-1">
+                                                            Confirmado el {{ \Carbon\Carbon::parse($rendition->payment_completed_at)->format('d/m/Y H:i') }}
+                                                        </p>
+                                                    @endif
+
+                                                    @if($rendition->payment_observation)
+                                                        <p class="text-xs text-slate-300 font-medium mt-2 leading-relaxed">
+                                                            {{ $rendition->payment_observation }}
+                                                        </p>
+                                                    @endif
+                                                </div>
+                                            @elseif($rendition->refund_to_company || $rendition->refund_to_worker)
+                                                <div class="mt-3 p-3 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                                                    <p class="text-[10px] text-amber-400 font-black uppercase tracking-widest">
+                                                        Cierre financiero pendiente
+                                                    </p>
+
+                                                    <p class="text-xs text-slate-400 font-medium mt-2 leading-relaxed">
+                                                        Finanzas aún debe confirmar la devolución o reembolso correspondiente.
+                                                    </p>
+                                                </div>
+                                            @endif
                                         @endif
                                     </div>
                                 @endif

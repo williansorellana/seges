@@ -373,7 +373,7 @@ class RenditionController extends Controller
                             ->where('payment_completed', false);
                     });
             })
-            ->orderBy('updated_at', 'asc')
+            ->orderBy('updated_at', 'desc')
             ->paginate(5, ['*'], 'renditions_page');
             
         return view('renditions.finances', compact('plannings', 'renditions'));
@@ -756,9 +756,19 @@ class RenditionController extends Controller
             ]);
         }
 
+        $notificationMessage = 'Tu rendición fue aprobada por Finanzas.';
+
+        if ($rendition->payment_completed) {
+            $notificationMessage .= ' La rendición quedó cerrada automáticamente porque no existen saldos pendientes.';
+        } elseif ($rendition->refund_to_company) {
+            $notificationMessage .= ' Queda pendiente la devolución de saldo a la empresa.';
+        } elseif ($rendition->refund_to_worker) {
+            $notificationMessage .= ' Queda pendiente el reembolso a tu favor.';
+        }
+
         $rendition->user->notify(new WorkflowNotification(
             'Rendición aprobada',
-            'Tu rendición fue aprobada por Finanzas. El proceso finalizó correctamente.',
+            $notificationMessage,
             route('renditions.index')
         ));
 
@@ -774,7 +784,7 @@ class RenditionController extends Controller
 
         return redirect()->back()->with(
             'success',
-            'Rendición aprobada. Proceso finalizado.'
+            'Rendición aprobada por Finanzas correctamente.'
         );
     }
 
