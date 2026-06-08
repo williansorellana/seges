@@ -9,7 +9,7 @@
         vehicleMenu: {{ request()->routeIs('vehicles.*', 'conductores.*', 'requests.*', 'admin.returns.*') ? 'true' : 'false' }},
         roomMenu: {{ request()->routeIs('rooms.*', 'reservations.*') ? 'true' : 'false' }},
         assetMenu: {{ request()->routeIs('assets.*', 'workers.*') ? 'true' : 'false' }},
-        renditionMenu: {{ request()->routeIs('route-plannings.*', 'renditions.index', 'renditions.create', 'renditions.show') && !request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances', 'renditions.history') ? 'true' : 'false' }},
+        renditionMenu: {{ request()->routeIs('route-plannings.*', 'renditions.index', 'renditions.create', 'renditions.show', 'renditions.history') && !request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances') ? 'true' : 'false' }},
         financesMenu: {{ request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances', 'renditions.history') ? 'true' : 'false' }}
     }" :class="{
         'w-64': open, 
@@ -278,6 +278,13 @@
                         :class="{{ request()->routeIs('renditions.index') ? "'text-white bg-gray-800'" : "''" }}">
                         Mis rendiciones
                     </a>
+                    @if(!in_array(Auth::user()->role, ['admin', 'jefatura']) && !in_array(Auth::user()->departamento, ['Finanzas', 'Controlling']))
+                        <a href="{{ route('renditions.history') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('renditions.history') ? "'text-white bg-gray-800'" : "''" }}">
+                            Historial
+                        </a>
+                    @endif
                 </div>
             </div>
         @endif

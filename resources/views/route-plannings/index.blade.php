@@ -212,8 +212,21 @@
                                                     @break
                                                 @case('approved')
                                                     <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
-                                                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>Aprobada
+                                                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                        </svg>
+                                                        Aprobada
                                                     </span>
+
+                                                    @if($plan->rendition)
+                                                        <div class="mt-2 text-[10px] text-blue-400 font-bold uppercase tracking-widest">
+                                                            Rendición generada
+                                                        </div>
+                                                    @else
+                                                        <div class="mt-2 text-[10px] text-amber-400 font-bold uppercase tracking-widest">
+                                                            Rendición no generada
+                                                        </div>
+                                                    @endif
                                                     @break
                                                 @case('rejected')
                                                     <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-red-500/10 text-red-400 ring-1 ring-red-500/20">
@@ -221,12 +234,20 @@
                                                     </span>
                                                     @break
                                             @endswitch
-                                            <div class="mt-2">
+                                            <div class="mt-2 flex flex-col items-start gap-2">
                                                 <a href="{{ route('route-plannings.pdf', $plan->id) }}"
                                                 target="_blank"
                                                 class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md border border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">
-                                                    PDF
+                                                    PDF planificación
                                                 </a>
+
+                                                @if($plan->status === 'approved' && $plan->rendition)
+                                                    <a href="{{ route('renditions.show', $plan->rendition->id) }}"
+                                                    wire:navigate
+                                                    class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white transition-all">
+                                                        Ir a rendición
+                                                    </a>
+                                                @endif
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 align-top">

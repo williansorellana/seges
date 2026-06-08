@@ -207,8 +207,8 @@
                                             </div>
                                             <div class="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2 mt-4 sm:mt-0">
                                                 <p class="text-xl font-black text-white leading-none tracking-tight">${{ number_format($expense->amount, 0, ',', '.') }}</p>
-                                                @if($canAuditExpenses)
-                                                    <div class="flex items-center gap-2 mt-2">
+                                                @if($canAuditExpenses || !$expense->is_valid)
+                                                    <div class="flex flex-col items-end gap-1 mt-2 max-w-[260px]">
                                                         @if($expense->is_valid)
                                                             <span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[9px] font-black uppercase tracking-widest">
                                                                 Válido
@@ -217,12 +217,12 @@
                                                             <span class="px-2 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-black uppercase tracking-widest">
                                                                 Observado
                                                             </span>
-                                                        @endif
 
-                                                        @if($expense->rejection_reason)
-                                                            <span class="text-[10px] text-rose-300 font-medium">
-                                                                {{ $expense->rejection_reason }}
-                                                            </span>
+                                                            @if($expense->rejection_reason)
+                                                                <span class="text-[10px] text-rose-300 font-medium text-right leading-snug">
+                                                                    {{ $expense->rejection_reason }}
+                                                                </span>
+                                                            @endif
                                                         @endif
                                                     </div>
                                                 @endif
@@ -590,16 +590,35 @@
                                     </div>
                                     
                                     @php
-                                        $diferencia = $rendition->funds_received - $rendition->total_declared;
+                                        $cashDifference = $rendition->funds_received - $rendition->total_declared;
+
+                                        if ($cashDifference > 0) {
+                                            $cashLabel = 'A devolver a empresa';
+                                            $cashAmount = $cashDifference;
+                                            $cashClass = 'text-emerald-400';
+                                        } elseif ($cashDifference < 0) {
+                                            $cashLabel = 'Reembolso al trabajador';
+                                            $cashAmount = abs($cashDifference);
+                                            $cashClass = 'text-amber-400';
+                                        } else {
+                                            $cashLabel = 'Sin saldo pendiente';
+                                            $cashAmount = 0;
+                                            $cashClass = 'text-blue-400';
+                                        }
                                     @endphp
-                                    
+
                                     <div class="p-4 rounded-3xl bg-slate-950/50 border border-slate-800/80 backdrop-blur-sm">
-                                        <div class="flex justify-between items-center">
+                                        <div class="flex justify-between items-center gap-4">
                                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                                @if($diferencia > 0) Saldo a devolver @elseif($diferencia < 0) Saldo a favor @else Rendición exacta @endif
+                                                {{ $cashLabel }}
                                             </p>
-                                            <p class="text-lg font-black {{ $diferencia < 0 ? 'text-amber-400' : 'text-emerald-400' }}">
-                                                ${{ number_format(abs($diferencia), 0, ',', '.') }}
+
+                                            <p class="text-lg font-black {{ $cashClass }}">
+                                                @if($cashAmount > 0)
+                                                    ${{ number_format($cashAmount, 0, ',', '.') }}
+                                                @else
+                                                    $0
+                                                @endif
                                             </p>
                                         </div>
                                     </div>
@@ -812,6 +831,7 @@
                                             'approved_by_finances' => 'Aprobado por Finanzas',
                                             'rejected_by_finances' => 'Rechazado por Finanzas',
                                             'payment_completed_by_finances' => 'Cierre financiero confirmado por Finanzas',
+                                            'payment_completed_automatically' => 'Cierre financiero automático',
                                             'expense_validated_by_controlling' => 'Documento validado por Controlling',
                                             'expense_observed_by_controlling' => 'Documento observado por Controlling',
                                         ];
@@ -819,7 +839,10 @@
                                         $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
 
                                         $isRejected = str_contains($history->action, 'rejected') || str_contains($history->action, 'observed') || str_contains($history->action, 'returned');
-                                        $isApproved = str_contains($history->action, 'approved') || str_contains($history->action, 'validated') || str_contains($history->action, 'completed');
+                                        $isApproved = str_contains($history->action, 'approved')
+                                            || str_contains($history->action, 'validated')
+                                            || str_contains($history->action, 'completed')
+                                            || str_contains($history->action, 'automatically');
                                     @endphp
 
                                     <div class="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80 relative overflow-hidden">

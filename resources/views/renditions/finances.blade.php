@@ -302,37 +302,88 @@
                                                 <span class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">Rendido:</span>
                                                 <span class="text-[11px] text-blue-400 font-black tracking-tight">${{ number_format($ren->total_declared, 0, ',', '.') }}</span>
                                             </div>
-                                            <div class="mt-2 px-3 py-1.5 rounded-xl border {{ $ren->funds_received - $ren->total_declared < 0 ? 'bg-amber-500/5 border-amber-500/20 text-amber-500' : 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' }} w-fit flex items-center gap-2">
-                                                <span class="text-[9px] font-black uppercase tracking-widest">Diferencia:</span>
-                                                <span class="text-[12px] font-black tracking-tighter">${{ number_format(abs($ren->funds_received - $ren->total_declared), 0, ',', '.') }}</span>
+                                            @php
+                                                $difference = $ren->funds_received - $ren->total_declared;
+
+                                                if ($difference > 0) {
+                                                    $balanceLabel = 'A devolver a empresa';
+                                                    $balanceAmount = $difference;
+                                                    $balanceClass = 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400';
+                                                } elseif ($difference < 0) {
+                                                    $balanceLabel = 'Reembolso al trabajador';
+                                                    $balanceAmount = abs($difference);
+                                                    $balanceClass = 'bg-amber-500/5 border-amber-500/20 text-amber-500';
+                                                } else {
+                                                    $balanceLabel = 'Sin saldo pendiente';
+                                                    $balanceAmount = 0;
+                                                    $balanceClass = 'bg-blue-500/5 border-blue-500/20 text-blue-400';
+                                                }
+                                            @endphp
+
+                                            <div class="mt-2 px-3 py-1.5 rounded-xl border {{ $balanceClass }} w-fit flex items-center gap-2">
+                                                <span class="text-[9px] font-black uppercase tracking-widest">
+                                                    {{ $balanceLabel }}:
+                                                </span>
+
+                                                <span class="text-[12px] font-black tracking-tighter">
+                                                    ${{ number_format($balanceAmount, 0, ',', '.') }}
+                                                </span>
                                             </div>
                                         </div>
                                     </td>
 
                                     @php
                                         $isOwnRendition = $ren->user_id === auth()->id();
+
+                                        $difference = $ren->funds_received - $ren->total_declared;
+
+                                        if ($ren->status === 'pending_finances') {
+                                            $financeStatusLabel = 'Pendiente de aprobación';
+                                            $financeStatusClass = 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+                                        } elseif ($ren->status === 'approved' && !$ren->payment_completed) {
+                                            if ($ren->refund_to_worker) {
+                                                $financeStatusLabel = 'Reembolso pendiente';
+                                                $financeStatusClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                                            } elseif ($ren->refund_to_company) {
+                                                $financeStatusLabel = 'Devolución pendiente';
+                                                $financeStatusClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                                            } else {
+                                                $financeStatusLabel = 'Cierre pendiente';
+                                                $financeStatusClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+                                            }
+                                        } elseif ($ren->status === 'approved' && $ren->payment_completed) {
+                                            $financeStatusLabel = 'Cerrada';
+                                            $financeStatusClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                                        } else {
+                                            $financeStatusLabel = ucfirst($ren->status);
+                                            $financeStatusClass = 'bg-slate-800 text-slate-400 border-slate-700';
+                                        }
                                     @endphp
 
                                     <td class="px-8 py-6 text-center">
-                                        <div class="flex items-center justify-center gap-3 relative" x-data="{ showReject: false, showPayment: false }">
+                                        <div class="flex flex-col items-center justify-center gap-3 relative" x-data="{ showReject: false, showPayment: false }">
 
-                                            <div x-show="!showReject && !showPayment" class="flex gap-2 transition-all">
+                                            <span class="px-3 py-1 rounded-xl border text-[9px] font-black uppercase tracking-widest {{ $financeStatusClass }}">
+                                                {{ $financeStatusLabel }}
+                                            </span>
+
+                                            <div x-show="!showReject && !showPayment" class="flex flex-wrap justify-center gap-2 transition-all">
                                                 <a href="{{ route('renditions.show', $ren->id) }}" target="_blank"
                                                     class="px-5 py-2.5 bg-slate-800 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-700 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-black/20">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 12a3 3 0 11-6 0z" />
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                     </svg>
-                                                    Audit
+                                                    Ver detalle
                                                 </a>
 
                                                 @if($isOwnRendition)
-                                                    <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[190px]">
+                                                    <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[210px]">
                                                         <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
                                                             Gestión bloqueada
                                                         </div>
                                                         <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
-                                                            No puedes cerrar, rechazar o confirmar el pago de tu propia rendición.
+                                                            No puedes aprobar, rechazar o cerrar tu propia rendición.
                                                         </div>
                                                     </div>
                                                 @else
@@ -341,15 +392,13 @@
                                                             @csrf
                                                             <button type="submit"
                                                                 class="px-6 py-2.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:-translate-y-1 transition-all cursor-pointer">
-                                                                Cerrar
+                                                                Aprobar cierre
                                                             </button>
                                                         </form>
 
                                                         <button @click="showReject = true"
-                                                            class="p-2.5 bg-rose-600/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all cursor-pointer">
-                                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                            </svg>
+                                                            class="px-4 py-2.5 bg-rose-600/10 text-rose-500 rounded-xl border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all cursor-pointer text-[10px] font-black uppercase tracking-widest">
+                                                            Devolver
                                                         </button>
                                                     @endif
 
@@ -357,13 +406,24 @@
                                                         <button @click="showPayment = true"
                                                             class="px-6 py-2.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
                                                             @if($ren->refund_to_worker)
-                                                                Pago realizado
+                                                                Confirmar reembolso
                                                             @elseif($ren->refund_to_company)
-                                                                Devolución recibida
+                                                                Confirmar devolución
                                                             @else
-                                                                Cierre confirmado
+                                                                Confirmar cierre
                                                             @endif
                                                         </button>
+                                                    @endif
+
+                                                    @if($ren->status === 'approved' && $ren->payment_completed)
+                                                        <div class="px-4 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-left max-w-[220px]">
+                                                            <div class="text-[9px] text-emerald-400 font-black uppercase tracking-widest">
+                                                                Cierre realizado
+                                                            </div>
+                                                            <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
+                                                                Esta rendición no requiere acciones pendientes.
+                                                            </div>
+                                                        </div>
                                                     @endif
                                                 @endif
                                             </div>
@@ -375,7 +435,7 @@
                                                     @csrf
 
                                                     <label class="block text-[10px] font-black text-rose-500 mb-3 uppercase tracking-[0.2em] text-left">
-                                                        Motivo de Devolución
+                                                        Motivo de devolución
                                                     </label>
 
                                                     <textarea name="observation" rows="3"
@@ -386,12 +446,12 @@
                                                     <div class="mt-4 flex justify-end gap-3">
                                                         <button type="button" @click="showReject = false"
                                                             class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors cursor-pointer">
-                                                            Cerrar
+                                                            Cancelar
                                                         </button>
 
                                                         <button type="submit"
                                                             class="px-5 py-2 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">
-                                                            Devolver
+                                                            Confirmar devolución
                                                         </button>
                                                     </div>
                                                 </form>

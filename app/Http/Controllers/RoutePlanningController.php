@@ -9,13 +9,17 @@ use App\Helpers\WorkflowHelper;
 use App\Models\User;
 use App\Notifications\WorkflowNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use App\Services\AmipassCalculatorService;
 
 class RoutePlanningController extends Controller
 {
     public function index()
     {
-        $query = \App\Models\RoutePlanning::with(['workflowHistories.user']);
+        $query = \App\Models\RoutePlanning::with([
+            'workflowHistories.user',
+            'rendition',
+        ]);
 
         // Trabajador normal
 
@@ -54,7 +58,7 @@ class RoutePlanningController extends Controller
         }
 
         $plannings = $query
-            ->orderBy('created_at', 'desc')
+            ->orderBy('updated_at', 'desc')
             ->paginate(10);
 
         return view('route-plannings.index', compact('plannings'));
@@ -373,6 +377,7 @@ class RoutePlanningController extends Controller
             'from_status' => WorkflowHelper::STATUS_PENDING_JEFATURA,
             'to_status' => WorkflowHelper::STATUS_REJECTED,
             'observation' => $request->observation,
+            'ip_address' => request()->ip(),
         ]);
 
         // Notificar al trabajador
@@ -507,60 +512,66 @@ class RoutePlanningController extends Controller
             abort(403, 'No puedes aprobar tu propia planificación.');
         }
 
-        $signatureService = new DigitalSignatureService();
+        DB::transaction(function () use ($planning) {
+            $signatureService = new DigitalSignatureService();
 
-        $signature = $signatureService->sign(
-            model: $planning,
-            user: auth()->user(),
-            snapshot: [
-                'planning_id' => $planning->id,
-                'worker_name' => $planning->user->name,
-                'worker_rut' => $planning->user->rut ?? null,
-                'destination' => $planning->destination,
-                'region' => $planning->region,
-                'trip_type' => $planning->trip_type,
-                'start_date' => $planning->start_date,
-                'end_date' => $planning->end_date,
-                'requested_funds' => $planning->requested_funds,
-                'requires_amipass' => $planning->requires_amipass,
-                'amipass_days' => $planning->amipass_days,
-                'amipass_business_days' => $planning->amipass_business_days,
-                'amipass_amount' => $planning->amipass_amount,
-                'approved_by' => auth()->user()->name,
-                'approved_at' => now()->toDateTimeString(),
-            ],
-            type: 'planning_finances_approval'
-        );
+            $signature = $signatureService->sign(
+                model: $planning,
+                user: auth()->user(),
+                snapshot: [
+                    'planning_id' => $planning->id,
+                    'worker_name' => $planning->user->name,
+                    'worker_rut' => $planning->user->rut ?? null,
+                    'destination' => $planning->destination,
+                    'region' => $planning->region,
+                    'trip_type' => $planning->trip_type,
+                    'start_date' => $planning->start_date,
+                    'end_date' => $planning->end_date,
+                    'requested_funds' => $planning->requested_funds,
+                    'requires_amipass' => $planning->requires_amipass,
+                    'amipass_days' => $planning->amipass_days,
+                    'amipass_business_days' => $planning->amipass_business_days,
+                    'amipass_amount' => $planning->amipass_amount,
+                    'approved_by' => auth()->user()->name,
+                    'approved_at' => now()->toDateTimeString(),
+                ],
+                type: 'planning_finances_approval'
+            );
 
-        $planning->status = WorkflowHelper::STATUS_APPROVED;
-        $planning->digital_signature = $signature->hash;
-        $planning->signed_at = now();
-        $planning->save();
+            $planning->status = WorkflowHelper::STATUS_APPROVED;
+            $planning->digital_signature = $signature->hash;
+            $planning->signed_at = now();
+            $planning->save();
 
-        WorkflowHistory::create([
-            'workflowable_type' => \App\Models\RoutePlanning::class,
-            'workflowable_id' => $planning->id,
-            'user_id' => auth()->id(),
-            'action' => 'approved_by_finances',
-            'from_status' => WorkflowHelper::STATUS_PENDING_FINANCES,
-            'to_status' => WorkflowHelper::STATUS_APPROVED,
-            'observation' => 'Solicitud aprobada por Finanzas.',
-            'ip_address' => request()->ip(),
-        ]);
+            WorkflowHistory::create([
+                'workflowable_type' => \App\Models\RoutePlanning::class,
+                'workflowable_id' => $planning->id,
+                'user_id' => auth()->id(),
+                'action' => 'approved_by_finances',
+                'from_status' => WorkflowHelper::STATUS_PENDING_FINANCES,
+                'to_status' => WorkflowHelper::STATUS_APPROVED,
+                'observation' => 'Solicitud aprobada por Finanzas.',
+                'ip_address' => request()->ip(),
+            ]);
 
-        // Crear automáticamente el borrador de Rendición asociada
-        $fundsReceived = ($planning->requested_funds ?? 0) + ($planning->amipass_amount ?? 0);
+            $fundsReceived = ($planning->requested_funds ?? 0) + ($planning->amipass_amount ?? 0);
 
-        \App\Models\Rendition::firstOrCreate(
-            [
-                'route_planning_id' => $planning->id,
-                'user_id' => $planning->user_id,
-            ],
-            [
-                'funds_received' => $fundsReceived,
-                'status' => WorkflowHelper::STATUS_DRAFT,
-            ]
-        );
+            $rendition = \App\Models\Rendition::where('route_planning_id', $planning->id)
+                ->where('user_id', $planning->user_id)
+                ->first();
+
+            if (!$rendition) {
+                \App\Models\Rendition::create([
+                    'route_planning_id' => $planning->id,
+                    'user_id' => $planning->user_id,
+                    'funds_received' => $fundsReceived,
+                    'status' => WorkflowHelper::STATUS_DRAFT,
+                ]);
+            } elseif ($rendition->status === WorkflowHelper::STATUS_DRAFT) {
+                $rendition->funds_received = $fundsReceived;
+                $rendition->save();
+            }
+        });
 
         $planning->user->notify(new WorkflowNotification(
             'Planificación aprobada',

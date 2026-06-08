@@ -116,11 +116,25 @@ class DashboardController extends Controller
                     ['label' => 'Crear Planificación', 'route' => 'route-plannings.create'],
                     ['label' => 'Mis Solicitudes', 'route' => 'route-plannings.index'],
                     ['label' => 'Mis Rendiciones', 'route' => 'renditions.index'],
+
+                    !in_array($user->role, ['admin', 'jefatura']) && !in_array($user->departamento, ['Finanzas', 'Controlling'])
+                        ? ['label' => 'Historial', 'route' => 'renditions.history']
+                        : null,
                 ])
             ],
         ];
         // 🔹 Filtrar módulos según usuario
         $allModules = array_filter($allModules, function ($key) use ($user) {
+            if ($key === 'finances') {
+                return in_array($user->role, ['admin', 'jefatura'])
+                    || in_array($user->departamento, ['Finanzas', 'Controlling']);
+            }
+
+            if ($key === 'renditions') {
+                return $user->hasModuleAccess('renditions')
+                    || $user->role === 'admin';
+            }
+
             return $user->hasModuleAccess($key);
         }, ARRAY_FILTER_USE_KEY);
 

@@ -290,20 +290,59 @@
 
                                     <!-- Estado y Doc -->
                                     <td class="px-6 py-5 text-center">
+                                        @php
+                                            if ($ren->status === 'approved' && $ren->payment_completed) {
+                                                $renditionStatusLabel = 'Cerrada';
+                                                $renditionStatusClass = 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20';
+                                                $renditionStatusIcon = 'approved';
+                                            } elseif ($ren->status === 'approved' && !$ren->payment_completed) {
+                                                $renditionStatusLabel = 'Aprobada / cierre pendiente';
+                                                $renditionStatusClass = 'bg-amber-500/10 text-amber-400 ring-amber-500/20';
+                                                $renditionStatusIcon = 'pending';
+                                            } elseif ($ren->status === 'rejected') {
+                                                $renditionStatusLabel = 'Rechazada';
+                                                $renditionStatusClass = 'bg-red-500/10 text-red-400 ring-red-500/20';
+                                                $renditionStatusIcon = 'rejected';
+                                            } else {
+                                                $renditionStatusLabel = ucfirst(str_replace('_', ' ', $ren->status));
+                                                $renditionStatusClass = 'bg-slate-500/10 text-slate-400 ring-slate-500/20';
+                                                $renditionStatusIcon = 'pending';
+                                            }
+                                        @endphp
+
                                         <div class="flex flex-col items-center gap-3">
-                                            @if($ren->status === 'approved')
-                                                <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">
-                                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>Cerrado
-                                                </span>
-                                                <a href="{{ route('renditions.pdf', $ren->id) }}" target="_blank" class="px-3 py-1.5 border border-slate-600 text-slate-300 text-[11px] font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-all group flex items-center gap-1.5">
-                                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                                    Descargar PDF
-                                                </a>
-                                            @else
-                                                <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-red-500/10 text-red-400 ring-1 ring-red-500/20">
-                                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>Rechazado
-                                                </span>
-                                            @endif
+                                            <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg ring-1 {{ $renditionStatusClass }}">
+                                                @if($renditionStatusIcon === 'approved')
+                                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                @elseif($renditionStatusIcon === 'rejected')
+                                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6l4 2"></path>
+                                                    </svg>
+                                                @endif
+
+                                                {{ $renditionStatusLabel }}
+                                            </span>
+
+                                            <a href="{{ route('renditions.show', $ren->id) }}"
+                                            target="_blank"
+                                            class="px-3 py-1.5 border border-slate-600 text-slate-300 text-[11px] font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-all inline-flex items-center gap-1.5">
+                                                Ver detalle
+                                            </a>
+
+                                            <a href="{{ route('renditions.pdf', $ren->id) }}"
+                                            target="_blank"
+                                            class="px-3 py-1.5 border border-slate-600 text-slate-300 text-[11px] font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-all inline-flex items-center gap-1.5">
+                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                </svg>
+                                                PDF
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

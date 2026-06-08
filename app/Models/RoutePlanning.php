@@ -57,6 +57,6 @@ class RoutePlanning extends Model
 
     public function rendition()
     {
-        return $this->hasOne(Rendition::class);
+        return $this->hasOne(\App\Models\Rendition::class);
     }
 }

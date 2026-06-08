@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Helpers\WorkflowHelper;
-use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Notifications\WorkflowNotification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use App\Models\WorkflowHistory;
 use App\Services\DigitalSignatureService;
 
@@ -17,7 +18,7 @@ class RenditionController extends Controller
     {
         $renditions = \App\Models\Rendition::with(['routePlanning', 'observations.user'])
             ->where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
+            ->orderBy('updated_at', 'desc')
             ->paginate(10);
             
         return view('renditions.index', compact('renditions'));
@@ -92,6 +93,10 @@ class RenditionController extends Controller
 
     public function updateExpense(Request $request, \App\Models\Rendition $rendition, \App\Models\RenditionExpense $expense)
     {
+        if ($expense->rendition_id !== $rendition->id) {
+            abort(404);
+        }
+
         if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
             abort(403, 'No puedes editar gastos de esta rendición en su estado actual.');
         }
@@ -138,6 +143,10 @@ class RenditionController extends Controller
 
     public function destroyExpense(\App\Models\Rendition $rendition, \App\Models\RenditionExpense $expense)
     {
+        if ($expense->rendition_id !== $rendition->id) {
+            abort(404);
+        }
+
         if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
             abort(403, 'No puedes eliminar gastos de esta rendición en su estado actual.');
         }
@@ -169,6 +178,33 @@ class RenditionController extends Controller
                 ->back()
                 ->withErrors([
                     'expenses' => 'Debes subir al menos un documento antes de enviar la rendición.'
+                ]);
+        }
+
+        $observedExpenses = $rendition->expenses()
+            ->where('is_valid', false)
+            ->get();
+
+        if ($observedExpenses->isNotEmpty()) {
+            $observedDetails = $observedExpenses
+                ->map(function ($expense) {
+                    $documentNumber = $expense->document_number ?: 'S/N';
+
+                    return $expense->provider
+                        . ' | '
+                        . strtoupper($expense->document_type)
+                        . ' N° '
+                        . $documentNumber
+                        . ' | $'
+                        . number_format($expense->amount, 0, ',', '.')
+                        . ($expense->rejection_reason ? ' | Motivo: ' . $expense->rejection_reason : '');
+                })
+                ->implode(' / ');
+
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'expenses' => 'No puedes reenviar la rendición porque existen documentos observados. Corrige o reemplaza: ' . $observedDetails
                 ]);
         }
 
@@ -266,20 +302,18 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        // Cargar rendición asociada
+        $expense->load('rendition.user');
 
         $rendition = $expense->rendition;
 
-        // Permisos
+        if (!$rendition) {
+            abort(404);
+        }
 
         $isOwner = $rendition->user_id === $user->id;
-
         $isAdmin = $user->role === 'admin';
-
-        $isJefatura = $rendition->user->jefatura_id === $user->id;
-
+        $isJefatura = $rendition->user && $rendition->user->jefatura_id === $user->id;
         $isFinanzas = $user->departamento === WorkflowHelper::DEPARTMENT_FINANCES;
-
         $isControlling = $user->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING;
 
         if (
@@ -293,15 +327,16 @@ class RenditionController extends Controller
             &&
             !$isControlling
         ) {
-            abort(403);
+            abort(403, 'No autorizado.');
         }
 
-        // Validar
-        if (!Storage::disk('local')->exists($expense->attachment_path)) {
+        if (!$expense->attachment_path) {
             abort(404);
         }
 
-        // Descargar archivo
+        if (!Storage::disk('local')->exists($expense->attachment_path)) {
+            abort(404);
+        }
 
         $fullPath = Storage::disk('local')->path($expense->attachment_path);
 
@@ -663,6 +698,8 @@ class RenditionController extends Controller
             abort(403, 'No puedes aprobar tu propia rendición.');
         }
 
+        DB::transaction(function () use ($rendition, $user) {
+
         // aprobar
 
         $totalDeclared = $rendition->expenses()->sum('amount');
@@ -675,6 +712,18 @@ class RenditionController extends Controller
         $rendition->refund_to_company = $difference > 0;
         $rendition->refund_to_worker = $difference < 0;
         $rendition->refund_resolved_at = now();
+
+        if (round((float) $difference, 2) === 0.0) {
+            $rendition->payment_completed = true;
+            $rendition->payment_completed_at = now();
+            $rendition->payment_completed_by = $user->id;
+            $rendition->payment_observation = 'Cierre automático: rendición exacta, sin devolución ni reembolso.';
+        } else {
+            $rendition->payment_completed = false;
+            $rendition->payment_completed_at = null;
+            $rendition->payment_completed_by = null;
+            $rendition->payment_observation = null;
+        }
 
         $rendition->status = 'approved';
         $rendition->save();
@@ -694,6 +743,19 @@ class RenditionController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
+        if (round((float) $difference, 2) === 0.0) {
+            WorkflowHistory::create([
+                'workflowable_type' => \App\Models\Rendition::class,
+                'workflowable_id' => $rendition->id,
+                'user_id' => $user->id,
+                'action' => 'payment_completed_automatically',
+                'from_status' => 'approved',
+                'to_status' => 'approved',
+                'observation' => 'Cierre automático: rendición exacta, sin devolución ni reembolso.',
+                'ip_address' => request()->ip(),
+            ]);
+        }
+
         $rendition->user->notify(new WorkflowNotification(
             'Rendición aprobada',
             'Tu rendición fue aprobada por Finanzas. El proceso finalizó correctamente.',
@@ -707,6 +769,8 @@ class RenditionController extends Controller
             $rendition->routePlanning->status = 'approved';
             $rendition->routePlanning->save();
         }
+
+        });
 
         return redirect()->back()->with(
             'success',
@@ -845,6 +909,10 @@ class RenditionController extends Controller
 
         $rendition = $expense->rendition;
 
+        if (!$rendition) {
+            abort(404);
+        }
+
         if (
             $user->role !== 'admin'
             &&
@@ -886,6 +954,10 @@ class RenditionController extends Controller
         $user = auth()->user();
 
         $rendition = $expense->rendition;
+
+        if (!$rendition) {
+            abort(404);
+        }
 
         if (
             $user->role !== 'admin'
@@ -931,74 +1003,45 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        // Admin puede ver todo el historial
+        $planningQuery = \App\Models\RoutePlanning::with([
+            'user',
+            'workflowHistories.user',
+        ])
+            ->whereIn('status', ['approved', 'rejected']);
+
+        $renditionQuery = \App\Models\Rendition::with([
+            'user',
+            'routePlanning',
+            'observations.user',
+            'workflowHistories.user',
+        ])
+            ->whereIn('status', ['approved', 'rejected']);
 
         if ($user->role === 'admin') {
+            // Admin ve todo.
+        } elseif (in_array($user->departamento, [
+            WorkflowHelper::DEPARTMENT_FINANCES,
+            WorkflowHelper::DEPARTMENT_CONTROLLING,
+        ])) {
+            // Finanzas y Controlling ven todo lo aprobado/rechazado.
+        } elseif ($user->role === 'jefatura') {
+            $planningQuery->whereHas('user', function ($query) use ($user) {
+                $query->where('jefatura_id', $user->id);
+            });
 
-            $plannings = \App\Models\RoutePlanning::with('user')
-                ->whereIn('status', ['approved', 'rejected'])
-                ->orderBy('updated_at', 'desc')
-                ->paginate(10, ['*'], 'plannings_page');
-
-            $renditions = \App\Models\Rendition::with(['user', 'routePlanning', 'observations.user'])
-                ->whereIn('status', ['approved', 'rejected'])
-                ->orderBy('updated_at', 'desc')
-                ->paginate(10, ['*'], 'renditions_page');
-
-            return view('renditions.history', compact('plannings', 'renditions'));
+            $renditionQuery->whereHas('user', function ($query) use ($user) {
+                $query->where('jefatura_id', $user->id);
+            });
+        } else {
+            $planningQuery->where('user_id', $user->id);
+            $renditionQuery->where('user_id', $user->id);
         }
 
-        // Finanzas y Controlling pueden ver todo lo aprobado/rechazado
-
-        if (in_array($user->departamento, [WorkflowHelper::DEPARTMENT_FINANCES, WorkflowHelper::DEPARTMENT_CONTROLLING])) {
-
-            $plannings = \App\Models\RoutePlanning::with('user')
-                ->whereIn('status', ['approved', 'rejected'])
-                ->orderBy('updated_at', 'desc')
-                ->paginate(10, ['*'], 'plannings_page');
-
-            $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])
-                ->whereIn('status', ['approved', 'rejected'])
-                ->orderBy('updated_at', 'desc')
-                ->paginate(10, ['*'], 'renditions_page');
-
-            return view('renditions.history', compact('plannings', 'renditions'));
-        }
-
-        // Jefatura puede ver el historial de sus trabajadores
-
-        if ($user->role === 'jefatura') {
-
-            $plannings = \App\Models\RoutePlanning::with('user')
-                ->whereHas('user', function ($query) use ($user) {
-                    $query->where('jefatura_id', $user->id);
-                })
-                ->whereIn('status', ['approved', 'rejected'])
-                ->orderBy('updated_at', 'desc')
-                ->paginate(10, ['*'], 'plannings_page');
-
-            $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])
-                ->whereHas('user', function ($query) use ($user) {
-                    $query->where('jefatura_id', $user->id);
-                })
-                ->whereIn('status', ['approved', 'rejected'])
-                ->orderBy('updated_at', 'desc')
-                ->paginate(10, ['*'], 'renditions_page');
-
-            return view('renditions.history', compact('plannings', 'renditions'));
-        }
-
-        // Trabajadores pueden ver su propio historial
-
-        $plannings = \App\Models\RoutePlanning::with('user')
-            ->where('user_id', $user->id)
-            ->whereIn('status', ['approved', 'rejected'])
+        $plannings = $planningQuery
             ->orderBy('updated_at', 'desc')
             ->paginate(10, ['*'], 'plannings_page');
 
-        $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])
-            ->where('user_id', $user->id)
-            ->whereIn('status', ['approved', 'rejected'])
+        $renditions = $renditionQuery
             ->orderBy('updated_at', 'desc')
             ->paginate(10, ['*'], 'renditions_page');
 

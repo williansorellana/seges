@@ -124,53 +124,105 @@
  
                                         <!-- Estado -->
                                         <td class="px-8 py-6 whitespace-nowrap">
-                                            @switch($ren->status)
-                                                @case('draft')
-                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-slate-800 text-slate-400 border border-slate-700 shadow-sm">
-                                                        <span class="w-2 h-2 rounded-full bg-slate-500 mr-2 shadow-[0_0_8px_rgba(100,116,139,0.5)]"></span>{{ __('Borrador') }}
-                                                    </span>
-                                                    @break
-                                                @case('pending_jefatura')
-                                                @case('pending_controlling')
-                                                @case('pending_finances')
-                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-sm shadow-amber-900/10">
-                                                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>{{ __('En Revisión') }}
-                                                    </span>
-                                                    @break
-                                                @case('approved')
-                                                @case('closed')
-                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-sm shadow-emerald-900/10">
-                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{{ __('Cerrada') }}
-                                                    </span>
-                                                    @break
-                                                @case('rejected')
-                                                    <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 shadow-sm shadow-rose-900/10">
-                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>{{ __('Observada') }}
-                                                    </span>
-                                                    @if($ren->status === 'rejected' && $ren->observations->isNotEmpty())
-                                                        <div class="mt-2 text-xs text-red-600 dark:text-red-400 max-w-xs whitespace-normal">
-                                                            {{ $ren->observations->last()->observation }}
-                                                        </div>
-                                                    @endif
-                                                    @break
-                                            @endswitch
+                                            @php
+                                                if ($ren->status === 'draft') {
+                                                    $statusLabel = 'Borrador';
+                                                    $statusClass = 'bg-slate-800 text-slate-400 border-slate-700';
+                                                    $statusDot = 'bg-slate-500';
+                                                    $statusIcon = null;
+                                                } elseif (in_array($ren->status, ['pending_jefatura', 'pending_controlling', 'pending_finances'])) {
+                                                    $statusLabel = 'En revisión';
+                                                    $statusClass = 'bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-amber-900/10';
+                                                    $statusDot = 'bg-amber-500 animate-pulse';
+                                                    $statusIcon = null;
+                                                } elseif ($ren->status === 'approved' && $ren->payment_completed) {
+                                                    $statusLabel = 'Cerrada';
+                                                    $statusClass = 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-900/10';
+                                                    $statusDot = null;
+                                                    $statusIcon = 'check';
+                                                } elseif ($ren->status === 'approved' && !$ren->payment_completed) {
+                                                    $statusLabel = 'Aprobada / cierre pendiente';
+                                                    $statusClass = 'bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-amber-900/10';
+                                                    $statusDot = 'bg-amber-500 animate-pulse';
+                                                    $statusIcon = null;
+                                                } elseif ($ren->status === 'closed') {
+                                                    $statusLabel = 'Cerrada';
+                                                    $statusClass = 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-900/10';
+                                                    $statusDot = null;
+                                                    $statusIcon = 'check';
+                                                } elseif ($ren->status === 'rejected') {
+                                                    $statusLabel = 'Observada';
+                                                    $statusClass = 'bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-rose-900/10';
+                                                    $statusDot = null;
+                                                    $statusIcon = 'warning';
+                                                } else {
+                                                    $statusLabel = ucfirst(str_replace('_', ' ', $ren->status));
+                                                    $statusClass = 'bg-slate-800 text-slate-400 border-slate-700';
+                                                    $statusDot = 'bg-slate-500';
+                                                    $statusIcon = null;
+                                                }
+                                            @endphp
+
+                                            <span class="px-4 py-2 inline-flex items-center text-[10px] font-black uppercase tracking-widest rounded-xl border shadow-sm {{ $statusClass }}">
+                                                @if($statusIcon === 'check')
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                @elseif($statusIcon === 'warning')
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                    </svg>
+                                                @elseif($statusDot)
+                                                    <span class="w-2 h-2 rounded-full {{ $statusDot }} mr-2"></span>
+                                                @endif
+
+                                                {{ __($statusLabel) }}
+                                            </span>
+
+                                            @if($ren->status === 'rejected' && $ren->observations->isNotEmpty())
+                                                <div class="mt-2 text-xs text-red-600 dark:text-red-400 max-w-xs whitespace-normal">
+                                                    {{ $ren->observations->last()->observation }}
+                                                </div>
+                                            @endif
+
+                                            @if($ren->status === 'approved' && !$ren->payment_completed)
+                                                <div class="mt-2 text-[10px] text-amber-400 font-bold uppercase tracking-widest max-w-xs whitespace-normal">
+                                                    Pendiente de confirmación financiera.
+                                                </div>
+                                            @endif
                                         </td>
- 
+
                                         <!-- Acciones -->
                                         <td class="px-8 py-6 whitespace-nowrap text-center">
                                             <div class="flex items-center justify-center gap-4">
-                                                @if($ren->status === 'draft' || $ren->status === 'rejected')
-                                                    <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate class="group/btn px-6 py-2.5 bg-blue-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all flex items-center gap-2 cursor-pointer">
-                                                        <svg class="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                @if($ren->status === 'draft')
+                                                    <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate
+                                                    class="group/btn px-6 py-2.5 bg-blue-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all flex items-center gap-2 cursor-pointer">
+                                                        <svg class="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                        </svg>
                                                         {{ __('Rendir Gastos') }}
                                                     </a>
+                                                @elseif($ren->status === 'rejected')
+                                                    <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate
+                                                    class="group/btn px-6 py-2.5 bg-rose-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-1 hover:shadow-rose-600/40 transition-all flex items-center gap-2 cursor-pointer">
+                                                        <svg class="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                        </svg>
+                                                        {{ __('Corregir') }}
+                                                    </a>
                                                 @else
-                                                    <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate class="group/btn px-5 py-2.5 bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-700 hover:bg-slate-700 hover:text-white transition-all cursor-pointer">
+                                                    <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate
+                                                    class="group/btn px-5 py-2.5 bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-700 hover:bg-slate-700 hover:text-white transition-all cursor-pointer">
                                                         {{ __('Ver Detalles') }}
                                                     </a>
+
                                                     @if($ren->status === 'approved' || $ren->status === 'closed')
-                                                        <a href="{{ route('renditions.pdf', $ren->id) }}" class="group/btn px-5 py-2.5 bg-rose-600/10 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-rose-500/20 hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-rose-900/10">
-                                                            <svg class="w-4 h-4 group-hover/btn:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                                        <a href="{{ route('renditions.pdf', $ren->id) }}"
+                                                        class="group/btn px-5 py-2.5 bg-rose-600/10 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-rose-500/20 hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-rose-900/10">
+                                                            <svg class="w-4 h-4 group-hover/btn:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                            </svg>
                                                             PDF
                                                         </a>
                                                     @endif
