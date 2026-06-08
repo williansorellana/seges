@@ -227,6 +227,16 @@
     </tr>
 </table>
 
+@if($planning->status === 'rejected')
+    <table>
+        <tr>
+            <td class="badge-rejected" style="text-align: center; font-weight: bold;">
+                Solicitud rechazada. Este documento se genera solo como respaldo histórico y no constituye autorización de fondos, viáticos o Amipass.
+            </td>
+        </tr>
+    </table>
+@endif
+
 <div class="section-title">Trazabilidad de aprobación</div>
 <table>
     <tr>

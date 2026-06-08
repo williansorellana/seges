@@ -135,6 +135,18 @@
 
         $destination = $planning->destination ?? 'No registrado';
         $motive = $planning->motive ?? 'No registrado';
+
+        $statusLabels = [
+            'draft' => 'Borrador',
+            'pending_jefatura' => 'Pendiente Jefatura',
+            'pending_controlling' => 'Pendiente Controlling',
+            'pending_finances' => 'Pendiente Finanzas',
+            'approved' => 'Aprobada',
+            'rejected' => 'Rechazada',
+        ];
+
+        $statusLabel = $statusLabels[$rendition->status] ?? strtoupper($rendition->status);
+
     @endphp
 
     <table class="info-table">
@@ -171,8 +183,10 @@
             <td>{{ $renditionDate }}</td>
             <th>Fecha de entrega</th>
             <td>{{ $deliveryDate }}</td>
-            <th>% Cobertura</th>
-            <td>100%</td>
+            <th>Estado</th>
+            <td class="{{ $rendition->status === 'approved' ? 'badge-green' : ($rendition->status === 'rejected' ? 'badge-red' : '') }}">
+                {{ $statusLabel }}
+            </td>
         </tr>
         <tr>
             <th>Dirección/Región/Ciudad Colaborador</th>
@@ -187,6 +201,16 @@
             <td colspan="2">DIMAK</td>
         </tr>
     </table>
+
+    @if($rendition->status === 'rejected')
+        <table>
+            <tr>
+                <td class="badge-red" style="text-align: center; font-weight: bold;">
+                    Rendición rechazada. Este documento se genera solo como respaldo histórico y no constituye aprobación ni cierre financiero válido.
+                </td>
+            </tr>
+        </table>
+    @endif
 
     <div class="title" style="margin-bottom: 10px; font-size: 14px;">Detalle de Gastos Declarados</div>
 
@@ -354,6 +378,10 @@
                 Aprobación Finanzas<br>
                 @if($rendition->status === 'approved' && $rendition->refund_resolved_at)
                     Cierre financiero: {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}
+                @elseif($rendition->status === 'rejected')
+                    Rendición rechazada
+                @else
+                    Pendiente de cierre
                 @endif
             </td>
         </tr>
