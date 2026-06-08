@@ -43,7 +43,7 @@ class UserController extends Controller
             'jefatura_id' => ['nullable', 'exists:users,id'],
         ]);
 
-        $authorizedModules = $request->authorized_modules ?? ['all'];
+        $authorizedModules = $request->input('authorized_modules', []);
 
         $user = User::create([
             'name' => $request->name,
@@ -78,6 +78,8 @@ class UserController extends Controller
             'departamento' => ['nullable', 'string', 'max:255'],
             'jefatura_id' => ['nullable', 'exists:users,id'],
         ]);
+
+        $validated['authorized_modules'] = $request->input('authorized_modules', []);
 
         $user->update($validated);
 

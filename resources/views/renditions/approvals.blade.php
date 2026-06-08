@@ -146,7 +146,7 @@
                                                 <button @click="showReject = true"
                                                         class="px-3 py-1.5 bg-red-100 text-red-600 text-xs font-bold rounded border border-red-200 hover:bg-red-200 transition"
                                                         title="Rechazar">
-                                                    Rechazar
+                                                    Devolver
                                                 </button>
                                             </div>
 

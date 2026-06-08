@@ -349,14 +349,32 @@ class RenditionController extends Controller
 
     public function approvals()
     {
-        $plannings = \App\Models\RoutePlanning::with('user')
-            ->whereHas('user', function ($query) { $query->where('jefatura_id', auth()->id()); })
-            ->where('status', 'pending_jefatura')->orderBy('created_at', 'asc')->paginate(5, ['*'], 'plannings_page');
+        $user = auth()->user();
 
-        $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])
-            ->whereHas('user', function ($query) { $query->where('jefatura_id', auth()->id()); })
-            ->where('status', 'pending_jefatura')->orderBy('updated_at', 'asc')->paginate(5, ['*'], 'renditions_page');
-            
+        if ($user->role !== 'admin' && $user->role !== 'jefatura') {
+            abort(403, 'No autorizado.');
+        }
+
+        $plannings = \App\Models\RoutePlanning::with('user')
+            ->when($user->role !== 'admin', function ($query) use ($user) {
+                $query->whereHas('user', function ($subQuery) use ($user) {
+                    $subQuery->where('jefatura_id', $user->id);
+                });
+            })
+            ->where('status', 'pending_jefatura')
+            ->orderBy('created_at', 'asc')
+            ->paginate(5, ['*'], 'plannings_page');
+
+        $renditions = \App\Models\Rendition::with(['user', 'routePlanning', 'observations.user'])
+            ->when($user->role !== 'admin', function ($query) use ($user) {
+                $query->whereHas('user', function ($subQuery) use ($user) {
+                    $subQuery->where('jefatura_id', $user->id);
+                });
+            })
+            ->where('status', 'pending_jefatura')
+            ->orderBy('updated_at', 'asc')
+            ->paginate(5, ['*'], 'renditions_page');
+
         return view('renditions.approvals', compact('plannings', 'renditions'));
     }
 

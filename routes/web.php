@@ -19,7 +19,7 @@ use App\Http\Controllers\RenditionController;
 
 Route::middleware(['auth', 'force.password.change'])->group(function () {
     // Rutas de Planificación de Ruta
-    Route::prefix('planificaciones')->name('route-plannings.')->group(function () {
+    Route::prefix('planificaciones')->name('route-plannings.')->middleware('module:renditions')->group(function () {
         Route::get('/', [RoutePlanningController::class, 'index'])->name('index');
         Route::get('/crear', [RoutePlanningController::class, 'create'])->name('create');
         Route::post('/', [RoutePlanningController::class, 'store'])->name('store');
@@ -39,7 +39,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     });
 
     // Rutas de Rendiciones
-    Route::prefix('rendiciones')->name('renditions.')->group(function () {
+    Route::prefix('rendiciones')->name('renditions.')->middleware('module:renditions')->group(function () {
         Route::get('/', [RenditionController::class, 'index'])->name('index');
         Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
         Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');

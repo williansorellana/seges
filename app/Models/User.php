@@ -78,29 +78,23 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasModuleAccess(string $module): bool
     {
-        // Admin siempre tiene acceso a todo
+        // Admin siempre tiene acceso a todo.
         if ($this->role === 'admin') {
             return true;
         }
 
         $modules = $this->authorized_modules ?? [];
 
-        // Si no tiene módulos definidos, asumimos acceso total (o restringido según lógica de negocio, aquí asumimos 'all' por defecto para compatibilidad)
+        // Si no tiene módulos autorizados, no debe acceder al módulo.
         if (empty($modules)) {
-            // Lógica de compatibilidad hacia atrás:
-            // Si es supervisor, tiene acceso a todo menos usuarios (handled by Role)
-            // Si es worker, solo tiene acceso a lo que su rol permita.
-            // Para simplificar, si está vacío asumimos que TIENE acceso a los módulos básicos de su rol.
-            // Pero la idea es restringir. Si está vacío, deberíamos asumir 'todos' O migrar los datos.
-            // Vamos a asumir que 'all' en el array otorga acceso total.
+            return false;
+        }
+
+        if (in_array('all', $modules, true)) {
             return true;
         }
 
-        if (in_array('all', $modules)) {
-            return true;
-        }
-
-        return in_array($module, $modules);
+        return in_array($module, $modules, true);
     }
 
     public function vehicleRequests()
