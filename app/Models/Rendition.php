@@ -12,6 +12,20 @@ class Rendition extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'funds_received' => 'decimal:2',
+        'total_declared' => 'decimal:2',
+        'total_approved' => 'decimal:2',
+        'difference' => 'decimal:2',
+
+        'refund_to_company' => 'boolean',
+        'refund_to_worker' => 'boolean',
+        'payment_completed' => 'boolean',
+
+        'refund_resolved_at' => 'datetime',
+        'payment_completed_at' => 'datetime',
+    ];
+
     public function routePlanning()
     {
         return $this->belongsTo(RoutePlanning::class);
