@@ -129,7 +129,13 @@
                                             
                                             <!-- Botones -->
                                             <div class="flex items-center justify-center space-x-2" x-show="!showReject">
-                                                <!-- Formulario Aprobar -->
+                                                <a href="{{ route('route-plannings.pdf', $plan->id) }}"
+                                                target="_blank"
+                                                class="px-3 py-1.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded border border-indigo-200 hover:bg-indigo-200 transition"
+                                                title="Descargar PDF">
+                                                    PDF
+                                                </a>
+
                                                 <form action="{{ route('route-plannings.approve-jefatura', $plan->id) }}" method="POST">
                                                     @csrf
                                                     <button type="submit" class="px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded shadow hover:bg-green-700 transition" title="Aprobar Solicitud">
@@ -137,8 +143,9 @@
                                                     </button>
                                                 </form>
                                                 
-                                                <!-- Boton Rechazar que abre el mini form -->
-                                                <button @click="showReject = true" class="px-3 py-1.5 bg-red-100 text-red-600 text-xs font-bold rounded border border-red-200 hover:bg-red-200 transition" title="Rechazar">
+                                                <button @click="showReject = true"
+                                                        class="px-3 py-1.5 bg-red-100 text-red-600 text-xs font-bold rounded border border-red-200 hover:bg-red-200 transition"
+                                                        title="Rechazar">
                                                     Rechazar
                                                 </button>
                                             </div>
@@ -218,11 +225,29 @@
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         <div x-show="!showReject" class="flex justify-center space-x-2">
-                                            <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200">Ver Boletas</a>
+                                            <a href="{{ route('renditions.show', $ren->id) }}"
+                                            target="_blank"
+                                            class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded hover:bg-gray-200 transition">
+                                                Ver detalle
+                                            </a>
+
+                                            <a href="{{ route('renditions.pdf', $ren->id) }}"
+                                            target="_blank"
+                                            class="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded hover:bg-indigo-200 transition">
+                                                PDF
+                                            </a>
+
                                             <form action="{{ route('renditions.approve-jefatura-rendition', $ren->id) }}" method="POST">
-                                                @csrf <button type="submit" class="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded">Aprobar</button>
+                                                @csrf
+                                                <button type="submit" class="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 transition">
+                                                    Aprobar
+                                                </button>
                                             </form>
-                                            <button @click="showReject = true" class="px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded">Rechazar</button>
+
+                                            <button @click="showReject = true"
+                                                    class="px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded hover:bg-red-200 transition">
+                                                Rechazar
+                                            </button>
                                         </div>
                                         <div x-show="showReject" x-cloak class="mt-2 text-left bg-red-50 p-2 rounded">
                                             <form action="{{ route('renditions.reject-jefatura-rendition', $ren->id) }}" method="POST">

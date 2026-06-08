@@ -206,6 +206,14 @@ class RoutePlanningController extends Controller
             abort(403, 'No autorizado.');
         }
 
+        if ($planning->user_id === auth()->id()) {
+            abort(403, 'No puedes aprobar tu propia planificación.');
+        }
+
+        if ($planning->status !== WorkflowHelper::STATUS_PENDING_JEFATURA) {
+            abort(403, 'La planificación no está pendiente de Jefatura.');
+        }
+
         // Firma digital jefatura
 
         $signatureService = new DigitalSignatureService();
@@ -295,20 +303,14 @@ class RoutePlanningController extends Controller
         // Historial workflow
 
         WorkflowHistory::create([
-
             'workflowable_type' => \App\Models\RoutePlanning::class,
-
             'workflowable_id' => $planning->id,
-
             'user_id' => auth()->id(),
-
             'action' => 'approved_by_jefatura',
-
-            'from_status' => 'pending_jefatura',
-
+            'from_status' => WorkflowHelper::STATUS_PENDING_JEFATURA,
             'to_status' => $planning->status,
-
             'observation' => 'Solicitud aprobada por jefatura.',
+            'ip_address' => request()->ip(),
         ]);
 
         // respuesta
@@ -337,6 +339,10 @@ class RoutePlanningController extends Controller
             auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
         ) {
             abort(403, 'No autorizado.');
+        }
+
+        if ($planning->user_id === auth()->id()) {
+            abort(403, 'No puedes rechazar tu propia planificación.');
         }
 
         // Estado válido

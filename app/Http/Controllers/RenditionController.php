@@ -106,7 +106,14 @@ class RenditionController extends Controller
             'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
         ]);
 
-        $data = $request->only(['date', 'provider', 'document_type', 'expense_category', 'document_number', 'amount']);
+        $data = $request->only([
+            'date',
+            'provider',
+            'document_type',
+            'expense_category',
+            'document_number',
+            'amount'
+        ]);
 
         if ($request->hasFile('attachment')) {
             if (Storage::disk('local')->exists($expense->attachment_path)) {
@@ -115,6 +122,11 @@ class RenditionController extends Controller
 
             $data['attachment_path'] = $request->file('attachment')->store('receipts', 'local');
         }
+
+        // Si el documento fue corregido por el trabajador,
+        // se limpia la observación anterior de Controlling.
+        $data['is_valid'] = true;
+        $data['rejection_reason'] = null;
 
         $expense->update($data);
 
@@ -371,6 +383,10 @@ class RenditionController extends Controller
             abort(403, 'No autorizado.');
         }
 
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes aprobar tu propia rendición.');
+        }
+
         // Estado válido
 
         if ($rendition->status !== 'pending_jefatura') {
@@ -442,6 +458,10 @@ class RenditionController extends Controller
             )
         ) {
             abort(403, 'No autorizado.');
+        }
+
+        if ($rendition->user_id === $user->id) {
+            abort(403, 'No puedes rechazar tu propia rendición.');
         }
 
         // estado válido

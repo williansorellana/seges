@@ -12,6 +12,12 @@ class RenditionExpense extends Model
     
     protected $guarded = [];
 
+    protected $casts = [
+        'date' => 'date',
+        'amount' => 'decimal:2',
+        'is_valid' => 'boolean',
+    ];
+
     public function rendition()
     {
         return $this->belongsTo(\App\Models\Rendition::class);
