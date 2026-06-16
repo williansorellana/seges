@@ -674,14 +674,20 @@
                                     <input type="number" name="year" required placeholder="2023" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                                 </div>
                             </div>
-                            <div class="group">
+                            <div class="relative" x-data="{ openFuel: false, selectedFuel: '{{ old('fuel_type', 'diesel') }}', fuelLabel: '{{ old('fuel_type') == 'gasoline' ? 'Bencina (Gasolina)' : 'Petróleo (Diesel)' }}', fuels: [{v:'diesel',l:'Petróleo (Diesel)'},{v:'gasoline',l:'Bencina (Gasolina)'}] }">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Combustible</label>
-                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
-                                    <select name="fuel_type" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
-                                        <option value="diesel" class="bg-[#1e293b]">Petróleo (Diesel)</option>
-                                        <option value="gasoline" class="bg-[#1e293b]">Bencina (Gasolina)</option>
-                                    </select>
-                                </div>
+                                <input type="hidden" name="fuel_type" x-model="selectedFuel">
+                                <button type="button" @click="openFuel = !openFuel" @click.away="openFuel = false" class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                                    <span x-text="fuelLabel" class="text-slate-100 text-sm"></span>
+                                    <svg class="w-4 h-4 text-slate-500 transition-transform" :class="openFuel ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                                <ul x-show="openFuel" x-transition class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto" style="display:none;">
+                                    <template x-for="f in fuels" :key="f.v">
+                                        <li @click="selectedFuel = f.v; fuelLabel = f.l; openFuel = false" class="text-gray-200 cursor-pointer select-none py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="selectedFuel === f.v ? 'bg-blue-600/20 text-blue-400' : ''">
+                                            <span x-text="f.l"></span>
+                                        </li>
+                                    </template>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -861,25 +867,37 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="group">
+                    <div class="relative" x-data="{ openFuel: false, fuels: [{v:'diesel',l:'Petróleo (Diesel)'},{v:'gasoline',l:'Bencina (Gasolina)'}] }">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Combustible</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
-                            <select id="edit_fuel_type" name="fuel_type" x-model="editingVehicle.fuel_type" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
-                                <option value="diesel" class="bg-[#1e293b]">Petróleo (Diesel)</option>
-                                <option value="gasoline" class="bg-[#1e293b]">Bencina (Gasolina)</option>
-                            </select>
-                        </div>
+                        <input type="hidden" name="fuel_type" x-model="editingVehicle.fuel_type">
+                        <button type="button" @click="openFuel = !openFuel" @click.away="openFuel = false" class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                            <span x-text="editingVehicle.fuel_type === 'diesel' ? 'Petróleo (Diesel)' : (editingVehicle.fuel_type === 'gasoline' ? 'Bencina (Gasolina)' : 'Seleccionar')" class="text-slate-100 text-sm"></span>
+                            <svg class="w-4 h-4 text-slate-500 transition-transform" :class="openFuel ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <ul x-show="openFuel" x-transition class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto" style="display:none;">
+                            <template x-for="f in fuels" :key="f.v">
+                                <li @click="editingVehicle.fuel_type = f.v; openFuel = false" class="text-gray-200 cursor-pointer select-none py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="editingVehicle.fuel_type === f.v ? 'bg-blue-600/20 text-blue-400' : ''">
+                                    <span x-text="f.l"></span>
+                                </li>
+                            </template>
+                        </ul>
                     </div>
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Estado Operativo</label>
                         <template x-if="editingVehicle.status !== 'occupied'">
-                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
-                                <select id="edit_status" name="status" x-model="editingVehicle.status" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
-                                    <option value="available" class="bg-[#1e293b]">{{ __('Disponible') }}</option>
-                                    <option value="out_of_service" class="bg-[#1e293b]">{{ __('Fuera de Servicio') }}</option>
-                                    <option value="maintenance" class="bg-[#1e293b]">{{ __('En Mantención') }}</option>
-                                    <option value="workshop" class="bg-[#1e293b]">{{ __('En Taller') }}</option>
-                                </select>
+                            <div class="relative" x-data="{ openStatus: false, statuses: [{v:'available',l:'Disponible'},{v:'out_of_service',l:'Fuera de Servicio'},{v:'maintenance',l:'En Mantención'},{v:'workshop',l:'En Taller'}] }">
+                                <input type="hidden" name="status" x-model="editingVehicle.status">
+                                <button type="button" @click="openStatus = !openStatus" @click.away="openStatus = false" class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                                    <span x-text="editingVehicle.status === 'available' ? 'Disponible' : (editingVehicle.status === 'out_of_service' ? 'Fuera de Servicio' : (editingVehicle.status === 'maintenance' ? 'En Mantención' : (editingVehicle.status === 'workshop' ? 'En Taller' : 'Seleccionar')))" class="text-slate-100 text-sm"></span>
+                                    <svg class="w-4 h-4 text-slate-500 transition-transform" :class="openStatus ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                                <ul x-show="openStatus" x-transition class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto" style="display:none;">
+                                    <template x-for="s in statuses" :key="s.v">
+                                        <li @click="editingVehicle.status = s.v; openStatus = false" class="text-gray-200 cursor-pointer select-none py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="editingVehicle.status === s.v ? 'bg-blue-600/20 text-blue-400' : ''">
+                                            <span x-text="s.l"></span>
+                                        </li>
+                                    </template>
+                                </ul>
                             </div>
                         </template>
                         <template x-if="editingVehicle.status === 'occupied'">
