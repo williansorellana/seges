@@ -28,57 +28,6 @@
                 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
                 <style>
-                    /* Uiverse Input Design (breezy-wolverine-23) - Adapted to Blue-Slate */
-                    .search-label {
-                      display: flex;
-                      align-items: center;
-                      box-sizing: border-box;
-                      position: relative;
-                      border: 1px solid #334155; /* slate-700 */
-                      border-radius: 8px; /* Matching the more squared look in screenshot */
-                      overflow: hidden;
-                      background: #1e293b; /* slate-800 */
-                      padding: 9px;
-                      cursor: text;
-                    }
-                    html:not(.dark) .search-label {
-                      background: #f8fafc; /* slate-50 */
-                      border-color: #cbd5e1; /* slate-300 */
-                    }
-                    html:not(.dark) .search-label:focus-within {
-                      background: #ffffff;
-                      border-color: #3b82f6; /* blue-500 */
-                    }
-                    html:not(.dark) .search-label input {
-                      color: #0f172a; /* slate-900 */
-                    }
-                    .search-label:hover { border-color: #475569; /* slate-600 */ }
-                    .search-label:focus-within { background: #0f172a; /* slate-900 */ border-color: #3b82f6; /* blue focus ring */ }
-                    .search-label input { outline: none; width: 100%; border: none; background: none; color: #f1f5f9; /* slate-100 */ }
-                    .search-label input::placeholder { color: #64748b; /* slate-500 */ }
-                    .search-label input:focus+.slash-icon, .search-label input:valid+.slash-icon { display: none; }
-                    .search-label input:valid~.search-icon { display: block; }
-                    .search-label input:valid { width: calc(100% - 22px); transform: translateX(20px); }
-                    .search-label svg, .slash-icon { position: absolute; color: #64748b; /* slate-500 */ }
-                    .search-icon { display: none; width: 16px; height: auto; left: 12px; }
-                    .slash-icon { 
-                        right: 7px; 
-                        border: 1px solid #334155; 
-                        background: linear-gradient(-225deg, #1e293b, #334155); 
-                        border-radius: 4px; 
-                        text-align: center; 
-                        box-shadow: inset 0 -2px 0 0 #0f172a, inset 0 0 1px 1px #475569, 0 1px 2px 1px rgba(0, 0, 0, 0.4); 
-                        cursor: pointer; 
-                        font-size: 12px; 
-                        width: 18px; 
-                        padding-bottom: 2px;
-                    }
-                    .slash-icon:active { 
-                        box-shadow: inset 0 1px 0 0 #0f172a, inset 0 0 1px 1px #475569, 0 1px 2px 0 rgba(0, 0, 0, 0.4); 
-                        text-shadow: 0 1px 0 #64748b; 
-                        color: transparent; 
-                    }
-                    
                     /* Custom Flatpickr Overrides for Seges */
                     .flatpickr-calendar.dark {
                         background: #2b2b2b;
@@ -162,11 +111,9 @@
                             <input type="hidden" name="start_date" id="start_date" required>
                             <input type="hidden" name="end_date" id="end_date" required>
 
-                            <label class="search-label w-full md:w-1/2">
-                                <input type="text" id="dateRange" required placeholder="Seleccionar rango de fechas...">
-                                <kbd class="slash-icon">/</kbd>
-                                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 56.966 56.966"><path d="M55.146 51.887 41.588 37.786A22.926 22.926 0 0 0 46.984 23c0-12.682-10.318-23-23-23s-23 10.318-23 23 10.318 23 23 23c4.761 0 9.298-1.436 13.177-4.162l13.661 14.208c.571.593 1.339.92 2.162.92.779 0 1.518-.297 2.079-.837a3.004 3.004 0 0 0 .083-4.242zM23.984 6c9.374 0 17 7.626 17 17s-7.626 17-17 17-17-7.626-17-17 7.626-17 17-17z" fill="currentColor"></path></svg>
-                            </label>
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full md:w-1/2">
+                                <input type="text" id="dateRange" required placeholder="Seleccionar rango de fechas..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                            </div>
                             <p class="text-xs text-gray-500 mt-2">Haz clic para abrir el calendario interactivo. Selecciona inicio y fin.</p>
                         </div>
 
@@ -176,11 +123,9 @@
                             <!-- Región -->
                             <div class="relative">
                                 <label for="region" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Región <span class="text-red-500">*</span></label>
-                                <label class="search-label w-full">
-                                    <input type="text" name="region" id="region" x-model="searchRegion" @input="openRegion = true" @focus="openRegion = true" @click.away="openRegion = false" @keydown.escape="openRegion = false" required autocomplete="off" placeholder="Ej: Región del Biobío">
-                                    <kbd class="slash-icon">/</kbd>
-                                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 56.966 56.966"><path d="M55.146 51.887 41.588 37.786A22.926 22.926 0 0 0 46.984 23c0-12.682-10.318-23-23-23s-23 10.318-23 23 10.318 23 23 23c4.761 0 9.298-1.436 13.177-4.162l13.661 14.208c.571.593 1.339.92 2.162.92.779 0 1.518-.297 2.079-.837a3.004 3.004 0 0 0 .083-4.242zM23.984 6c9.374 0 17 7.626 17 17s-7.626 17-17 17-17-7.626-17-17 7.626-17 17-17z" fill="currentColor"></path></svg>
-                                </label>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                    <input type="text" name="region" id="region" x-model="searchRegion" @input="openRegion = true" @focus="openRegion = true" @click.away="openRegion = false" @keydown.escape="openRegion = false" required autocomplete="off" placeholder="Ej: Región del Biobío" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                                </div>
                                 
                                 <ul x-show="openRegion && filteredRegions.length > 0" x-transition class="absolute z-50 w-full mt-1 bg-white dark:bg-[#1e293b] shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-gray-100 dark:border-slate-700" style="display: none;">
                                     <template x-for="region in filteredRegions" :key="region">
@@ -194,11 +139,9 @@
                             <!-- Ciudad -->
                             <div class="relative">
                                 <label for="destination" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destino (Ciudad/Comuna) <span class="text-red-500">*</span></label>
-                                <label class="search-label w-full">
-                                    <input type="text" name="destination" id="destination" x-model="searchCity" @input="openCity = true" @focus="openCity = true" @click.away="openCity = false" @keydown.escape="openCity = false" required autocomplete="off" placeholder="Ej: Concepción">
-                                    <kbd class="slash-icon">/</kbd>
-                                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 56.966 56.966"><path d="M55.146 51.887 41.588 37.786A22.926 22.926 0 0 0 46.984 23c0-12.682-10.318-23-23-23s-23 10.318-23 23 10.318 23 23 23c4.761 0 9.298-1.436 13.177-4.162l13.661 14.208c.571.593 1.339.92 2.162.92.779 0 1.518-.297 2.079-.837a3.004 3.004 0 0 0 .083-4.242zM23.984 6c9.374 0 17 7.626 17 17s-7.626 17-17 17-17-7.626-17-17 7.626-17 17-17z" fill="currentColor"></path></svg>
-                                </label>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                    <input type="text" name="destination" id="destination" x-model="searchCity" @input="openCity = true" @focus="openCity = true" @click.away="openCity = false" @keydown.escape="openCity = false" required autocomplete="off" placeholder="Ej: Concepción" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                                </div>
                                 
                                 <ul x-show="openCity && filteredCities.length > 0" x-transition class="absolute z-50 w-full mt-1 bg-white dark:bg-[#1e293b] shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-gray-100 dark:border-slate-700" style="display: none;">
                                     <template x-for="city in filteredCities" :key="city">
@@ -213,11 +156,9 @@
                         <!-- Motivo -->
                         <div class="col-span-1 md:col-span-2">
                             <label for="motive" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Motivo del viaje <span class="text-red-500">*</span></label>
-                            <label class="search-label w-full">
-                                <input type="text" name="motive" id="motive" required placeholder="Ej: Visita a cliente X">
-                                <kbd class="slash-icon">/</kbd>
-                                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 56.966 56.966"><path d="M55.146 51.887 41.588 37.786A22.926 22.926 0 0 0 46.984 23c0-12.682-10.318-23-23-23s-23 10.318-23 23 10.318 23 23 23c4.761 0 9.298-1.436 13.177-4.162l13.661 14.208c.571.593 1.339.92 2.162.92.779 0 1.518-.297 2.079-.837a3.004 3.004 0 0 0 .083-4.242zM23.984 6c9.374 0 17 7.626 17 17s-7.626 17-17 17-17-7.626-17-17 7.626-17 17-17z" fill="currentColor"></path></svg>
-                            </label>
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" name="motive" id="motive" required placeholder="Ej: Visita a cliente X" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                            </div>
                         </div>
 
                         <!-- Acompañantes -->
@@ -226,8 +167,8 @@
                                 Acompañantes
                                 <span class="text-xs text-gray-400 font-normal ml-1">(Opcional)</span>
                             </label>
-                            <div class="search-label w-full" style="align-items: flex-start; min-height: 70px;">
-                                <textarea name="companions" id="companions" rows="2" placeholder="Ej: Juan Pérez, María González, Carlos López..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm resize-y" style="background: none; color: #f1f5f9;"></textarea>
+                            <div class="flex items-start border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full min-h-[70px]">
+                                <textarea name="companions" id="companions" rows="2" placeholder="Ej: Juan Pérez, María González, Carlos López..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm resize-y"></textarea>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Escribe los nombres de las personas que te acompañarán, separados por coma.</p>
                         </div>
@@ -254,12 +195,9 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-12">Adelanto de dinero para peajes, combustible, alojamiento, etc.</p>
                             
                             <div x-show="requiresFunds" x-transition.opacity class="ml-12" style="display: none;">
-                                <label for="requested_funds" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monto Solicitado ($)</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-gray-500 sm:text-sm">$</span>
-                                    </div>
-                                    <input type="number" name="requested_funds" id="requested_funds" min="1" class="pl-8 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="Ej: 50000" x-bind:required="requiresFunds">
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                    <span class="text-slate-500 text-sm mr-2">$</span>
+                                    <input type="number" name="requested_funds" id="requested_funds" min="1" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: 50000" x-bind:required="requiresFunds">
                                 </div>
                             </div>
                         </div>
@@ -285,13 +223,15 @@
                                         <label for="amipass_start_time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Hora de salida
                                         </label>
-                                        <input
-                                            type="time"
-                                            name="amipass_start_time"
-                                            id="amipass_start_time"
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-                                            x-bind:required="requiresAmipass"
-                                        >
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                            <input
+                                                type="time"
+                                                name="amipass_start_time"
+                                                id="amipass_start_time"
+                                                class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none"
+                                                x-bind:required="requiresAmipass"
+                                            >
+                                        </div>
                                         <p class="text-xs text-gray-500 mt-1">
                                             Hora en que comienza el desplazamiento el primer día.
                                         </p>
@@ -301,13 +241,15 @@
                                         <label for="amipass_end_time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Hora de regreso
                                         </label>
-                                        <input
-                                            type="time"
-                                            name="amipass_end_time"
-                                            id="amipass_end_time"
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-                                            x-bind:required="requiresAmipass"
-                                        >
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                            <input
+                                                type="time"
+                                                name="amipass_end_time"
+                                                id="amipass_end_time"
+                                                class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none"
+                                                x-bind:required="requiresAmipass"
+                                            >
+                                        </div>
                                         <p class="text-xs text-gray-500 mt-1">
                                             Hora estimada en que termina el viaje el último día.
                                         </p>

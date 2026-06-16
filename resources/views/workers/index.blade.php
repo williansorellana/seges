@@ -6,7 +6,7 @@
             </h2>
             <div class="flex items-center space-x-2">
                 <a href="{{ route('workers.trash') }}"
-                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 transition ease-in-out duration-150">
+                    class="inline-flex items-center px-4 py-2 bg-rose-600 border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-rose-500 transition-all hover:-translate-y-0.5 duration-150 shadow-md shadow-rose-500/20 cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -15,7 +15,7 @@
                     Papelera
                 </a>
                 <button x-data="" @click="$dispatch('open-modal', 'create-worker-modal')"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-blue-500 transition-all hover:-translate-y-0.5 duration-150 shadow-md shadow-blue-500/20 cursor-pointer">
                     Nuevo Trabajador
                 </button>
             </div>
@@ -148,14 +148,15 @@
                 </p>
 
                 <div class="mt-6 flex justify-end">
-                    <x-secondary-button x-on:click="$dispatch('close')"
-                        class="mr-3 bg-gray-700 text-gray-300 border-gray-600">
-                        {{ __('Cancelar') }}
-                    </x-secondary-button>
+                    <button type="button" x-on:click="$dispatch('close')"
+                        class="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-slate-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                        Cancelar
+                    </button>
 
-                    <x-danger-button class="ml-3">
-                        {{ __('Eliminar Trabajador') }}
-                    </x-danger-button>
+                    <button type="submit"
+                        class="ml-3 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                        Eliminar Trabajador
+                    </button>
                 </div>
             </form>
         </x-modal>
@@ -168,35 +169,42 @@
 
                 <div class="space-y-4">
                     <div>
-                        <x-input-label for="nombre" value="Nombre Completo" class="text-gray-300" />
-                        <x-text-input id="nombre" name="nombre" type="text"
-                            class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100" required />
+                        <x-input-label for="nombre" :value="__('Nombre Completo')" class="mb-1" />
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                            <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                        </div>
                     </div>
                     <div>
-                        <x-input-label for="rut" value="RUT" class="text-gray-300" />
-                        <x-text-input id="rut" name="rut" type="text"
-                            class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100"
-                            x-model="createWorker.rut" @input="formatRut(createWorker)" required />
+                        <x-input-label for="rut" :value="__('RUT')" class="mb-1" />
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                            <input type="text" id="rut" name="rut" x-model="createWorker.rut" @input="formatRut(createWorker)" required placeholder="Ej: 12.345.678-9" maxlength="12" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <x-input-label for="departamento" value="Departamento" class="text-gray-300" />
-                            <x-text-input id="departamento" name="departamento" type="text"
-                                class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100" />
+                            <x-input-label for="departamento" :value="__('Departamento')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="departamento" name="departamento" placeholder="Ej: Operaciones" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                         </div>
                         <div>
-                            <x-input-label for="cargo" value="Cargo" class="text-gray-300" />
-                            <x-text-input id="cargo" name="cargo" type="text"
-                                class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100" />
+                            <x-input-label for="cargo" :value="__('Cargo')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="cargo" name="cargo" placeholder="Ej: Supervisor" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <x-secondary-button @click="$dispatch('close')"
-                        class="mr-3 bg-gray-700 text-gray-300 border-gray-600">Cancelar</x-secondary-button>
-                    <x-primary-button
-                        class="bg-blue-600 border-transparent hover:bg-blue-500">Guardar</x-primary-button>
+                    <button type="button" @click="$dispatch('close')"
+                        class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 transition-all hover:-translate-y-0.5 cursor-pointer mr-3">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                        Guardar
+                    </button>
                 </div>
             </form>
         </x-modal>
@@ -210,38 +218,42 @@
 
                 <div class="space-y-4">
                     <div>
-                        <x-input-label for="edit_nombre" value="Nombre Completo" class="text-gray-300" />
-                        <x-text-input id="edit_nombre" name="nombre" type="text"
-                            class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100"
-                            x-model="editingWorker.nombre" required />
+                        <x-input-label for="edit_nombre" :value="__('Nombre Completo')" class="mb-1" />
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                            <input type="text" id="edit_nombre" name="nombre" x-model="editingWorker.nombre" required placeholder="Ej: Juan Pérez" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                        </div>
                     </div>
                     <div>
-                        <x-input-label for="edit_rut" value="RUT" class="text-gray-300" />
-                        <x-text-input id="edit_rut" name="rut" type="text"
-                            class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100"
-                            x-model="editingWorker.rut" @input="formatRut(editingWorker)" required />
+                        <x-input-label for="edit_rut" :value="__('RUT')" class="mb-1" />
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                            <input type="text" id="edit_rut" name="rut" x-model="editingWorker.rut" @input="formatRut(editingWorker)" required placeholder="Ej: 12.345.678-9" maxlength="12" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <x-input-label for="edit_departamento" value="Departamento" class="text-gray-300" />
-                            <x-text-input id="edit_departamento" name="departamento" type="text"
-                                class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100"
-                                x-model="editingWorker.departamento" />
+                            <x-input-label for="edit_departamento" :value="__('Departamento')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="edit_departamento" name="departamento" x-model="editingWorker.departamento" placeholder="Ej: Operaciones" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                         </div>
                         <div>
-                            <x-input-label for="edit_cargo" value="Cargo" class="text-gray-300" />
-                            <x-text-input id="edit_cargo" name="cargo" type="text"
-                                class="mt-1 block w-full bg-gray-900 border-gray-700 text-gray-100"
-                                x-model="editingWorker.cargo" />
+                            <x-input-label for="edit_cargo" :value="__('Cargo')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="edit_cargo" name="cargo" x-model="editingWorker.cargo" placeholder="Ej: Supervisor" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <x-secondary-button @click="$dispatch('close')"
-                        class="mr-3 bg-gray-700 text-gray-300 border-gray-600">Cancelar</x-secondary-button>
-                    <x-primary-button
-                        class="bg-blue-600 border-transparent hover:bg-blue-500">Actualizar</x-primary-button>
+                    <button type="button" @click="$dispatch('close')"
+                        class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 transition-all hover:-translate-y-0.5 cursor-pointer mr-3">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                        Actualizar
+                    </button>
                 </div>
             </form>
         </x-modal>

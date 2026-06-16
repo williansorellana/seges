@@ -5,7 +5,7 @@
                 {{ __('Papelera de Trabajadores') }}
             </h2>
             <a href="{{ route('workers.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                class="inline-flex items-center px-4 py-2 bg-slate-600 border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-slate-500 transition-all hover:-translate-y-0.5 duration-150 shadow-md shadow-slate-500/20 cursor-pointer">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -111,14 +111,15 @@
                 </p>
 
                 <div class="mt-6 flex justify-end">
-                    <x-secondary-button x-on:click="$dispatch('close')"
-                        class="mr-3 bg-gray-700 text-gray-300 border-gray-600">
-                        {{ __('Cancelar') }}
-                    </x-secondary-button>
+                    <button type="button" x-on:click="$dispatch('close')"
+                        class="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-slate-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                        Cancelar
+                    </button>
 
-                    <x-danger-button class="ml-3">
-                        {{ __('Eliminar Permanentemente') }}
-                    </x-danger-button>
+                    <button type="submit"
+                        class="ml-3 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                        Eliminar Permanentemente
+                    </button>
                 </div>
             </form>
         </x-modal>

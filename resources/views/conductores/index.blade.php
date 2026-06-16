@@ -6,7 +6,7 @@
             </h2>
             <div class="flex flex-wrap gap-3 items-center">                <!-- Papelera -->
                 <a href="{{ route('conductores.trash') }}"
-                    class="inline-flex items-center px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg font-bold text-[11px] text-slate-300 uppercase tracking-wider hover:bg-slate-700 hover:text-white transition-all duration-300 group h-10 shadow-sm cursor-pointer">
+                    class="inline-flex items-center px-4 py-2 bg-rose-600 border border-transparent rounded-lg font-bold text-[11px] text-white uppercase tracking-wider hover:bg-rose-500 transition-all duration-300 hover:-translate-y-0.5 group h-10 shadow-lg shadow-rose-500/30 cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>

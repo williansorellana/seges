@@ -51,7 +51,7 @@
                         </h3>
                         <div class="space-x-2">
                             <a href="{{ route('external-people.trash') }}"
-                                class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 transition ease-in-out duration-150">
+                                class="inline-flex items-center px-4 py-2 bg-rose-600 border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-rose-500 transition-all hover:-translate-y-0.5 duration-150 shadow-md shadow-rose-500/20 cursor-pointer">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -60,7 +60,7 @@
                                 Papelera
                             </a>
                             <button @click="resetForm()"
-                                class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-xs text-white hover:bg-blue-500 transition-all hover:-translate-y-0.5 duration-150 shadow-md shadow-blue-500/20 cursor-pointer">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4v16m8-8H4" />
@@ -159,46 +159,51 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Nombre -->
                         <div>
-                            <x-input-label for="name" value="Nombre Completo" />
-                            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full"
-                                x-model="editingPerson.name" required />
+                            <x-input-label for="name" :value="__('Nombre Completo')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="name" name="name" x-model="editingPerson.name" required placeholder="Ej: Juan Pérez" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                             <x-input-error class="mt-2" :messages="$errors->get('name')" />
                         </div>
 
                         <!-- RUT -->
                         <div>
-                            <x-input-label for="rut" value="RUT" />
-                            <x-text-input id="rut" name="rut" type="text" class="mt-1 block w-full"
-                                x-model="editingPerson.rut" @input="formatRut()" placeholder="12.345.678-9"
-                                maxlength="12" />
+                            <x-input-label for="rut" :value="__('RUT')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="rut" name="rut" x-model="editingPerson.rut" @input="formatRut()" placeholder="Ej: 12.345.678-9" maxlength="12" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                             <x-input-error class="mt-2" :messages="$errors->get('rut')" />
                         </div>
 
                         <!-- Cargo -->
                         <div>
-                            <x-input-label for="position" value="Cargo" />
-                            <x-text-input id="position" name="position" type="text" class="mt-1 block w-full"
-                                x-model="editingPerson.position" />
+                            <x-input-label for="position" :value="__('Cargo')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="position" name="position" x-model="editingPerson.position" placeholder="Ej: Supervisor" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                             <x-input-error class="mt-2" :messages="$errors->get('position')" />
                         </div>
 
                         <!-- Departamento/Empresa -->
                         <div>
-                            <x-input-label for="department" value="Departamento / Empresa" />
-                            <x-text-input id="department" name="department" type="text" class="mt-1 block w-full"
-                                x-model="editingPerson.department" />
+                            <x-input-label for="department" :value="__('Departamento / Empresa')" class="mb-1" />
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" id="department" name="department" x-model="editingPerson.department" placeholder="Ej: Contratista Z" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                            </div>
                             <x-input-error class="mt-2" :messages="$errors->get('department')" />
                         </div>
                     </div>
 
                     <div class="mt-6 flex justify-end">
-                        <x-secondary-button @click="$dispatch('close')" type="button">
-                            {{ __('Cancelar') }}
-                        </x-secondary-button>
+                        <button type="button" @click="$dispatch('close')" 
+                            class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                            Cancelar
+                        </button>
 
-                        <x-primary-button class="ml-3">
-                            {{ __('Guardar') }}
-                        </x-primary-button>
+                        <button type="submit" 
+                            class="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
+                            Guardar
+                        </button>
                     </div>
                 </form>
             </div>

@@ -103,7 +103,7 @@
                                 </span>
                             </div>
 
-                            <button type="button" x-on:click.prevent="$refs.photo.click()" x-bind:disabled="isCompressing" class="px-6 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-50">
+                            <button type="button" x-on:click.prevent="$refs.photo.click()" x-bind:disabled="isCompressing" class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-blue-500/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-50">
                                 <span x-show="!isCompressing">{{ __('Cambiar Avatar') }}</span>
                                 <span x-show="isCompressing" class="flex items-center gap-2">
                                     <svg class="animate-spin h-3 w-3 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -172,8 +172,8 @@
                             
                             <div class="group">
                                 <label for="license_expires_at" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Vencimiento Licencia') }}</label>
-                                <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-900 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                    <input id="license_expires_at" name="license_expires_at" type="text" class="w-full bg-transparent border-none outline-none text-white text-sm font-bold cursor-pointer" value="{{ old('license_expires_at', optional($user->license_expires_at)->format('Y-m-d')) }}" required>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                    <input id="license_expires_at" name="license_expires_at" type="text" class="w-full bg-transparent border-none outline-none text-white text-sm font-bold cursor-pointer focus:ring-0 focus:outline-none" value="{{ old('license_expires_at', optional($user->license_expires_at)->format('Y-m-d')) }}" required>
                                 </div>
                                 <x-input-error class="mt-2" :messages="$errors->get('license_expires_at')" />
                             </div>
@@ -190,23 +190,23 @@
                 
                 <!-- Sección 1: Datos Identitarios -->
                 <div class="space-y-6">
-                    <h3 class="text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-indigo-500/30"></span>
+                    <h3 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span class="w-8 h-[1px] bg-blue-500/30"></span>
                         {{ __('Datos Personales') }}
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="group">
                             <label for="name" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Nombres') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="name" name="name" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold" value="{{ old('name', $user->name) }}" required autofocus autocomplete="given-name">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="name" name="name" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('name', $user->name) }}" required autofocus autocomplete="given-name">
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('name')" />
                         </div>
 
                         <div class="group">
                             <label for="last_name" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Apellidos') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="last_name" name="last_name" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold" value="{{ old('last_name', $user->last_name) }}" required autocomplete="family-name">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="last_name" name="last_name" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('last_name', $user->last_name) }}" required autocomplete="family-name">
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('last_name')" />
                         </div>
@@ -252,8 +252,8 @@
                             }
                         }" class="group">
                             <label for="rut" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('RUT') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="rut" name="rut" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold font-mono" x-model="rut" @input="formatRut()" placeholder="12.345.678-9" maxlength="12">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="rut" name="rut" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold font-mono focus:ring-0 focus:outline-none" x-model="rut" @input="formatRut()" placeholder="12.345.678-9" maxlength="12">
                             </div>
                             <p x-show="error" x-text="error" class="text-[10px] text-rose-500 mt-1 font-bold uppercase"></p>
                             <x-input-error class="mt-2" :messages="$errors->get('rut')" />
@@ -261,8 +261,8 @@
 
                         <div class="group">
                             <label for="email" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Email Corporativo') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="email" name="email" type="email" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold" value="{{ old('email', $user->email) }}" required autocomplete="username">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="email" name="email" type="email" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('email', $user->email) }}" required autocomplete="username">
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('email')" />
                             
@@ -287,23 +287,23 @@
 
                 <!-- Sección 2: Contacto y Ubicación -->
                 <div class="space-y-6">
-                    <h3 class="text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-indigo-500/30"></span>
+                    <h3 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span class="w-8 h-[1px] bg-blue-500/30"></span>
                         {{ __('Contacto y Ubicación') }}
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="group">
                             <label for="phone" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Teléfono') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="phone" name="phone" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold" value="{{ old('phone', $user->phone) }}" placeholder="+56 9 1234 5678">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="phone" name="phone" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('phone', $user->phone) }}" placeholder="+56 9 1234 5678">
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('phone')" />
                         </div>
 
                         <div class="group">
                             <label for="address" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Dirección de Residencia') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="address" name="address" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold" value="{{ old('address', $user->address) }}" placeholder="Ej: Av. Principal 123, Santiago">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="address" name="address" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('address', $user->address) }}" placeholder="Ej: Av. Principal 123, Santiago">
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('address')" />
                         </div>
@@ -312,23 +312,23 @@
 
                 <!-- Sección 3: Cargo y Departamento -->
                 <div class="space-y-6">
-                    <h3 class="text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-indigo-500/30"></span>
+                    <h3 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span class="w-8 h-[1px] bg-blue-500/30"></span>
                         {{ __('Información Laboral') }}
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="group">
                             <label for="cargo" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Cargo / Puesto') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="cargo" name="cargo" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold" value="{{ old('cargo', $user->cargo) }}" placeholder="Ej: Analista Senior">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="cargo" name="cargo" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('cargo', $user->cargo) }}" placeholder="Ej: Analista Senior">
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('cargo')" />
                         </div>
 
                         <div class="group">
                             <label for="departamento" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Departamento') }}</label>
-                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
-                                <input id="departamento" name="departamento" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold" value="{{ old('departamento', $user->departamento) }}" placeholder="Ej: Finanzas">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input id="departamento" name="departamento" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('departamento', $user->departamento) }}" placeholder="Ej: Finanzas">
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('departamento')" />
                         </div>
@@ -345,8 +345,8 @@
                         </div>
                     @endif
                     
-                    <button type="submit" class="group px-10 py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all flex items-center gap-3 cursor-pointer">
-                        <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    <button type="submit" class="inline-flex items-center justify-center gap-3 px-5 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-blue-500/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                         {{ __('Actualizar Perfil') }}
                     </button>
                 </div>

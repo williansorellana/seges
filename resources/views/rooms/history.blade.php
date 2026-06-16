@@ -7,12 +7,12 @@
             
             <div class="flex space-x-2">
                 <button @click="$dispatch('open-report-modal')" 
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-bold hover:bg-indigo-500 transition shadow flex items-center">
+                        class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-md text-sm font-bold hover:bg-emerald-500 transition-all hover:-translate-y-0.5 shadow-md shadow-emerald-500/20 cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Generar Informe
                 </button>
 
-                <a href="{{ route('rooms.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-bold hover:bg-gray-500 transition shadow">
+                <a href="{{ route('rooms.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-bold hover:bg-blue-500 transition-all hover:-translate-y-0.5 shadow-md shadow-blue-500/20 cursor-pointer">
                     ← Volver a Salas
                 </a>
             </div>

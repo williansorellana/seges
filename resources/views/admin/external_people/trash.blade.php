@@ -11,13 +11,13 @@
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150">
+                            class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500 transition-all hover:-translate-y-0.5 shadow-md shadow-red-500/20 cursor-pointer">
                             Vaciar Papelera
                         </button>
                     </form>
                 @endif
                 <a href="{{ route('external-people.index') }}"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
+                    class="inline-flex items-center px-4 py-2 bg-slate-600 text-white text-xs font-semibold rounded-lg hover:bg-slate-500 transition-all hover:-translate-y-0.5 shadow-md shadow-slate-500/20 cursor-pointer">
                     Volver al Listado
                 </a>
             </div>

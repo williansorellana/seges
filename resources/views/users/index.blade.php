@@ -39,7 +39,7 @@
                         </a>
                     @else
                         <a href="{{ route('users.index', ['view' => 'trash']) }}"
-                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-sm text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shadow-sm">
+                            class="inline-flex items-center px-6 py-2.5 bg-rose-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-lg shadow-rose-500/30 hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-all hover:-translate-y-0.5">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -118,7 +118,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($user->deleted_at)
-                                            <span class="px-2.5 py-1 inline-flex text-xs font-medium rounded border bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-700 dark:text-gray-300 dark:border-gray-600">
+                                            <span class="px-2.5 py-1 inline-flex text-xs font-semibold rounded border bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-300 dark:text-slate-950 dark:border-slate-400">
                                                 {{ ucfirst($user->role === 'worker' ? 'Trabajador' : ($user->role === 'supervisor' ? 'Supervisor' : ($user->role === 'viewer' ? 'Visualizador' : ($user->role === 'jefatura' ? 'Jefatura' : 'Administrador')))) }}
                                             </span>
                                         @else
@@ -126,12 +126,12 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <select name="role" onchange="this.form.submit()"
-                                                    class="text-xs font-medium rounded-md border focus:ring-0 cursor-pointer py-1 pl-3 pr-8 appearance-none bg-no-repeat transition-colors
-                                                        {{ $user->role === 'admin' ? 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700/50' : '' }}
-                                                        {{ $user->role === 'supervisor' ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50' : '' }}
-                                                        {{ $user->role === 'worker' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700/50' : '' }}
-                                                        {{ $user->role === 'viewer' ? 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600/50' : '' }}
-                                                        {{ $user->role === 'jefatura' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700/50' : '' }}"
+                                                    class="text-xs font-semibold rounded-md border focus:ring-0 cursor-pointer py-1 pl-3 pr-8 appearance-none bg-no-repeat transition-colors
+                                                        {{ $user->role === 'admin' ? 'bg-purple-100 text-purple-900 border-purple-200 hover:bg-purple-200 dark:bg-purple-300 dark:text-purple-950 dark:border-purple-400 dark:hover:bg-purple-200' : '' }}
+                                                        {{ $user->role === 'supervisor' ? 'bg-blue-100 text-blue-900 border-blue-200 hover:bg-blue-200 dark:bg-blue-300 dark:text-blue-950 dark:border-blue-400 dark:hover:bg-blue-200' : '' }}
+                                                        {{ $user->role === 'worker' ? 'bg-emerald-100 text-emerald-900 border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-300 dark:text-emerald-950 dark:border-emerald-400 dark:hover:bg-emerald-200' : '' }}
+                                                        {{ $user->role === 'viewer' ? 'bg-slate-100 text-slate-900 border-slate-200 hover:bg-slate-200 dark:bg-slate-300 dark:text-slate-950 dark:border-slate-400 dark:hover:bg-slate-200' : '' }}
+                                                        {{ $user->role === 'jefatura' ? 'bg-amber-100 text-amber-900 border-amber-200 hover:bg-amber-200 dark:bg-amber-300 dark:text-amber-950 dark:border-amber-400 dark:hover:bg-amber-200' : '' }}"
                                                     style="background-position: right 0.5rem center; background-size: 1em 1em; background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22currentColor%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22 /%3E%3C/svg%3E');">
                                                     <option value="worker" {{ $user->role === 'worker' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Trabajador</option>
                                                     <option value="supervisor" {{ $user->role === 'supervisor' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Supervisor</option>
@@ -144,7 +144,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($user->deleted_at)
-                                            <span class="px-2.5 py-1 inline-flex text-xs font-medium rounded border bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
+                                            <span class="px-2.5 py-1 inline-flex text-xs font-semibold rounded border bg-red-100 text-red-900 border-red-200 dark:bg-red-300 dark:text-red-950 dark:border-red-400">
                                                 Eliminado
                                             </span>
                                         @else
@@ -152,8 +152,8 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <select name="is_active" onchange="this.form.submit()"
-                                                    class="text-xs font-medium rounded-md border focus:ring-0 cursor-pointer py-1 pl-3 pr-8 appearance-none bg-no-repeat transition-colors
-                                                        {{ $user->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700/50' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 dark:bg-slate-700/50 dark:text-gray-300 dark:border-gray-600/50' }}"
+                                                    class="text-xs font-semibold rounded-md border focus:ring-0 cursor-pointer py-1 pl-3 pr-8 appearance-none bg-no-repeat transition-colors
+                                                        {{ $user->is_active ? 'bg-emerald-100 text-emerald-900 border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-300 dark:text-emerald-950 dark:border-emerald-400 dark:hover:bg-emerald-200' : 'bg-red-100 text-red-900 border-red-200 hover:bg-red-200 dark:bg-red-300 dark:text-red-950 dark:border-red-400 dark:hover:bg-red-200' }}"
                                                     style="background-position: right 0.5rem center; background-size: 1em 1em; background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22currentColor%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22 /%3E%3C/svg%3E');">
                                                     <option value="1" {{ $user->is_active ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Activo</option>
                                                     <option value="0" {{ !$user->is_active ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Inactivo</option>

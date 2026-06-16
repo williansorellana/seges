@@ -1,8 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Panel de Controlling') }}
-        </h2>
+        <div class="flex flex-col gap-1">
+            <h2 class="font-black text-2xl text-white leading-tight tracking-tight uppercase">
+                {{ __('Panel de Controlling') }}
+            </h2>
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-500/20">Controlling</span>
+                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Auditoría y Validación</span>
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-12">
@@ -43,6 +50,38 @@
                 </div>
             @endif
 
+            @php
+                $activeTab = request('tab', 'requerimientos');
+            @endphp
+
+            <!-- Tabs Navigation -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-px mb-8">
+                <div class="flex gap-8">
+                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'requerimientos', 'plannings_page' => 1]) }}"
+                       class="pb-4 text-xs font-black uppercase tracking-widest relative transition-all duration-300 cursor-pointer flex items-center gap-2 group {{ $activeTab === 'requerimientos' ? 'text-blue-400' : 'text-slate-400 hover:text-slate-200' }}">
+                        <svg class="w-4 h-4 {{ $activeTab === 'requerimientos' ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+                        </svg>
+                        <span>Auditoría de Requerimientos</span>
+                        @if($activeTab === 'requerimientos')
+                            <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                        @endif
+                    </a>
+                    
+                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'rendiciones', 'renditions_page' => 1]) }}"
+                       class="pb-4 text-xs font-black uppercase tracking-widest relative transition-all duration-300 cursor-pointer flex items-center gap-2 group {{ $activeTab === 'rendiciones' ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200' }}">
+                        <svg class="w-4 h-4 {{ $activeTab === 'rendiciones' ? 'text-purple-400' : 'text-slate-500 group-hover:text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        <span>Auditoría de Rendiciones</span>
+                        @if($activeTab === 'rendiciones')
+                            <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
+                        @endif
+                    </a>
+                </div>
+            </div>
+
+            @if($activeTab === 'requerimientos')
             {{-- ════════════════════════════════════════════ --}}
             {{-- SECCIÓN 1: AUDITORÍA DE REQUERIMIENTOS      --}}
             {{-- ════════════════════════════════════════════ --}}
@@ -160,7 +199,7 @@
                                                 <div class="flex items-center justify-center gap-2" x-show="!showReject">
                                                     <form action="{{ route('route-plannings.approve-controlling', $plan->id) }}" method="POST">
                                                         @csrf
-                                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5" title="Validar y Escalar a Finanzas">
+                                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5" title="Validar y Escalar a Finanzas">
                                                             <span class="flex items-center gap-1.5">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                                                                 Validar
@@ -168,22 +207,23 @@
                                                         </button>
                                                     </form>
 
-                                                    <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all" title="Rechazar Documento">
+                                                    <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer" title="Rechazar Documento">
                                                         <span class="flex items-center gap-1.5">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                                                             Rechazar
                                                         </span>
                                                     </button>
                                                 </div>
 
-                                                <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2" style="min-width: 280px;">
+                                                {{-- Reject Form --}}
+                                                <div x-show="showReject" x-cloak x-transition class="text-left bg-slate-800 p-4 rounded-xl border border-slate-700 mt-2" style="min-width: 280px;">
                                                     <form action="{{ route('route-plannings.reject-controlling', $plan->id) }}" method="POST">
                                                         @csrf
-                                                        <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
-                                                        <textarea name="observation" rows="2" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
+                                                        <label class="block text-xs font-semibold text-rose-400 mb-1.5">Motivo del rechazo:</label>
+                                                        <textarea name="observation" rows="2" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-rose-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
                                                         <div class="mt-3 flex justify-end gap-2">
                                                             <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
-                                                            <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                            <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5">Devolver</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -196,16 +236,18 @@
                     </div>
                     
                     <div class="px-6 py-4 border-t border-slate-700/40">
-                        {{ $plannings->links() }}
+                        {{ $plannings->appends(['tab' => 'requerimientos'])->links() }}
                     </div>
                 @endif
 
             </div>
+            @endif
 
+            @if($activeTab === 'rendiciones')
             {{-- ════════════════════════════════════════════ --}}
             {{-- SECCIÓN 2: AUDITORÍA DE RENDICIONES          --}}
             {{-- ════════════════════════════════════════════ --}}
-            <div class="mt-8 bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
+            <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
                 
                 {{-- Header --}}
                 <div class="p-6 border-b border-slate-700/40 flex items-center gap-4">
@@ -277,7 +319,7 @@
                                     @endphp
                                     <td class="px-6 py-5 text-center">
                                         <div x-show="!showReject" class="flex justify-center gap-2">
-                                            <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-4 py-2 border border-slate-600 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-800 hover:border-slate-500 transition-all">
+                                            <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-4 py-2 border border-slate-600 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-colors">
                                                 <span class="flex items-center gap-1.5">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                     Auditar
@@ -296,34 +338,33 @@
                                             @else
                                                 <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
                                                     @csrf
-
                                                     <button
                                                         type="submit"
                                                         @disabled($ren->observed_expenses_count > 0)
                                                         title="{{ $ren->observed_expenses_count > 0 ? 'No se puede validar mientras existan documentos observados.' : 'Validar rendición y enviar a Finanzas.' }}"
-                                                        class="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all
+                                                        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all hover:-translate-y-0.5 cursor-pointer
                                                             {{ $ren->observed_expenses_count > 0
-                                                                ? 'bg-slate-700 text-slate-400 border border-rose-500/30 cursor-not-allowed opacity-60'
-                                                                : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 cursor-pointer'
+                                                                ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-60'
+                                                                : 'bg-blue-600 text-white hover:bg-blue-500'
                                                             }}"
                                                     >
                                                         Validar
                                                     </button>
                                                 </form>
 
-                                                <button @click="showReject = true" class="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-all">Rechazar</button>
+                                                <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">Rechazar</button>
                                             @endif
                                         </div>
 
                                         @if(!$isOwnRendition)
-                                            <div x-show="showReject" x-cloak x-transition class="text-left bg-red-500/5 p-4 rounded-xl border border-red-500/20 mt-2">
+                                            <div x-show="showReject" x-cloak x-transition class="text-left bg-slate-800 p-4 rounded-xl border border-slate-700 mt-2">
                                                 <form action="{{ route('renditions.reject-controlling-rendition', $ren->id) }}" method="POST">
                                                     @csrf
-                                                    <label class="block text-xs font-semibold text-red-400 mb-1.5">Motivo del rechazo:</label>
-                                                    <textarea name="observation" class="w-full text-sm bg-[#0f172a] border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-red-500 focus:ring-0 px-3 py-2" required placeholder="Motivo..."></textarea>
+                                                    <label class="block text-xs font-semibold text-rose-400 mb-1.5">Motivo del rechazo:</label>
+                                                    <textarea name="observation" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-rose-500 focus:ring-0 px-3 py-2" required placeholder="Motivo..."></textarea>
                                                     <div class="mt-3 flex justify-end gap-2">
-                                                        <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
-                                                        <button type="submit" class="px-4 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow-lg shadow-red-500/30 hover:bg-red-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                        <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">Cancelar</button>
+                                                        <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">Devolver</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -334,8 +375,14 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($renditions->hasPages())
+                        <div class="px-6 py-4 border-t border-slate-700/40">
+                            {{ $renditions->appends(['tab' => 'rendiciones'])->links() }}
+                        </div>
+                    @endif
                 @endif
             </div>
+            @endif
 
         </div>
     </div>

@@ -7,7 +7,7 @@
             <div class="flex flex-wrap gap-3 items-center">
                 <!-- Papelera -->
                 <a href="{{ route('vehicles.trash') }}"
-                    class="inline-flex items-center px-4 py-2 bg-slate-800/50 border border-red-500/30 rounded-xl font-bold text-[11px] text-red-400 uppercase tracking-wider hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-300 group h-10 shadow-[0_0_15px_rgba(239,68,68,0.05)] cursor-pointer">
+                    class="inline-flex items-center px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all duration-300 hover:-translate-y-0.5 group shadow-lg shadow-rose-500/30 cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -89,7 +89,7 @@
 
                 <!-- Historial -->
                 <a href="{{ route('vehicles.users-history-index') }}"
-                    class="inline-flex items-center px-4 py-2 bg-slate-800/50 border border-slate-600/30 rounded-xl font-bold text-[11px] text-slate-300 uppercase tracking-wider hover:bg-slate-700 hover:text-white hover:border-slate-500 transition-all duration-300 group h-10 shadow-sm cursor-pointer">
+                    class="inline-flex items-center px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-all duration-300 hover:-translate-y-0.5 group shadow-sm cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -99,7 +99,7 @@
                 <!-- Solicitudes -->
                 <div class="relative">
                     <button x-data="" @click="$dispatch('open-modal', 'maintenance-requests-modal')"
-                        class="inline-flex items-center px-4 py-2 bg-slate-800/50 border border-amber-500/30 rounded-xl font-bold text-[11px] text-amber-400 uppercase tracking-wider hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all duration-300 group h-10 shadow-[0_0_15px_rgba(245,158,11,0.05)] relative cursor-pointer">
+                        class="inline-flex items-center px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-500 transition-all duration-300 hover:-translate-y-0.5 group shadow-md shadow-amber-500/20 relative cursor-pointer">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
@@ -117,7 +117,7 @@
 
                 <!-- Nuevo -->
                 <button x-data="" @click="$dispatch('open-modal', 'create-vehicle-modal')"
-                    class="inline-flex items-center px-5 py-2 bg-blue-600 border border-blue-500 rounded-xl font-bold text-[11px] text-white uppercase tracking-wider hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all duration-300 group h-10 shadow-[0_0_20px_rgba(37,99,235,0.3)] cursor-pointer">
+                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all duration-300 hover:-translate-y-0.5 group shadow-lg shadow-blue-500/30 cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>

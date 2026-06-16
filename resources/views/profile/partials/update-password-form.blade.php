@@ -2,7 +2,7 @@
     <header class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-8">
         <div>
             <h2 class="text-xl font-black text-white flex items-center gap-3 tracking-tight uppercase">
-                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shadow-inner">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
                 {{ __('Seguridad de la Cuenta') }}
@@ -19,9 +19,9 @@
 
         <div x-data="{ show: false }" class="group">
             <label for="current_password" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Contraseña Actual') }}</label>
-            <div class="relative flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
+            <div class="relative flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
                 <input id="current_password" name="current_password" x-bind:type="show ? 'text' : 'password'" 
-                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10" 
+                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10 focus:ring-0 focus:outline-none" 
                     autocomplete="current-password" />
                 <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -38,9 +38,9 @@
 
         <div x-data="{ show: false }" class="group">
             <label for="password" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Nueva Contraseña') }}</label>
-            <div class="relative flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
+            <div class="relative flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
                 <input id="password" name="password" x-bind:type="show ? 'text' : 'password'" 
-                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10" 
+                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10 focus:ring-0 focus:outline-none" 
                     autocomplete="new-password" />
                 <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -57,9 +57,9 @@
 
         <div x-data="{ show: false }" class="group">
             <label for="password_confirmation" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Confirmar Contraseña') }}</label>
-            <div class="relative flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-blue-500 transition-all">
+            <div class="relative flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
                 <input id="password_confirmation" name="password_confirmation" x-bind:type="show ? 'text' : 'password'" 
-                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10" 
+                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10 focus:ring-0 focus:outline-none" 
                     autocomplete="new-password" />
                 <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,7 +75,7 @@
         </div>
 
         <div class="flex items-center gap-6 pt-6 border-t border-slate-800">
-            <button type="submit" class="px-8 py-3.5 bg-indigo-600 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:-translate-y-1 hover:shadow-indigo-600/40 transition-all cursor-pointer">
+            <button type="submit" class="inline-flex items-center justify-center gap-3 px-5 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-blue-500/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all cursor-pointer">
                 {{ __('Actualizar Contraseña') }}
             </button>
 

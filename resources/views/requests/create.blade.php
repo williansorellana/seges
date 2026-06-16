@@ -5,6 +5,27 @@
         </h2>
     </x-slot>
 
+    <!-- Import Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <style>
+        /* Custom Flatpickr Overrides for Seges */
+        .flatpickr-calendar.dark {
+            background: #0f172a !important;
+            border: 1px solid #1e293b !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+            border-radius: 1.5rem !important;
+        }
+        .flatpickr-day.selected, .flatpickr-day.selected:focus, .flatpickr-day.selected:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.selected.nextMonthDay {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+            color: #ffffff !important;
+        }
+    </style>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Main Container -->
@@ -28,14 +49,14 @@
                         selectedId: '{{ old('vehicle_id') }}', 
                         search: '',
                         vehicles: {{ $vehicles->map(function ($vehicle) {
-    return [
-        'id' => $vehicle->id,
-        'label' => $vehicle->brand . ' ' . $vehicle->model,
-        'plate' => $vehicle->plate,
-        'image' => $vehicle->image_path ? asset('storage/' . $vehicle->image_path) : null,
-        'year' => $vehicle->year,
-    ];
-})->toJson() }},
+                            return [
+                                'id' => $vehicle->id,
+                                'label' => $vehicle->brand . ' ' . $vehicle->model,
+                                'plate' => $vehicle->plate,
+                                'image' => $vehicle->image_path ? asset('storage/' . $vehicle->image_path) : null,
+                                'year' => $vehicle->year,
+                            ];
+                        })->toJson() }},
                         get filteredVehicles() {
                             if (this.search === '') return this.vehicles;
                             return this.vehicles.filter(vehicle => {
@@ -47,25 +68,18 @@
 
                         <!-- PASO 1: Selección de Vehículo -->
                         <div class="space-y-6">
-                            <div
-                                class="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4 gap-4 md:gap-0">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4 gap-4 md:gap-0">
                                 <div class="flex items-center space-x-3">
-                                    <div
-                                        class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                                        1</div>
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
-                                        Selecciona el Vehículo</h3>
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">1</div>
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Selecciona el Vehículo</h3>
                                 </div>
                                 <!-- Buscador -->
                                 <div class="relative w-full md:w-64">
                                     <input type="text" x-model="search" placeholder="Buscar por patente o modelo..."
-                                        class="block w-full rounded-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10 py-2">
-                                    <div
-                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none pb-0.5">
-                                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        class="block w-full rounded-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:ring-blue-500 pl-10 py-2">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none pb-0.5">
+                                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                         </svg>
                                     </div>
                                 </div>
@@ -80,61 +94,46 @@
                                     <template x-for="vehicle in filteredVehicles" :key="vehicle.id">
                                         <div @click="selectedId = vehicle.id"
                                             class="group relative cursor-pointer rounded-2xl border-2 transition-all duration-200 ease-in-out overflow-hidden hover:shadow-lg"
-                                            :class="selectedId == vehicle.id ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-1 ring-indigo-600' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-indigo-300'">
+                                            :class="selectedId == vehicle.id ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-900/20 ring-1 ring-blue-600' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-500'">
 
                                             <!-- Checkmark Badge -->
                                             <div x-show="selectedId == vehicle.id"
-                                                class="absolute top-3 right-3 z-10 bg-indigo-600 text-white rounded-full p-1 shadow-md"
+                                                class="absolute top-3 right-3 z-10 bg-blue-600 text-white rounded-full p-1 shadow-md"
                                                 x-transition:enter="transition ease-out duration-200"
                                                 x-transition:enter-start="opacity-0 scale-50"
                                                 x-transition:enter-end="opacity-100 scale-100">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
 
                                             <!-- Imagen -->
-                                            <div
-                                                class="aspect-w-16 aspect-h-9 w-full bg-gray-200 dark:bg-gray-700 h-40 overflow-hidden relative">
+                                            <div class="aspect-w-16 aspect-h-9 w-full bg-gray-200 dark:bg-gray-700 h-40 overflow-hidden relative">
                                                 <template x-if="vehicle.image">
-                                                    <img :src="vehicle.image"
-                                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                                    <img :src="vehicle.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                                 </template>
                                                 <template x-if="!vehicle.image">
-                                                    <div
-                                                        class="w-full h-full flex items-center justify-center text-gray-400">
-                                                        <svg class="w-12 h-12" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="1.5"
-                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                                            </path>
+                                                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                                         </svg>
                                                     </div>
                                                 </template>
                                                 <!-- Degradado inferior -->
-                                                <div
-                                                    class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent">
-                                                </div>
-                                                <div class="absolute bottom-3 left-4 text-white font-bold tracking-wide"
-                                                    x-text="vehicle.plate"></div>
+                                                <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                                <div class="absolute bottom-3 left-4 text-white font-bold tracking-wide" x-text="vehicle.plate"></div>
                                             </div>
 
                                             <!-- Info -->
                                             <div class="p-4">
-                                                <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase"
-                                                    x-text="vehicle.label"></h4>
-                                                <p class="text-xs text-gray-500 mt-1"
-                                                    x-text="'Año: ' + (vehicle.year || 'N/A')"></p>
+                                                <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase" x-text="vehicle.label"></h4>
+                                                <p class="text-xs text-gray-500 mt-1" x-text="'Año: ' + (vehicle.year || 'N/A')"></p>
                                             </div>
                                         </div>
                                     </template>
 
                                     <!-- No Results Message -->
-                                    <div x-show="filteredVehicles.length === 0"
-                                        class="col-span-full py-8 text-center text-gray-500">
+                                    <div x-show="filteredVehicles.length === 0" class="col-span-full py-8 text-center text-gray-500">
                                         No se encontraron vehículos que coincidan con tu búsqueda.
                                     </div>
                                 </div>
@@ -145,87 +144,84 @@
                         <!-- PASO 2: Datos del Viaje -->
                         <div class="space-y-6 pt-8">
                             <div class="flex items-center space-x-3 border-b border-gray-200 dark:border-gray-700 pb-4">
-                                <div
-                                    class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                                    2</div>
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Fechas y
-                                    Destino</h3>
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">2</div>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Fechas y Destino</h3>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <!-- Fechas -->
-                                <div
-                                    class="col-span-1 md:col-span-2 lg:col-span-1 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">¿Cuándo lo
-                                        necesitas?</h4>
+                                <div class="col-span-1 md:col-span-2 lg:col-span-1 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">¿Cuándo lo necesitas?</h4>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                                         <div class="relative">
                                             <x-input-label for="start_date" :value="__('Retiro')" class="mb-1.5" />
-                                            <input type="datetime-local" id="start_date" name="start_date"
-                                                :value="'{{ old('start_date') }}'" required
-                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                <input type="text" id="start_date" name="start_date" required placeholder="Seleccionar fecha..." value="{{ old('start_date') }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                            </div>
                                         </div>
 
                                         <div class="hidden md:flex justify-center pt-6 text-gray-400">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                                             </svg>
                                         </div>
 
                                         <div class="relative">
                                             <x-input-label for="end_date" :value="__('Devolución')" class="mb-1.5" />
-                                            <input type="datetime-local" id="end_date" name="end_date"
-                                                :value="'{{ old('end_date') }}'" required
-                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                <input type="text" id="end_date" name="end_date" required placeholder="Seleccionar fecha..." value="{{ old('end_date') }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="text-xs text-indigo-500 mt-3 flex items-center">
+                                    <p class="text-xs text-blue-500 mt-3 flex items-center">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                         Verificaremos la disponibilidad al enviar.
                                     </p>
                                 </div>
 
                                 <!-- Destino -->
-                                <div
-                                    class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
-                                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">¿A dónde
-                                        vas?</h4>
+                                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+                                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">¿A dónde vas?</h4>
 
                                     <div class="space-y-4">
+                                        <!-- Tipo de Viaje Dropdown -->
                                         <div>
-                                            <x-input-label for="destination_type" :value="__('Tipo de Viaje')"
-                                                class="mb-1.5" />
-                                            <select id="destination_type" name="destination_type" required
-                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
-                                                <option value="" disabled selected>-- Selecciona opción --</option>
-                                                <option value="local">🏙️ Local (Urbano)</option>
-                                                <option value="outside">🛣️ Fuera de Ciudad (Carretera/Rural)</option>
-                                            </select>
+                                            <x-input-label for="destination_type" :value="__('Tipo de Viaje')" class="mb-1.5" />
+                                            <div class="relative" x-data="{ openType: false, selectedType: '{{ old('destination_type', '') }}', typeLabel: '{{ old('destination_type') == 'local' ? '🏙️ Local (Urbano)' : (old('destination_type') == 'outside' ? '🛣️ Fuera de Ciudad (Carretera/Rural)' : '-- Selecciona opción --') }}', types: [{v:'local',l:'🏙️ Local (Urbano)'},{v:'outside',l:'🛣️ Fuera de Ciudad (Carretera/Rural)'}] }">
+                                                <input type="hidden" name="destination_type" x-model="selectedType" id="destination_type">
+                                                <button type="button" @click="openType = !openType" @click.away="openType = false" class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                                                    <span x-text="typeLabel" class="text-slate-100 text-sm"></span>
+                                                    <svg class="w-4 h-4 text-slate-500 transition-transform" :class="openType ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                </button>
+                                                <ul x-show="openType" x-transition class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg max-h-60 rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto" style="display:none;">
+                                                    <template x-for="t in types" :key="t.v">
+                                                        <li @click="selectedType = t.v; typeLabel = t.l; openType = false" class="text-gray-200 cursor-pointer select-none py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors" :class="selectedType === t.v ? 'bg-blue-600/20 text-blue-400' : ''">
+                                                            <span x-text="t.l"></span>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
                                             <x-input-error :messages="$errors->get('destination_type')" class="mt-2" />
                                         </div>
 
                                         <!-- Origen -->
                                         <div>
-                                            <x-input-label for="origin" :value="__('Origen')"
-                                                class="mb-1.5" />
-                                            <input type="text" id="origin" name="origin" required value="{{ old('origin') }}"
-                                                placeholder="Ej: Oficina Santiago Centro"
-                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
+                                            <x-input-label for="origin" :value="__('Origen')" class="mb-1.5" />
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                <input type="text" id="origin" name="origin" required value="{{ old('origin') }}" placeholder="Ej: Oficina Santiago Centro" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                            </div>
                                             <x-input-error :messages="$errors->get('origin')" class="mt-2" />
                                         </div>
 
                                         <!-- Destino -->
                                         <div>
-                                            <x-input-label for="destination" :value="__('Destino (Opcional)')"
-                                                class="mb-1.5" />
-                                            <input type="text" id="destination" name="destination"
-                                                value="{{ old('destination') }}" placeholder="Ej: Planta Rancagua"
-                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
+                                            <x-input-label for="destination" :value="__('Destino (Opcional)')" class="mb-1.5" />
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                <input type="text" id="destination" name="destination" value="{{ old('destination') }}" placeholder="Ej: Planta Rancagua" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                            </div>
                                             <x-input-error :messages="$errors->get('destination')" class="mt-2" />
                                         </div>
                                     </div>
@@ -237,12 +233,8 @@
                         @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
                             <div class="space-y-6 pt-8">
                                 <div class="flex items-center space-x-3 border-b border-gray-200 dark:border-gray-700 pb-4">
-                                    <div
-                                        class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                                        3</div>
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Asignación de
-                                        Conductor <span class="text-xs font-normal text-gray-500 ml-2">(Opcional)</span>
-                                    </h3>
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">3</div>
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Asignación de Conductor <span class="text-xs font-normal text-gray-500 ml-2">(Opcional)</span></h3>
                                 </div>
 
                                 <div x-data="{ 
@@ -264,26 +256,23 @@
                                 }"
                                     class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
 
-                                    <label
-                                        class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors w-fit">
+                                    <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors w-fit">
                                         <input type="checkbox" name="is_third_party" x-model="isThirdParty" value="1"
-                                            class="rounded text-indigo-600 focus:ring-indigo-500 w-5 h-5 border-gray-300">
-                                        <span class="ml-3 font-medium text-gray-700 dark:text-gray-300">Solicitar para un
-                                            Tercero / Conductor Externo</span>
+                                            class="rounded text-blue-600 focus:ring-blue-500 w-5 h-5 border-gray-300">
+                                        <span class="ml-3 font-medium text-gray-700 dark:text-gray-300">Solicitar para un Conductor Externo / Tercero</span>
                                     </label>
 
-                                    <div x-show="isThirdParty" x-collapse
-                                        class="mt-6 pl-4 border-l-4 border-indigo-100 dark:border-indigo-900 space-y-6">
+                                    <div x-show="isThirdParty" x-collapse class="mt-6 pl-4 border-l-4 border-blue-100 dark:border-blue-900 space-y-6">
 
                                         <!-- Tabs Nuevo/Existente -->
                                         <div class="flex space-x-6 border-b border-gray-200 dark:border-gray-700">
                                             <button type="button" @click="isNewDriver = false"
-                                                :class="!isNewDriver ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                                                :class="!isNewDriver ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                                                 class="pb-2 border-b-2 font-medium text-sm transition-colors focus:outline-none">
                                                 Buscar Existente
                                             </button>
                                             <button type="button" @click="isNewDriver = true"
-                                                :class="isNewDriver ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                                                :class="isNewDriver ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                                                 class="pb-2 border-b-2 font-medium text-sm transition-colors focus:outline-none">
                                                 Crear Nuevo
                                             </button>
@@ -291,15 +280,12 @@
 
                                         <!-- Buscador Conductor -->
                                         <div x-show="!isNewDriver" class="max-w-md">
-                                            <x-input-label for="conductor_id" :value="__('Seleccionar de la lista')"
-                                                class="mb-2" />
-                                            <div class="relative">
-                                                <select name="conductor_id" x-model="selectedConductorId"
-                                                    class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 py-2.5">
-                                                    <option value="">-- Seleccionar --</option>
+                                            <x-input-label for="conductor_id" :value="__('Seleccionar de la lista')" class="mb-2" />
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                <select name="conductor_id" x-model="selectedConductorId" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                    <option value="" class="bg-gray-800">-- Seleccionar --</option>
                                                     @foreach($conductors as $conductor)
-                                                        <option value="{{ $conductor->id }}">{{ $conductor->nombre }}
-                                                            ({{ $conductor->cargo ?? 'Sin cargo' }})</option>
+                                                        <option value="{{ $conductor->id }}" class="bg-gray-800">{{ $conductor->nombre }} ({{ $conductor->cargo ?? 'Sin cargo' }})</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -308,25 +294,25 @@
                                         <!-- Formulario Nuevo -->
                                         <div x-show="isNewDriver" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
                                             <div>
-                                                <x-input-label for="new_conductor_name" :value="__('Nombre Completo')" />
-                                                <x-text-input id="new_conductor_name" class="block w-full mt-1" type="text"
-                                                    name="new_conductor_name" placeholder="Ej: Juan Pérez" />
+                                                <x-input-label for="new_conductor_name" :value="__('Nombre Completo')" class="mb-1" />
+                                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                    <input type="text" id="new_conductor_name" name="new_conductor_name" placeholder="Ej: Juan Pérez" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                </div>
                                             </div>
                                             <div>
-                                                <x-input-label for="new_conductor_rut" :value="__('RUT (Opcional)')" />
-                                                <x-text-input id="new_conductor_rut" class="block w-full mt-1" type="text"
-                                                    name="new_conductor_rut" x-model="newConductorRut" @input="formatRut()" placeholder="Ej: 12.345.678-9" />
+                                                <x-input-label for="new_conductor_rut" :value="__('RUT (Opcional)')" class="mb-1" />
+                                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                    <input type="text" id="new_conductor_rut" name="new_conductor_rut" x-model="newConductorRut" @input="formatRut()" placeholder="Ej: 12.345.678-9" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                </div>
                                             </div>
                                             
                                             {{-- Checkbox para guardar permanentemente --}}
-                                            <div class="md:col-span-2 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                                            <div class="md:col-span-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                                                 <label class="flex items-start cursor-pointer">
                                                     <input type="checkbox" name="save_conductor_permanently" value="1"
-                                                        class="rounded text-indigo-600 focus:ring-indigo-500 w-5 h-5 mt-0.5 border-gray-300">
+                                                        class="rounded text-blue-600 focus:ring-blue-500 w-5 h-5 mt-0.5 border-gray-300">
                                                     <span class="ml-3">
-                                                        <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                            Guardar conductor permanentemente
-                                                        </span>
+                                                        <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Guardar conductor permanentemente</span>
                                                         <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                             Si marca esta opción, el conductor se agregará a la lista de conductores para futuros viajes.
                                                             Si no la marca, solo se usará para este viaje.
@@ -339,7 +325,6 @@
                                 </div>
                             </div>
                         @endif
-
                     </div>
 
                     {{-- PASO 4: Acompañantes (Opcional) --}}
@@ -386,8 +371,6 @@
                                 if (data.exists) {
                                     this.companions[index].error_message = data.message;
                                     this.companions[index].error_class = data.bg_class;
-                                    // Optional: clear the RUT to force correct selection
-                                    // this.companions[index].external_rut = ''; 
                                 }
                             } catch (error) {
                                 console.error('Error validation RUT:', error);
@@ -395,7 +378,7 @@
                         }
                     }">
                         <div class="flex items-center space-x-3 border-b border-gray-200 dark:border-gray-700 pb-4">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">4</div>
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">4</div>
                             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
                                 Acompañantes <span class="text-xs font-normal text-gray-500 ml-2">(Opcional - Máx. 5)</span>
                             </h3>
@@ -405,7 +388,7 @@
                             {{-- Botón Agregar Acompañante --}}
                             <button type="button" @click="addCompanion()" 
                                 x-show="companions.length < 5"
-                                class="mb-4 inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                class="mb-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5 shadow-md shadow-blue-500/20 cursor-pointer">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
@@ -433,13 +416,13 @@
                                             <label class="flex items-center cursor-pointer">
                                                 <input type="radio" :name="'companion_type_' + index" value="internal" 
                                                     x-model="companions[index].type"
-                                                    class="text-indigo-600 focus:ring-indigo-500">
+                                                    class="text-blue-600 focus:ring-blue-500">
                                                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Usuario Interno</span>
                                             </label>
                                             <label class="flex items-center cursor-pointer">
                                                 <input type="radio" :name="'companion_type_' + index" value="external"
                                                     x-model="companions[index].type"
-                                                    class="text-indigo-600 focus:ring-indigo-500">
+                                                    class="text-blue-600 focus:ring-blue-500">
                                                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Persona Externa</span>
                                             </label>
                                         </div>
@@ -447,13 +430,14 @@
                                         {{-- Usuario Interno --}}
                                         <div x-show="companions[index].type === 'internal'" x-collapse>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Seleccionar Usuario</label>
-                                            <select :name="'companions[' + index + '][user_id]'" x-model="companions[index].user_id"
-                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500">
-                                                <option value="">-- Seleccione un usuario --</option>
-                                                @foreach($users as $user)
-                                                    <option value="{{ $user->id }}">{{ $user->name }} {{ $user->last_name }} - {{ $user->cargo ?? 'Sin cargo' }}</option>
-                                                @endforeach
-                                            </select>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                <select :name="'companions[' + index + '][user_id]'" x-model="companions[index].user_id" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                    <option value="" class="bg-gray-850">-- Seleccione un usuario --</option>
+                                                    @foreach($users as $user)
+                                                        <option value="{{ $user->id }}" class="bg-gray-850">{{ $user->name }} {{ $user->last_name }} - {{ $user->cargo ?? 'Sin cargo' }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
 
                                         {{-- Persona Externa --}}
@@ -461,36 +445,36 @@
                                             {{-- Select Persona Frecuente --}}
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Persona Frecuente (Opcional)</label>
-                                                <select :name="'companions[' + index + '][frequent_person_id]'" 
-                                                    @change="if($event.target.value) { 
-                                                        const person = {{ $frequentExternalPersons->toJson() }}.find(p => p.id == $event.target.value);
-                                                        if(person) {
-                                                            companions[index].external_name = person.name;
-                                                            companions[index].external_rut = person.rut;
-                                                        }
-                                                    }"
-                                                    class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500">
-                                                    <option value="">-- O ingresar manualmente abajo --</option>
-                                                    @foreach($frequentExternalPersons as $person)
-                                                        <option value="{{ $person->id }}">{{ $person->name }} {{ $person->rut ? '- ' . $person->rut : '' }}</option>
-                                                    @endforeach
-                                                </select>
+                                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                    <select :name="'companions[' + index + '][frequent_person_id]'" 
+                                                        @change="if($event.target.value) { 
+                                                            const person = {{ $frequentExternalPersons->toJson() }}.find(p => p.id == $event.target.value);
+                                                            if(person) {
+                                                                companions[index].external_name = person.name;
+                                                                companions[index].external_rut = person.rut;
+                                                            }
+                                                        }"
+                                                        class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                        <option value="" class="bg-gray-850">-- O ingresar manualmente abajo --</option>
+                                                        @foreach($frequentExternalPersons as $person)
+                                                            <option value="{{ $person->id }}" class="bg-gray-850">{{ $person->name }} {{ $person->rut ? '- ' . $person->rut : '' }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
                                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Si seleccionas una persona frecuente, se cargarán sus datos automáticamente</p>
                                             </div>
 
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nombre Completo</label>
-                                                <input type="text" :name="'companions[' + index + '][external_name]'" x-model="companions[index].external_name"
-                                                    placeholder="Ej: Juan Pérez"
-                                                    class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500">
+                                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                    <input type="text" :name="'companions[' + index + '][external_name]'" x-model="companions[index].external_name" placeholder="Ej: Juan Pérez" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                </div>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">RUT</label>
-                                                <input type="text" :name="'companions[' + index + '][external_rut]'" x-model="companions[index].external_rut"
-                                                    @input="formatRut(index)"
-                                                    @blur="checkRut(index)"
-                                                    placeholder="Ej: 12.345.678-9"
-                                                    class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500">
+                                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                    <input type="text" :name="'companions[' + index + '][external_rut]'" x-model="companions[index].external_rut" @input="formatRut(index)" @blur="checkRut(index)" placeholder="Ej: 12.345.678-9" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                </div>
                                                 
                                                 <!-- Mensaje de Error / Advertencia -->
                                                 <div x-show="companions[index].error_message" 
@@ -505,15 +489,15 @@
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cargo (Opcional)</label>
-                                                    <input type="text" :name="'companions[' + index + '][external_position]'" x-model="companions[index].external_position"
-                                                        placeholder="Ej: Supervisor"
-                                                        class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                        <input type="text" :name="'companions[' + index + '][external_position]'" x-model="companions[index].external_position" placeholder="Ej: Supervisor" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Departamento/Empresa (Opcional)</label>
-                                                    <input type="text" :name="'companions[' + index + '][external_department]'" x-model="companions[index].external_department"
-                                                        placeholder="Ej: Contratista Z"
-                                                        class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                                        <input type="text" :name="'companions[' + index + '][external_department]'" x-model="companions[index].external_department" placeholder="Ej: Contratista Z" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -523,12 +507,8 @@
                                                     <input type="checkbox" :name="'companions[' + index + '][save_as_frequent]'" value="1"
                                                         class="rounded text-green-600 focus:ring-green-500 w-5 h-5 mt-0.5 border-gray-300">
                                                     <span class="ml-3">
-                                                        <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                            💾 Guardar como persona frecuente
-                                                        </span>
-                                                        <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                            Si marca esta opción, podrá seleccionar rápidamente a esta persona en futuros viajes
-                                                        </span>
+                                                        <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">💾 Guardar como persona frecuente</span>
+                                                        <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">Si marca esta opción, podrá seleccionar rápidamente a esta persona en futuros viajes</span>
                                                     </span>
                                                 </label>
                                             </div>
@@ -552,7 +532,7 @@
                     <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
                         <div class="flex justify-end">
                             <button type="submit"
-                                class="w-full md:w-auto inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                class="w-full md:w-auto inline-flex items-center justify-center px-5 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-md shadow-blue-500/20 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1e293b] transition-all transform hover:-translate-y-0.5 cursor-pointer">
                                 <span>Confirmar Solicitud</span>
                                 <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -566,6 +546,24 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const flatpickrConfig = {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                altInput: true,
+                altFormat: "d/m/Y H:i",
+                altInputClass: "w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none",
+                locale: "es",
+                time_24hr: true,
+                monthSelectorType: "static",
+                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            };
+            flatpickr("#start_date", flatpickrConfig);
+            flatpickr("#end_date", flatpickrConfig);
+        });
+    </script>
 </x-app-layout>
 
 <style>
@@ -586,23 +584,23 @@
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: #a5b4fc;
-        /* indigo-300 */
+        background-color: #93c5fd;
+        /* blue-300 */
         border-radius: 4px;
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: #6366f1;
-        /* indigo-500 */
+        background-color: #3b82f6;
+        /* blue-500 */
     }
 
     .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: #4f46e5;
-        /* indigo-600 */
+        background-color: #2563eb;
+        /* blue-600 */
     }
 
     .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: #4338ca;
-        /* indigo-700 */
+        background-color: #1d4ed8;
+        /* blue-700 */
     }
 </style>

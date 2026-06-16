@@ -1,58 +1,89 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <div class="flex flex-col gap-1">
+            <h2 class="font-black text-2xl text-white leading-tight tracking-tight uppercase">
                 {{ __('Mis Solicitudes de Planificación') }}
             </h2>
-            <a href="{{ route('route-plannings.create') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1e293b] transition-all duration-200 hover:-translate-y-0.5">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Nueva Solicitud
-            </a>
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-500/20">Solicitudes</span>
+                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Planificación de Viajes y Alimentación</span>
+            </div>
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
+            {{-- Toast Notification --}}
             @if (session('success'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-                    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
-                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-full opacity-0"
-                    class="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-[#1e293b] border border-emerald-500/30 rounded-xl shadow-2xl shadow-emerald-500/10 p-4 flex items-start gap-3">
-                    <div class="flex-shrink-0 w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    class="fixed bottom-10 right-10 z-50 max-w-sm w-full bg-slate-900 border border-emerald-500/30 rounded-3xl shadow-2xl shadow-emerald-500/10 p-5 flex items-start gap-4 backdrop-blur-xl">
+                    <div class="flex-shrink-0 w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-white">¡Operación exitosa!</p>
-                        <p class="text-xs text-slate-400 mt-0.5">{{ session('success') }}</p>
+                    <div class="flex-1">
+                        <p class="text-xs font-black text-white uppercase tracking-wider">¡Operación exitosa!</p>
+                        <p class="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">{{ session('success') }}</p>
                     </div>
-                    <button @click="show = false" class="flex-shrink-0 text-slate-500 hover:text-slate-300 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button @click="show = false" class="text-slate-600 hover:text-white transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="mb-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 px-4 py-3 rounded-xl relative text-sm font-bold">
+                <div class="mb-6 bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl relative text-sm font-bold">
                     {{ session('error') }}
                 </div>
             @endif
 
+            @php
+                $activeTab = request('tab', 'solicitudes');
+            @endphp
+
+            <!-- Tabs Navigation -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-px mb-8">
+                <div class="flex gap-8">
+                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'solicitudes', 'plannings_page' => 1]) }}"
+                       class="pb-4 text-xs font-black uppercase tracking-widest relative transition-all duration-300 cursor-pointer flex items-center gap-2 group {{ $activeTab === 'solicitudes' ? 'text-blue-400' : 'text-slate-400 hover:text-slate-200' }}">
+                        <svg class="w-4 h-4 {{ $activeTab === 'solicitudes' ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>Mis Solicitudes</span>
+                        @if($activeTab === 'solicitudes')
+                            <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                        @endif
+                    </a>
+                    
+                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'crear']) }}"
+                       class="pb-4 text-xs font-black uppercase tracking-widest relative transition-all duration-300 cursor-pointer flex items-center gap-2 group {{ $activeTab === 'crear' ? 'text-orange-400' : 'text-slate-400 hover:text-slate-200' }}">
+                        <svg class="w-4 h-4 {{ $activeTab === 'crear' ? 'text-orange-400' : 'text-slate-500 group-hover:text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span>Crear Planificación</span>
+                        @if($activeTab === 'crear')
+                            <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.5)]"></div>
+                        @endif
+                    </a>
+                </div>
+            </div>
+
+            @if($activeTab === 'solicitudes')
+            <!-- 1. MIS SOLICITUDES -->
             <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
                 
                 @if($plannings->isEmpty())
                     <div class="p-16 text-center">
-                        <div class="mx-auto w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                        <div class="mx-auto w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-6">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-blue-500 dark:text-blue-400">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">No tienes solicitudes</h3>
-                        <p class="mt-2 text-sm text-gray-500 dark:text-slate-400 max-w-sm mx-auto">Comienza creando tu primera planificación de ruta para gestionar tus viajes y viáticos.</p>
+                        <h3 class="text-xl font-semibold text-white">No tienes solicitudes</h3>
+                        <p class="mt-2 text-sm text-slate-400 max-w-sm mx-auto">Comienza creando tu primera planificación de ruta para gestionar tus viajes y viáticos.</p>
                         <div class="mt-8">
-                            <a href="{{ route('route-plannings.create') }}" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5">
+                            <a href="{{ route('route-plannings.index', ['tab' => 'crear']) }}" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                 Crear Planificación
                             </a>
@@ -60,45 +91,45 @@
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
-                            <thead class="bg-gray-50/50 dark:bg-slate-800/50">
+                        <table class="min-w-full divide-y divide-slate-700/40">
+                            <thead class="bg-slate-800/50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                         ID / Creado
                                     </th>
-                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                         Detalles del Viaje
                                     </th>
-                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                         Fechas
                                     </th>
-                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                         Requerimientos
                                     </th>
-                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                         Estado
                                     </th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                                         Historial
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-[#1e293b] divide-y divide-gray-100 dark:divide-slate-700/40">
+                            <tbody class="divide-y divide-slate-700/40">
                                 @foreach ($plannings as $plan)
-                                    <tr class="hover:bg-blue-50/50 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer">
+                                    <tr class="hover:bg-slate-800/60 transition-colors duration-200 group">
                                         <!-- ID y Fecha -->
                                         <td class="px-6 py-5 whitespace-nowrap">
                                             <div class="flex flex-col items-start gap-2">
-                                                <span class="font-mono text-[13px] text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-100 dark:border-blue-500/20 shadow-sm group-hover:scale-105 transition-transform origin-left">#REQ-{{ str_pad($plan->id, 4, '0', STR_PAD_LEFT) }}</span>
-                                                <div class="text-[11px] text-gray-400 dark:text-slate-500 flex items-center">
+                                                <span class="font-mono text-[13px] text-blue-400 font-bold bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/20 shadow-sm group-hover:scale-105 transition-transform origin-left">#REQ-{{ str_pad($plan->id, 4, '0', STR_PAD_LEFT) }}</span>
+                                                <div class="text-[11px] text-slate-500 flex items-center">
                                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                     {{ $plan->created_at->format('d M, Y H:i') }}
                                                 </div>
                                             </div>
                                         </td>
-
+ 
                                         <!-- Detalles del Viaje -->
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-5">
                                             <div class="flex items-start gap-3">
                                                 <div class="flex-shrink-0 h-9 w-9 rounded-lg flex items-center justify-center mt-0.5 {{ $plan->trip_type === 'terreno' ? 'bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20' }}">
                                                     @if($plan->trip_type === 'terreno')
@@ -108,14 +139,14 @@
                                                     @endif
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ $plan->destination }}</div>
+                                                    <div class="text-sm font-semibold text-white">{{ $plan->destination }}</div>
                                                     @if($plan->region)
                                                         <div class="flex items-center gap-1 text-[11px] text-slate-400 mt-0.5">
                                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                                             {{ $plan->region }}
                                                         </div>
                                                     @endif
-                                                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 max-w-[220px]" title="{{ $plan->motive }}">{{ $plan->motive }}</div>
+                                                    <div class="text-xs text-slate-400 mt-0.5 line-clamp-1 max-w-[220px]" title="{{ $plan->motive }}">{{ $plan->motive }}</div>
                                                     @if($plan->companions)
                                                         <div class="flex items-center gap-1 mt-0.5 text-[11px] text-blue-400">
                                                             <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -125,9 +156,9 @@
                                                 </div>
                                             </div>
                                         </td>
-
+ 
                                         <!-- Fechas -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-5 whitespace-nowrap">
                                             <div class="space-y-1.5">
                                                 <div class="flex items-center gap-2 text-sm text-slate-300">
                                                     <span class="text-[10px] font-bold text-slate-500 uppercase w-7">Del</span>
@@ -141,20 +172,20 @@
                                                 <div class="text-[10px] text-slate-500 font-medium">{{ $days }} {{ $days === 1 ? 'día' : 'días' }}</div>
                                             </div>
                                         </td>
-
+ 
                                         <!-- Requerimientos -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-5 whitespace-nowrap">
                                             @php
                                                 $requestedFunds = $plan->requested_funds ?? 0;
                                                 $amipassAmount = $plan->amipass_amount ?? 0;
                                                 $totalRequested = $requestedFunds + $amipassAmount;
                                             @endphp
-
+ 
                                             <div class="flex flex-col gap-1.5">
                                                 <span class="px-2.5 py-1 inline-flex items-center text-xs font-black rounded-md bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 w-fit">
                                                     Total: ${{ number_format($totalRequested, 0, ',', '.') }}
                                                 </span>
-
+ 
                                                 @if($plan->requires_funds)
                                                     <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 w-fit">
                                                         <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +198,7 @@
                                                         Sin fondos
                                                     </span>
                                                 @endif
-
+ 
                                                 @if($plan->requires_amipass)
                                                     <span class="px-2.5 py-1 inline-flex items-center text-xs font-semibold rounded-md bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 w-fit">
                                                         <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,7 +206,7 @@
                                                         </svg>
                                                         Amipass: ${{ number_format($amipassAmount, 0, ',', '.') }}
                                                     </span>
-
+ 
                                                     <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
                                                         {{ $plan->amipass_business_days ?? $plan->amipass_days }} día(s)
                                                     </span>
@@ -186,9 +217,9 @@
                                                 @endif
                                             </div>
                                         </td>
-
+ 
                                         <!-- Estado -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-5 whitespace-nowrap">
                                             @switch($plan->status)
                                                 @case('draft')
                                                     <span class="px-3 py-1.5 inline-flex items-center text-xs font-bold rounded-lg bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20">
@@ -234,25 +265,25 @@
                                                     </span>
                                                     @break
                                             @endswitch
-                                            <div class="mt-2 flex flex-col items-start gap-2">
+                                            <div class="mt-2 flex flex-col gap-1.5">
                                                 <a href="{{ route('route-plannings.pdf', $plan->id) }}"
                                                 target="_blank"
-                                                class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md border border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">
-                                                    PDF planificación
+                                                class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md bg-rose-600 text-white hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer w-fit">
+                                                    Descargar PDF
                                                 </a>
 
                                                 @if($plan->status === 'approved' && $plan->rendition)
                                                     <a href="{{ route('renditions.show', $plan->rendition->id) }}"
                                                     wire:navigate
-                                                    class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white transition-all">
+                                                    class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white hover:-translate-y-0.5 transition-all cursor-pointer w-fit">
                                                         Ir a rendición
                                                     </a>
                                                 @endif
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 align-top">
+                                        <td class="px-6 py-5 align-top">
                                             @if($plan->workflowHistories->isEmpty())
-                                                <span class="text-xs text-gray-400">Sin movimientos</span>
+                                                <span class="text-xs text-slate-500">Sin movimientos</span>
                                             @else
                                                 <div class="space-y-2 max-w-xs">
                                                     @foreach($plan->workflowHistories->sortByDesc('created_at')->take(3) as $history)
@@ -265,11 +296,11 @@
                                                                 border-indigo-500
                                                             @endif
                                                         ">
-                                                            <div class="font-semibold text-gray-800 dark:text-gray-100">
+                                                            <div class="font-semibold text-white">
                                                                 {{ $history->user->name ?? 'Sistema' }}
                                                             </div>
-
-                                                            <div class="text-gray-500 dark:text-gray-400">
+ 
+                                                            <div class="text-slate-400">
                                                                 @php
                                                                     $actionLabels = [
                                                                         'approved_by_jefatura' => 'Aprobado por Jefatura',
@@ -279,14 +310,14 @@
                                                                         'approved_by_finances' => 'Aprobado por Finanzas',
                                                                         'rejected_by_finances' => 'Rechazado por Finanzas',
                                                                     ];
-
+ 
                                                                     $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
                                                                 @endphp
-
+ 
                                                                 {{ $actionLabel }}
                                                             </div>
-
-                                                            <div class="text-gray-400">
+ 
+                                                            <div class="text-slate-500">
                                                                 {{ $history->created_at->format('d/m/Y H:i') }}
                                                             </div>
                                                         </div>
@@ -300,12 +331,370 @@
                         </table>
                     </div>
                     
-                    <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                        {{ $plannings->links() }}
+                    <div class="px-6 py-4 border-t border-slate-700/40 bg-slate-950/20">
+                        {{ $plannings->appends(['tab' => 'solicitudes'])->links() }}
                     </div>
                 @endif
                 
             </div>
+            @endif
+
+            @if($activeTab === 'crear')
+            <!-- 2. CREAR PLANIFICACIÓN -->
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
+                    
+                    <div class="p-8 border-b border-slate-700/40">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-orange-500/10 text-orange-400 p-2.5 rounded-xl ring-1 ring-orange-500/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-white tracking-tight uppercase">Formulario de Solicitud</h3>
+                        </div>
+                        <p class="text-slate-400 text-sm">Completa los detalles de tu viaje para solicitar fondos o alimentación antes de rendir.</p>
+                    </div>
+
+                    <!-- Import Flatpickr -->
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+                    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+                    <style>
+                        /* Custom Flatpickr Overrides for Seges */
+                        .flatpickr-calendar.dark {
+                            background: #2b2b2b;
+                            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                            border: 1px solid #444;
+                            border-radius: 12px;
+                        }
+                        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
+                            background: #f97316;
+                            border-color: #f97316;
+                        }
+                    </style>
+
+                    <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ requiresFunds: false, requiresAmipass: false }">
+                        @csrf
+                        
+                        @php
+                            $now = now();
+                            $thisWeekWednesdayLimit = now()->startOfWeek()->addDays(2)->setTime(13, 0);
+                            if ($now->lessThanOrEqualTo($thisWeekWednesdayLimit)) {
+                                $fundsDate = now()->startOfWeek()->addDays(4);
+                            } else {
+                                $fundsDate = now()->startOfWeek()->addDays(11);
+                            }
+                        @endphp
+
+                        <div class="mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-300 px-4 py-3 rounded-lg text-sm">
+                            <strong class="text-amber-400">Importante:</strong>
+                            Las solicitudes ingresadas antes del miércoles a las 13:00 hrs tendrán fondos disponibles el viernes de la misma semana.
+                            Las solicitudes ingresadas después de ese horario quedarán para el viernes de la semana siguiente.
+                            <br>
+                            <span class="font-semibold text-amber-400">
+                                Según la fecha actual, la disponibilidad estimada sería: {{ $fundsDate->format('d/m/Y') }}.
+                            </span>
+                        </div>
+
+                        <!-- 1. Detalles Generales -->
+                        <h4 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">1. Detalles del Viaje</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            
+                            <!-- Tipo de Viaje -->
+                            <div class="col-span-1 md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Tipo de Actividad <span class="text-red-500">*</span></label>
+                                <div class="flex space-x-6">
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="radio" name="trip_type" value="terreno" class="form-radio text-orange-600 focus:ring-orange-500 border-slate-700 bg-slate-900" required>
+                                        <span class="ml-2 text-slate-300">Trabajo en Terreno</span>
+                                    </label>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="radio" name="trip_type" value="reunion" class="form-radio text-orange-600 focus:ring-orange-500 border-slate-700 bg-slate-900" required>
+                                        <span class="ml-2 text-slate-300">Reunión de Negocios</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Fechas con Flatpickr -->
+                            <div class="col-span-1 md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Fechas del Viaje <span class="text-red-500">*</span></label>
+                                
+                                <input type="hidden" name="start_date" id="start_date" required>
+                                <input type="hidden" name="end_date" id="end_date" required>
+
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full md:w-1/2">
+                                    <input type="text" id="dateRange" required placeholder="Seleccionar rango de fechas..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                                </div>
+                                <p class="text-xs text-slate-500 mt-2">Haz clic para abrir el calendario interactivo. Selecciona inicio y fin.</p>
+                            </div>
+
+                            <!-- Destino: Región y Ciudad -->
+                            <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6" x-data="locationAutocomplete()">
+                                
+                                <!-- Región -->
+                                <div class="relative">
+                                    <label for="region" class="block text-sm font-medium text-slate-300 mb-1">Región <span class="text-red-500">*</span></label>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                        <input type="text" name="region" id="region" x-model="searchRegion" @input="openRegion = true" @focus="openRegion = true" @click.away="openRegion = false" @keydown.escape="openRegion = false" required autocomplete="off" placeholder="Ej: Región del Biobío" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                                    </div>
+                                    
+                                    <ul x-show="openRegion && filteredRegions.length > 0" x-transition class="absolute z-50 w-full mt-1 bg-slate-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-slate-700" style="display: none;">
+                                        <template x-for="region in filteredRegions" :key="region">
+                                            <li @click="selectRegion(region)" class="text-slate-200 cursor-pointer select-none relative py-2 px-4 hover:bg-slate-700 hover:text-white transition-colors">
+                                                <span x-text="region" class="block truncate"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+
+                                <!-- Ciudad -->
+                                <div class="relative">
+                                    <label for="destination" class="block text-sm font-medium text-slate-300 mb-1">Destino (Ciudad/Comuna) <span class="text-red-500">*</span></label>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                        <input type="text" name="destination" id="destination" x-model="searchCity" @input="openCity = true" @focus="openCity = true" @click.away="openCity = false" @keydown.escape="openCity = false" required autocomplete="off" placeholder="Ej: Concepción" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                                    </div>
+                                    
+                                    <ul x-show="openCity && filteredCities.length > 0" x-transition class="absolute z-50 w-full mt-1 bg-slate-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-slate-700" style="display: none;">
+                                        <template x-for="city in filteredCities" :key="city">
+                                            <li @click="selectCity(city)" class="text-slate-200 cursor-pointer select-none relative py-2 px-4 hover:bg-slate-700 hover:text-white transition-colors">
+                                                <span x-text="city" class="block truncate"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Motivo -->
+                            <div class="col-span-1 md:col-span-2">
+                                <label for="motive" class="block text-sm font-medium text-slate-300 mb-1">Motivo del viaje <span class="text-red-500">*</span></label>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                    <input type="text" name="motive" id="motive" required placeholder="Ej: Visita a cliente X" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Acompañantes -->
+                            <div class="col-span-1 md:col-span-2">
+                                <label for="companions" class="block text-sm font-medium text-slate-300 mb-1">
+                                    Acompañantes
+                                    <span class="text-xs text-slate-500 font-normal ml-1">(Opcional)</span>
+                                </label>
+                                <div class="flex items-start border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full min-h-[70px]">
+                                    <textarea name="companions" id="companions" rows="2" placeholder="Ej: Juan Pérez, María González, Carlos López..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm resize-y"></textarea>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">Escribe los nombres de las personas que te acompañarán, separados por coma.</p>
+                            </div>
+
+                        </div>
+
+                        <!-- 2. Solicitudes Financieras -->
+                        <h4 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">2. Fondos y Viáticos</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            
+                            <!-- Fondos por Rendir -->
+                            <div class="bg-slate-800/40 p-5 rounded-xl border border-slate-700 transition-all">
+                                <label class="flex items-center cursor-pointer mb-3">
+                                    <div class="relative">
+                                        <input type="checkbox" name="requires_funds" value="1" class="sr-only" x-model="requiresFunds">
+                                        <div class="block bg-slate-600 w-10 h-6 rounded-full transition" :class="{'bg-orange-500': requiresFunds}"></div>
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform" :class="{'translate-x-4': requiresFunds}"></div>
+                                    </div>
+                                    <div class="ml-3 font-medium text-slate-200">
+                                        Solicitar Fondos por Rendir
+                                    </div>
+                                </label>
+                                <p class="text-xs text-slate-400 mb-4 ml-12">Adelanto de dinero para peajes, combustible, alojamiento, etc.</p>
+                                
+                                <div x-show="requiresFunds" x-transition.opacity class="ml-12" style="display: none;">
+                                    <label for="requested_funds" class="block text-sm font-medium text-slate-300 mb-1">Monto Solicitado ($)</label>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                        <span class="text-slate-500 text-sm mr-2">$</span>
+                                        <input type="number" name="requested_funds" id="requested_funds" min="0" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: 50000" x-bind:required="requiresFunds">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Amipass -->
+                            <div class="bg-slate-800/40 p-5 rounded-xl border border-slate-700 transition-all">
+                                <label class="flex items-center cursor-pointer mb-3">
+                                    <div class="relative">
+                                        <input type="checkbox" name="requires_amipass" value="1" class="sr-only" x-model="requiresAmipass">
+                                        <div class="block bg-slate-600 w-10 h-6 rounded-full transition" :class="{'bg-green-500': requiresAmipass}"></div>
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform" :class="{'translate-x-4': requiresAmipass}"></div>
+                                    </div>
+                                    <div class="ml-3 font-medium text-slate-200 flex items-center gap-2">
+                                        Solicitar Tarjeta Amipass
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/10 text-green-400 border border-green-500/20">Alimentación</span>
+                                    </div>
+                                </label>
+                                <p class="text-xs text-slate-400 mb-4 ml-12">Recarga diaria para almuerzo/comidas durante el viaje.</p>
+                                
+                                <div x-show="requiresAmipass" x-transition.opacity class="ml-12 space-y-4" style="display: none;">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="amipass_start_time" class="block text-sm font-medium text-slate-300 mb-1">
+                                                Hora de salida
+                                            </label>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                                <input
+                                                    type="time"
+                                                    name="amipass_start_time"
+                                                    id="amipass_start_time"
+                                                    class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none"
+                                                    x-bind:required="requiresAmipass"
+                                                >
+                                            </div>
+                                            <p class="text-xs text-slate-500 mt-1">
+                                                Hora en que comienza el desplazamiento el primer día.
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <label for="amipass_end_time" class="block text-sm font-medium text-slate-300 mb-1">
+                                                Hora de regreso
+                                            </label>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                                <input
+                                                    type="time"
+                                                    name="amipass_end_time"
+                                                    id="amipass_end_time"
+                                                    class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none"
+                                                    x-bind:required="requiresAmipass"
+                                                >
+                                            </div>
+                                            <p class="text-xs text-slate-500 mt-1">
+                                                Hora estimada en que termina el viaje el último día.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                                        <p class="text-xs text-green-400 font-semibold">
+                                            El monto Amipass se calculará automáticamente según las fechas del viaje, la hora de salida y la hora de regreso registradas.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="flex items-center justify-end mt-8 border-t border-slate-700 pt-6">
+                            <a href="{{ route('route-plannings.index', ['tab' => 'solicitudes']) }}" class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer mr-4">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="inline-flex items-center justify-center px-5 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-md shadow-blue-500/20 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1e293b] transition-all hover:-translate-y-0.5 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                </svg>
+                                Enviar Solicitud
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+            
+            <script>
+                // Initialize Flatpickr
+                document.addEventListener('DOMContentLoaded', function() {
+                    flatpickr("#dateRange", {
+                        mode: "range",
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "d/m/Y",
+                        locale: "es",
+                        monthSelectorType: "static",
+                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                        onChange: function(selectedDates, dateStr, instance) {
+                            if (selectedDates.length === 2) {
+                                const start = selectedDates[0].toLocaleDateString('en-CA');
+                                const end = selectedDates[1].toLocaleDateString('en-CA');
+                                document.getElementById('start_date').value = start;
+                                document.getElementById('end_date').value = end;
+                            } else if (selectedDates.length === 1) {
+                                const start = selectedDates[0].toLocaleDateString('en-CA');
+                                document.getElementById('start_date').value = start;
+                                document.getElementById('end_date').value = start;
+                            } else {
+                                document.getElementById('start_date').value = '';
+                                document.getElementById('end_date').value = '';
+                            }
+                        }
+                    });
+                });
+
+                function locationAutocomplete() {
+                    return {
+                        searchRegion: '',
+                        searchCity: '',
+                        openRegion: false,
+                        openCity: false,
+                        dataset: [
+                            { "region": "Arica y Parinacota", "comunas": ["Arica", "Camarones", "Putre", "General Lagos"] },
+                            { "region": "Tarapacá", "comunas": ["Iquique", "Alto Hospicio", "Pozo Almonte", "Camiña", "Colchane", "Huara", "Pica"] },
+                            { "region": "Antofagasta", "comunas": ["Antofagasta", "Mejillones", "Sierra Gorda", "Taltal", "Calama", "Ollagüe", "San Pedro de Atacama", "Tocopilla", "María Elena"] },
+                            { "region": "Atacama", "comunas": ["Copiapó", "Caldera", "Tierra Amarilla", "Chañaral", "Diego de Almagro", "Vallenar", "Alto del Carmen", "Freirina", "Huasco"] },
+                            { "region": "Coquimbo", "comunas": ["La Serena", "Coquimbo", "Andacollo", "La Higuera", "Paiguano", "Vicuña", "Illapel", "Canela", "Los Vilos", "Salamanca", "Ovalle", "Combarbalá", "Monte Patria", "Punitaqui", "Río Hurtado"] },
+                            { "region": "Valparaíso", "comunas": ["Valparaíso", "Casablanca", "Concón", "Juan Fernández", "Puchuncaví", "Quintero", "Viña del Mar", "Isla de Pascua", "Los Andes", "Calle Larga", "Rinconada", "San Esteban", "La Ligua", "Cabildo", "Papudo", "Petorca", "Zapallar", "Quillota", "Calera", "Hijuelas", "La Cruz", "Nogales", "San Antonio", "Algarrobo", "Cartagena", "El Quisco", "El Tabo", "Santo Domingo", "San Felipe", "Catemu", "Llaillay", "Panquehue", "Putaendo", "Santa María", "Quilpué", "Limache", "Olmué", "Villa Alemana"] },
+                            { "region": "Región del Libertador Gral. Bernardo O’Higgins", "comunas": ["Rancagua", "Codegua", "Coinco", "Coltauco", "Doñihue", "Graneros", "Las Cabras", "Machalí", "Malloa", "Mostazal", "Olivar", "Peumo", "Pichidegua", "Quinta de Tilcoco", "Rengo", "Requínoa", "San Vicente", "Pichilemu", "La Estrella", "Litueche", "Marchihue", "Navidad", "Paredones", "San Fernando", "Chépica", "Chimbarongo", "Lolol", "Nancagua", "Palmilla", "Peralillo", "Placilla", "Pumanque", "Santa Cruz"] },
+                            { "region": "Región del Maule", "comunas": ["Talca", "Constitución", "Curepto", "Empedrado", "Maule", "Pelarco", "Pencahue", "Río Claro", "San Clemente", "San Rafael", "Cauquenes", "Chanco", "Pelluhue", "Curicó", "Hualañé", "Licantén", "Molina", "Rauco", "Romeral", "Sagrada Familia", "Teno", "Vichuquén", "Linares", "Colbún", "Longaví", "Parral", "Retiro", "San Javier", "Villa Alegre", "Yerbas Buenas"] },
+                            { "region": "Región de Ñuble", "comunas": ["Cobquecura", "Coelemu", "Ninhue", "Portezuelo", "Quirihue", "Ránquil", "Treguaco", "Bulnes", "Chillán Viejo", "Chillán", "El Carmen", "Pemuco", "Pinto", "Quillón", "San Ignacio", "Yungay", "Coihueco", "Ñiquén", "San Carlos", "San Fabián", "San Nicolás"] },
+                            { "region": "Región del Biobío", "comunas": ["Concepción", "Coronel", "Chiguayante", "Florida", "Hualqui", "Lota", "Penco", "San Pedro de la Paz", "Santa Juana", "Talcahuano", "Tomé", "Hualpén", "Lebu", "Arauco", "Cañete", "Contulmo", "Curanilahue", "Los Álamos", "Tirúa", "Los Ángeles", "Antuco", "Cabrero", "Laja", "Mulchén", "Nacimiento", "Negrete", "Quilaco", "Quilleco", "San Rosendo", "Santa Bárbara", "Tucapel", "Yumbel", "Alto Biobío"] },
+                            { "region": "Región de la Araucanía", "comunas": ["Temuco", "Carahue", "Cunco", "Curarrehue", "Freire", "Galvarino", "Gorbea", "Lautaro", "Loncoche", "Melipeuco", "Nueva Imperial", "Padre las Casas", "Perquenco", "Pitrufquén", "Pucón", "Saavedra", "Teodoro Schmidt", "Toltén", "Vilcún", "Villarrica", "Cholchol", "Angol", "Collipulli", "Curacautín", "Ercilla", "Lonquimay", "Los Sauces", "Lumaco", "Traiguén", "Victoria"] },
+                            { "region": "Región de Los Ríos", "comunas": ["Valdivia", "Corral", "Lanco", "Los Lagos", "Máfil", "Mariquina", "Paillaco", "Panguipulli", "La Unión", "Futrono", "Lago Ranco", "Río Bueno"] },
+                            { "region": "Región de Los Lagos", "comunas": ["Puerto Montt", "Calbuco", "Cochamó", "Fresia", "Frutillar", "Los Muermos", "Llanquihue", "Maullín", "Puerto Varas", "Castro", "Ancud", "Chonchi", "Curaco de Vélez", "Dalcahue", "Puqueldón", "Queilén", "Quellón", "Quemchi", "Quinchao", "Osorno", "Puerto Octay", "Purranque", "Puyehue", "Entre Lagos", "Río Negro", "San Juan de la Costa", "San Pablo", "Chaitén", "Futaleufú", "Hualaihué", "Palena"] },
+                            { "region": "Región Aisén del Gral. Carlos Ibáñez del Campo", "comunas": ["Coihaique", "Lago Verde", "Aisén", "Cisnes", "Guaitecas", "Cochrane", "O’Higgins", "Tortel", "Chile Chico", "Río Ibáñez"] },
+                            { "region": "Región de Magallanes y de la Antártica Chilena", "comunas": ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos (Ex Navarino)", "Antártica", "Porvenir", "Primavera", "Timaukel", "Natales", "Torres del Paine"] },
+                            { "region": "Región Metropolitana de Santiago", "comunas": ["Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "Santiago", "San Joaquín", "San Miguel", "San Ramón", "Vitacura", "Puente Alto", "Pirque", "San José de Maipo", "Colina", "Lampa", "Tiltil", "San Bernardo", "Buin", "Calera de Tango", "Paine", "Melipilla", "Alhué", "Curacaví", "María Pinto", "San Pedro", "Talagante", "El Monte", "Isla de Maipo", "Padre Hurtado", "Peñaflor"] }
+                        ],
+                        get filteredRegions() {
+                            if (this.searchRegion === '') {
+                                return this.dataset.map(item => item.region);
+                            }
+                            return this.dataset
+                                .map(item => item.region)
+                                .filter(region => region.toLowerCase().includes(this.searchRegion.toLowerCase()));
+                        },
+                        get filteredCities() {
+                            let validRegion = this.dataset.find(item => item.region === this.searchRegion);
+                            let possibleCities = validRegion ? validRegion.comunas : this.dataset.flatMap(item => item.comunas);
+                            
+                            if (this.searchCity === '') {
+                                return validRegion ? possibleCities : [];
+                            }
+                            
+                            return possibleCities
+                                .filter(city => city.toLowerCase().includes(this.searchCity.toLowerCase()));
+                        },
+                        selectRegion(region) {
+                            this.searchRegion = region;
+                            this.openRegion = false;
+                            let regionData = this.dataset.find(r => r.region === region);
+                            if (regionData && !regionData.comunas.includes(this.searchCity)) {
+                                this.searchCity = '';
+                            }
+                        },
+                        selectCity(city) {
+                            this.searchCity = city;
+                            this.openCity = false;
+                            
+                            if (!this.dataset.find(r => r.region === this.searchRegion)) {
+                                let foundRegion = this.dataset.find(r => r.comunas.includes(city));
+                                if (foundRegion) {
+                                    this.searchRegion = foundRegion.region;
+                                }
+                            }
+                        }
+                    }
+                }
+            </script>
+            @endif
+
         </div>
     </div>
 </x-app-layout>

@@ -166,7 +166,7 @@
                         <a href="{{ route('reservations.create_external') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
                             :class="{{ request()->routeIs('reservations.create_external') ? "'text-white bg-gray-800'" : "'text-gray-400 hover:text-white hover:bg-gray-800'" }}">
-                            Reseva Manual
+                            Reserva Manual
                         </a>
 
                         <a href="{{ route('rooms.index') }}" wire:navigate
@@ -263,14 +263,14 @@
                 </button>
 
                 <div x-show="open && renditionMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
-                    <a href="{{ route('route-plannings.create') }}" wire:navigate
+                    <a href="{{ route('route-plannings.index', ['tab' => 'crear']) }}" wire:navigate
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                        :class="{{ request()->routeIs('route-plannings.create') ? "'text-white bg-gray-800'" : "''" }}">
+                        :class="{{ request()->routeIs('route-plannings.index') && request('tab') === 'crear' ? "'text-white bg-gray-800'" : "''" }}">
                         Crear planificación
                     </a>
-                    <a href="{{ route('route-plannings.index') }}" wire:navigate
+                    <a href="{{ route('route-plannings.index', ['tab' => 'solicitudes']) }}" wire:navigate
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                        :class="{{ request()->routeIs('route-plannings.index') ? "'text-white bg-gray-800'" : "''" }}">
+                        :class="{{ request()->routeIs('route-plannings.index') && request('tab', 'solicitudes') === 'solicitudes' ? "'text-white bg-gray-800'" : "''" }}">
                         Mis solicitudes
                     </a>
                     <a href="{{ route('renditions.index') }}" wire:navigate

@@ -20,8 +20,8 @@
 
         <button x-data=""
             x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
-            class="px-8 py-4 bg-rose-600 hover:bg-rose-500 text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-rose-600/20 hover:shadow-rose-600/40 transition-all hover:-translate-y-1 active:scale-95 flex items-center gap-3 cursor-pointer">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" /></svg>
+            class="inline-flex items-center justify-center gap-3 px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 hover:-translate-y-0.5 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" /></svg>
             {{ __('Eliminar Cuenta Definitivamente') }}
         </button>
     </div>
@@ -41,9 +41,9 @@
             <div class="space-y-6">
                 <div class="group">
                     <label for="password_deletion" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-rose-500 transition-colors">{{ __('Contraseña de Confirmación') }}</label>
-                    <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950 px-4 py-3.5 focus-within:border-rose-500 transition-all">
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-rose-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
                         <input id="password_deletion" name="password" type="password" 
-                            class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold"
+                            class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold focus:ring-0 focus:outline-none"
                             placeholder="{{ __('Ingrese su contraseña') }}" />
                     </div>
                     <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
@@ -52,12 +52,12 @@
 
             <div class="mt-10 flex flex-col sm:flex-row justify-end gap-4 border-t border-slate-800 pt-8">
                 <button type="button" x-on:click="$dispatch('close')" 
-                    class="px-8 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all cursor-pointer">
+                    class="inline-flex items-center justify-center px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-all hover:-translate-y-0.5 cursor-pointer">
                     {{ __('Cancelar') }}
                 </button>
 
                 <button type="submit" 
-                    class="px-8 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-rose-600/20 hover:shadow-rose-600/40 transition-all hover:-translate-y-1 cursor-pointer">
+                    class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
                     {{ __('Confirmar Eliminación') }}
                 </button>
             </div>

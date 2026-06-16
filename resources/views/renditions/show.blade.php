@@ -448,14 +448,12 @@
 
                     @if($canManageExpenses)
                     <!-- Formulario de Nuevo Gasto -->
-                    <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
-                        <div class="px-8 py-6 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
-                            <h3 class="text-lg font-black text-white tracking-tight flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                </div>
-                                Agregar Nuevo Gasto
-                            </h3>
+                    <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 relative">
+                        <div class="p-6 border-b border-slate-700/40 bg-[#1e293b] sticky top-0 z-10 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-white tracking-tight">Agregar Nuevo Gasto</h3>
                         </div>
                         <div class="p-8">
                             <form 
@@ -470,23 +468,23 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     
                                     <div class="group">
-                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Fecha del Gasto</label>
-                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 focus-within:bg-slate-950 transition-all">
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Fecha del Gasto</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all">
                                             <input type="text" name="date" id="expense_date" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold cursor-pointer" required placeholder="Seleccionar fecha...">
                                         </div>
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Proveedor / Local</label>
-                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 focus-within:bg-slate-950 transition-all">
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Proveedor / Local</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all">
                                             <input type="text" name="provider" placeholder="Ej: Restaurante El Paso" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold" required>
                                         </div>
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Tipo de Documento</label>
-                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
-                                            <select name="document_type" class="w-full bg-transparent border-none text-white text-sm font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-950" required>
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Tipo de Documento</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 overflow-hidden focus-within:border-blue-500 transition-all">
+                                            <select name="document_type" class="w-full bg-transparent border-none text-white text-sm font-bold py-2.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-800" required>
                                                 <option value="boleta">Boleta</option>
                                                 <option value="factura">Factura</option>
                                                 <option value="vale">Vale de Peaje/Estacionamiento</option>
@@ -496,14 +494,14 @@
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">
                                             Concepto del Gasto
                                         </label>
 
-                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 overflow-hidden focus-within:border-blue-500 transition-all">
                                             <select
                                                 name="expense_category"
-                                                class="w-full bg-transparent border-none text-white text-sm font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-950"
+                                                class="w-full bg-transparent border-none text-white text-sm font-bold py-2.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-800"
                                                 required
                                             >
                                                 <option value="bencina">Bencina</option>
@@ -517,32 +515,32 @@
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Nº Documento (Opcional)</label>
-                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 focus-within:bg-slate-950 transition-all">
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Nº Documento (Opcional)</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all">
                                             <input type="text" name="document_number" placeholder="Ej: 154822" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold">
                                         </div>
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Monto Total ($)</label>
-                                        <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 focus-within:bg-slate-950 transition-all relative">
-                                            <span class="text-blue-400 font-black mr-2">$</span>
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Monto Total ($)</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all relative">
+                                            <span class="text-blue-400 font-bold mr-2">$</span>
                                             <input type="number" name="amount" min="1" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold" placeholder="0" required>
                                         </div>
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Archivo Adjunto (Foto/PDF)</label>
-                                        <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition-all cursor-pointer bg-slate-950/50 border border-slate-800 rounded-2xl p-1.5 focus:outline-none" required>
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Archivo Adjunto (Foto/PDF)</label>
+                                        <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition-all cursor-pointer bg-slate-900 border border-slate-700 rounded-lg p-1.5 focus:outline-none" required>
                                     </div>
                                     
                                 </div>
 
-                                <div class="pt-8 border-t border-slate-800 flex justify-end">
-                                    <button type="submit" :disabled="loading" class="px-10 py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all flex items-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-blue-600">
-                                        <span x-show="!loading" class="flex items-center gap-3">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
+                                <div class="pt-8 border-t border-slate-700 flex justify-end">
+                                    <button type="submit" :disabled="loading" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span x-show="!loading" class="flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                                             </svg>
                                             Subir y Guardar Gasto
                                         </span>
@@ -566,27 +564,23 @@
                 <!-- Columna Derecha: Panel Financiero (4 cols) -->
                 <div class="lg:col-span-4 space-y-8">
                     
-                    <div class="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl p-8">
-                        <!-- Glow effect -->
-                        <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] pointer-events-none"></div>
-                        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none"></div>
-
+                    <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
                         <div class="relative z-10">
-                            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
                                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                                 Estado de Caja
                             </h3>
                             
-                            <div class="space-y-8">
+                            <div class="space-y-6">
                                 <div>
-                                    <p class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Fondos Recibidos</p>
-                                    <p class="text-4xl font-black text-white tracking-tighter">${{ number_format($rendition->funds_received, 0, ',', '.') }}</p>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Fondos Recibidos</p>
+                                    <p class="text-4xl font-bold text-white tracking-tighter">${{ number_format($rendition->funds_received, 0, ',', '.') }}</p>
                                 </div>
 
-                                <div class="pt-6 border-t border-slate-800">
+                                <div class="pt-6 border-t border-slate-700">
                                     <div class="flex justify-between items-end mb-4">
-                                        <p class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Total Rendido</p>
-                                        <p class="text-2xl font-black text-white tracking-tighter">${{ number_format($rendition->total_declared, 0, ',', '.') }}</p>
+                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Rendido</p>
+                                        <p class="text-2xl font-bold text-white tracking-tighter">${{ number_format($rendition->total_declared, 0, ',', '.') }}</p>
                                     </div>
                                     
                                     @php
@@ -606,7 +600,6 @@
                                             $cashClass = 'text-blue-400';
                                         }
                                     @endphp
-
                                     <div class="p-4 rounded-3xl bg-slate-950/50 border border-slate-800/80 backdrop-blur-sm">
                                         <div class="flex justify-between items-center gap-4">
                                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -623,8 +616,8 @@
                                         </div>
                                     </div>
                                     @if($rendition->status === 'approved')
-                                    <div class="mt-4 p-4 rounded-3xl bg-slate-950/50 border border-slate-800/80">
-                                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                                    <div class="mt-4 p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                                             Resultado final Finanzas
                                         </p>
 
@@ -695,26 +688,26 @@
                                     <svg class="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     Terminar y Enviar
                                 </button>
-                                <p class="text-[10px] text-slate-500 text-center mt-4 font-bold uppercase tracking-tighter opacity-60 italic">Cierra la edición de esta rendición</p>
+                                <p class="text-[10px] text-slate-500 text-center mt-2.5 font-bold uppercase tracking-tighter opacity-60 italic">Cierra la edición de esta rendición</p>
 
-                                <!-- Submit Modal (Style inspired by Delete User) -->
-                                <div x-show="showSubmitModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl" style="display: none;" x-transition>
-                                    <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 max-w-lg w-full mx-auto shadow-[0_0_100px_rgba(16,185,129,0.1)] relative overflow-hidden" @click.away="showSubmitModal = false">
-                                        <div class="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+                                <!-- Submit Modal (Style inspired by Edit Modal) -->
+                                <div x-show="showSubmitModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" style="display: none;" x-transition>
+                                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-lg w-full mx-auto shadow-2xl relative" @click.away="showSubmitModal = false">
+                                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/5 rounded-full blur-[60px] pointer-events-none"></div>
                                         
-                                        <div class="flex items-center gap-5 mb-8">
-                                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shadow-inner">
-                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                                        <div class="flex items-center gap-4 mb-6">
+                                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                                             </div>
                                             <div>
-                                                <h3 class="text-2xl font-black text-white leading-tight uppercase tracking-tight">Enviar Rendición</h3>
-                                                <p class="text-[10px] font-black text-emerald-500/80 uppercase tracking-[0.2em] mt-1">Confirmación Final</p>
+                                                <h3 class="text-lg font-bold text-white uppercase tracking-tight">Enviar Rendición</h3>
+                                                <p class="text-[10px] font-black text-emerald-500/80 uppercase tracking-widest mt-1">Confirmación Final</p>
                                             </div>
                                         </div>
 
-                                        <p class="text-base text-slate-300 mb-6 leading-relaxed font-medium">
+                                        <p class="text-sm text-slate-400 mb-6 leading-relaxed font-medium">
                                             ¿Está seguro de enviar esta rendición?
-                                            <span class="text-white font-black">Ya no podrá agregar ni modificar documentos</span>
+                                            <span class="text-white font-semibold">Ya no podrá agregar ni modificar documentos</span>
                                             una vez que el proceso sea enviado a revisión.
                                         </p>
 
@@ -723,11 +716,12 @@
                                             method="POST"
                                             x-data="{ loading: false }"
                                             @submit="loading = true"
+                                            class="space-y-6"
                                         >
                                             @csrf
 
-                                            <div class="mb-8">
-                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">
                                                     Observación adicional del trabajador
                                                 </label>
 
@@ -735,20 +729,20 @@
                                                     name="user_observation"
                                                     rows="4"
                                                     maxlength="1000"
-                                                    class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl text-sm text-white placeholder-slate-600 focus:border-emerald-500 focus:ring-emerald-500"
+                                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-600 focus:border-emerald-500 focus:ring-emerald-500"
                                                     placeholder="Opcional. Ej: Se adjuntan boletas correspondientes al viaje realizado..."
                                                 ></textarea>
 
-                                                <p class="mt-2 text-[10px] text-slate-600 font-bold uppercase tracking-tighter">
+                                                <p class="mt-2 text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
                                                     Este comentario quedará registrado en el historial de la rendición.
                                                 </p>
                                             </div>
 
-                                            <div class="flex justify-end gap-4">
+                                            <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
                                                 <button
                                                     type="button"
                                                     @click="showSubmitModal = false"
-                                                    class="px-8 py-3.5 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors cursor-pointer"
+                                                    class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
                                                 >
                                                     Cancelar
                                                 </button>
@@ -756,7 +750,7 @@
                                                 <button
                                                     type="submit"
                                                     :disabled="loading"
-                                                    class="px-10 py-3.5 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl shadow-emerald-600/30 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-emerald-600"
+                                                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <span x-show="!loading">
                                                         Aceptar y Enviar
@@ -768,19 +762,17 @@
                                                             fill="none"
                                                             viewBox="0 0 24 24">
                                                             <circle class="opacity-25"
-                                                                cx="12"
-                                                                cy="12"
-                                                                r="10"
-                                                                stroke="currentColor"
-                                                                stroke-width="4">
+                                                                    cx="12"
+                                                                    cy="12"
+                                                                    r="10"
+                                                                    stroke="currentColor"
+                                                                    stroke-width="4">
                                                             </circle>
-
                                                             <path class="opacity-75"
-                                                                fill="currentColor"
-                                                                d="M4 12a8 8 0 018-8v8H4z">
+                                                                  fill="currentColor"
+                                                                  d="M4 12a8 8 0 018-8v8H4z">
                                                             </path>
                                                         </svg>
-
                                                         Procesando...
                                                     </span>
                                                 </button>
@@ -794,10 +786,9 @@
                     </div>
 
                     <!-- Info del Viaje Card -->
-                    <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden">
-                        <div class="absolute -top-24 -left-24 w-48 h-48 bg-slate-800/10 rounded-full blur-[60px] pointer-events-none"></div>
-                        <h4 class="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.2em] flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                    <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
+                        <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
                             Información del Viaje
                         </h4>
                         <div class="space-y-8">
@@ -838,10 +829,8 @@
                         </div>
                     </div>
                     
-                    <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden">
-                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/5 rounded-full blur-[60px] pointer-events-none"></div>
-
-                        <h4 class="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
+                        <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-wider flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             Historial de Aprobaciones
                         </h4>
@@ -877,7 +866,7 @@
                                             || str_contains($history->action, 'automatically');
                                     @endphp
 
-                                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80 relative overflow-hidden">
+                                    <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50 relative overflow-hidden">
                                         <div class="absolute left-0 top-0 h-full w-1
                                             @if($isRejected)
                                                 bg-rose-500
@@ -935,10 +924,8 @@
                         @endif
                     </div>
 
-                    <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden">
-                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/5 rounded-full blur-[60px] pointer-events-none"></div>
-
-                        <h4 class="text-[10px] font-black text-slate-500 mb-8 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
+                        <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-wider flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                             Firmas Digitales
                         </h4>
@@ -961,7 +948,7 @@
                                         $signatureLabel = $signatureLabels[$signature->signature_type] ?? ucfirst(str_replace('_', ' ', $signature->signature_type));
                                     @endphp
 
-                                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80">
+                                    <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
                                         <div class="flex items-start justify-between gap-4">
                                             <div>
                                                 <p class="text-sm font-black text-white uppercase tracking-tight">
@@ -985,15 +972,15 @@
 
                                             <span class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest">
                                                 Verificada
-                                            </span>
+                                             </span>
                                         </div>
 
-                                        <div class="mt-4 pt-4 border-t border-slate-800">
+                                        <div class="mt-4 pt-4 border-t border-slate-700">
                                             <p class="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-2">
                                                 Hash SHA-256
                                             </p>
 
-                                            <p class="text-[10px] text-slate-400 font-mono break-all bg-slate-950 rounded-xl p-3 border border-slate-800">
+                                            <p class="text-[10px] text-slate-400 font-mono break-all bg-slate-900 rounded-lg p-3 border border-slate-700">
                                                 {{ $signature->hash }}
                                             </p>
                                         </div>
