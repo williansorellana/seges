@@ -1,3 +1,15 @@
+@php
+    $existingDepartments = \App\Models\User::select('departamento')
+        ->whereNotNull('departamento')
+        ->where('departamento', '!=', '')
+        ->distinct()
+        ->pluck('departamento')
+        ->toArray();
+    // Aseguramos que Finanzas, Controlling, Operaciones y dimak estén siempre en la lista
+    $defaultDepartments = ['Finanzas', 'Controlling', 'Operaciones', 'dimak'];
+    $departments = array_unique(array_merge($defaultDepartments, $existingDepartments));
+    sort($departments);
+@endphp
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
@@ -335,8 +347,13 @@
                     <!-- Departamento -->
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Departamento</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="departamento" id="departamento_{{ $user->id }}" value="{{ old('departamento', $user->departamento) }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
+                            <select name="departamento" id="departamento_{{ $user->id }}" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
+                                <option value="" class="bg-[#1e293b]">-- Sin Departamento --</option>
+                                @foreach($departments as $dept)
+                                    <option value="{{ $dept }}" {{ old('departamento', $user->departamento) === $dept ? 'selected' : '' }} class="bg-[#1e293b]">{{ $dept }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <!-- Jefatura -->
@@ -522,8 +539,13 @@
                 <!-- Departamento -->
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-1">Departamento</label>
-                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                        <input type="text" name="departamento" id="new_departamento" value="{{ old('departamento') }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Operaciones">
+                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
+                        <select id="new_departamento" name="departamento" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
+                            <option value="" class="bg-[#1e293b]">-- Sin Departamento --</option>
+                            @foreach($departments as $dept)
+                                <option value="{{ $dept }}" {{ old('departamento') === $dept ? 'selected' : '' }} class="bg-[#1e293b]">{{ $dept }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <x-input-error :messages="$errors->get('departamento')" class="mt-2" />
                 </div>
