@@ -640,54 +640,47 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Patente</label>
-                                <div class="search-label">
-                                    <input type="text" name="plate" required placeholder="Ej: AB123CD">
-                                    <kbd class="slash-icon">/</kbd>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                    <input type="text" name="plate" required placeholder="Ej: AB123CD" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                                 </div>
                             </div>
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Nº Serie/Chasis</label>
-                                <div class="search-label">
-                                    <input type="text" name="serial_number" placeholder="Opcional">
-                                    <kbd class="slash-icon">/</kbd>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                    <input type="text" name="serial_number" placeholder="Opcional" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                                 </div>
                             </div>
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Kilometraje</label>
-                                <div class="search-label">
-                                    <input type="text" name="mileage" required placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">
-                                    <kbd class="slash-icon">/</kbd>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                    <input type="text" name="mileage" required placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                                 </div>
                             </div>
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Marca</label>
-                                <div class="search-label">
-                                    <input type="text" name="brand" required placeholder="Toyota">
-                                    <kbd class="slash-icon">/</kbd>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                    <input type="text" name="brand" required placeholder="Toyota" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                                 </div>
                             </div>
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Modelo</label>
-                                <div class="search-label">
-                                    <input type="text" name="model" required placeholder="Hilux">
-                                    <kbd class="slash-icon">/</kbd>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                    <input type="text" name="model" required placeholder="Hilux" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                                 </div>
                             </div>
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Año</label>
-                                <div class="search-label">
-                                    <input type="number" name="year" required placeholder="2023">
-                                    <kbd class="slash-icon">/</kbd>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                    <input type="number" name="year" required placeholder="2023" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                                 </div>
                             </div>
                             <div class="group">
                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-all">Combustible</label>
-                                <div class="search-label">
-                                    <select name="fuel_type" class="cursor-pointer">
-                                        <option value="diesel" class="bg-slate-900">Petróleo (Diesel)</option>
-                                        <option value="gasoline" class="bg-slate-900">Bencina (Gasolina)</option>
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
+                                    <select name="fuel_type" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
+                                        <option value="diesel" class="bg-[#1e293b]">Petróleo (Diesel)</option>
+                                        <option value="gasoline" class="bg-[#1e293b]">Bencina (Gasolina)</option>
                                     </select>
-                                    <svg class="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
                                 </div>
                             </div>
                         </div>
@@ -708,12 +701,11 @@
                                     <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                 </div>
                                 <div class="space-y-4">
-                                    <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                    <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-700 bg-[#1e293b] p-1.5 rounded-lg shadow-inner">
                                     <div class="group/date">
-                                        <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
-                                        <div class="search-label">
-                                            <input type="text" name="soap_expires_at" class="flatpickr-date" placeholder="Seleccionar fecha">
-                                            <kbd class="slash-icon">/</kbd>
+                                        <label class="block text-[9px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                            <input type="text" name="soap_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
                                         </div>
                                     </div>
                                 </div>
@@ -726,12 +718,11 @@
                                     <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                 </div>
                                 <div class="space-y-4">
-                                    <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                    <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-700 bg-[#1e293b] p-1.5 rounded-lg shadow-inner">
                                     <div class="group/date">
-                                        <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
-                                        <div class="search-label">
-                                            <input type="text" name="permit_expires_at" class="flatpickr-date" placeholder="Seleccionar fecha">
-                                            <kbd class="slash-icon">/</kbd>
+                                        <label class="block text-[9px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                            <input type="text" name="permit_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
                                         </div>
                                     </div>
                                 </div>
@@ -744,12 +735,11 @@
                                     <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner h-fit self-end">
+                                    <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-700 bg-[#1e293b] p-1.5 rounded-lg shadow-inner h-fit self-end">
                                     <div class="group/date">
-                                        <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
-                                        <div class="search-label">
-                                            <input type="text" name="technical_expires_at" class="flatpickr-date" placeholder="Seleccionar fecha">
-                                            <kbd class="slash-icon">/</kbd>
+                                        <label class="block text-[9px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                            <input type="text" name="technical_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
                                         </div>
                                     </div>
                                 </div>
@@ -760,10 +750,10 @@
 
                 <!-- Footer -->
                 <div class="px-6 py-5 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-3 sticky bottom-0 z-10">
-                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                    <button type="button" @click="$dispatch('close')" class="px-6 py-2.5 bg-rose-600 border border-transparent rounded-lg text-xs font-semibold text-white shadow-lg shadow-rose-500/30 hover:bg-rose-500 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer uppercase tracking-wider">
                         {{ __('Cancelar') }}
                     </button>
-                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 border border-transparent rounded-lg text-xs font-semibold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 cursor-pointer uppercase tracking-wider">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                         {{ __('Guardar Vehículo') }}
                     </button>
@@ -834,44 +824,38 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Patente</label>
-                        <div class="search-label">
-                            <input type="text" name="plate" id="edit_plate" x-model="editingVehicle.plate" required placeholder="AA123BB">
-                            <kbd class="slash-icon">/</kbd>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="plate" id="edit_plate" x-model="editingVehicle.plate" required placeholder="AA123BB" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                         </div>
                     </div>
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Nº Serie/Chasis</label>
-                        <div class="search-label">
-                            <input type="text" name="serial_number" id="edit_serial_number" x-model="editingVehicle.serial_number" placeholder="Opcional">
-                            <kbd class="slash-icon">/</kbd>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="serial_number" id="edit_serial_number" x-model="editingVehicle.serial_number" placeholder="Opcional" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                         </div>
                     </div>
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Kilometraje</label>
-                        <div class="search-label">
-                            <input type="text" name="mileage" id="edit_mileage" x-model="editingVehicle.mileage" required placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">
-                            <kbd class="slash-icon">/</kbd>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="mileage" id="edit_mileage" x-model="editingVehicle.mileage" required placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                         </div>
                     </div>
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Marca</label>
-                        <div class="search-label">
-                            <input type="text" name="brand" id="edit_brand" x-model="editingVehicle.brand" required placeholder="Toyota">
-                            <kbd class="slash-icon">/</kbd>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="brand" id="edit_brand" x-model="editingVehicle.brand" required placeholder="Toyota" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                         </div>
                     </div>
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Modelo</label>
-                        <div class="search-label">
-                            <input type="text" name="model" id="edit_model" x-model="editingVehicle.model" required placeholder="Hilux">
-                            <kbd class="slash-icon">/</kbd>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="text" name="model" id="edit_model" x-model="editingVehicle.model" required placeholder="Hilux" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                         </div>
                     </div>
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Año</label>
-                        <div class="search-label">
-                            <input type="number" name="year" id="edit_year" x-model="editingVehicle.year" required placeholder="2023">
-                            <kbd class="slash-icon">/</kbd>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                            <input type="number" name="year" id="edit_year" x-model="editingVehicle.year" required placeholder="2023" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
                         </div>
                     </div>
                 </div>
@@ -879,25 +863,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Combustible</label>
-                        <div class="search-label">
-                            <select id="edit_fuel_type" name="fuel_type" x-model="editingVehicle.fuel_type" class="cursor-pointer">
-                                <option value="diesel" class="bg-slate-900">Petróleo (Diesel)</option>
-                                <option value="gasoline" class="bg-slate-900">Bencina (Gasolina)</option>
+                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
+                            <select id="edit_fuel_type" name="fuel_type" x-model="editingVehicle.fuel_type" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
+                                <option value="diesel" class="bg-[#1e293b]">Petróleo (Diesel)</option>
+                                <option value="gasoline" class="bg-[#1e293b]">Bencina (Gasolina)</option>
                             </select>
-                            <svg class="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
                         </div>
                     </div>
                     <div class="group">
                         <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Estado Operativo</label>
                         <template x-if="editingVehicle.status !== 'occupied'">
-                            <div class="search-label">
-                                <select id="edit_status" name="status" x-model="editingVehicle.status" class="cursor-pointer">
-                                    <option value="available" class="bg-slate-900">{{ __('Disponible') }}</option>
-                                    <option value="out_of_service" class="bg-slate-900">{{ __('Fuera de Servicio') }}</option>
-                                    <option value="maintenance" class="bg-slate-900">{{ __('En Mantención') }}</option>
-                                    <option value="workshop" class="bg-slate-900">{{ __('En Taller') }}</option>
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
+                                <select id="edit_status" name="status" x-model="editingVehicle.status" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
+                                    <option value="available" class="bg-[#1e293b]">{{ __('Disponible') }}</option>
+                                    <option value="out_of_service" class="bg-[#1e293b]">{{ __('Fuera de Servicio') }}</option>
+                                    <option value="maintenance" class="bg-[#1e293b]">{{ __('En Mantención') }}</option>
+                                    <option value="workshop" class="bg-[#1e293b]">{{ __('En Taller') }}</option>
                                 </select>
-                                <svg class="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
                             </div>
                         </template>
                         <template x-if="editingVehicle.status === 'occupied'">
@@ -927,11 +909,11 @@
                                 <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
                             <div class="space-y-4">
-                                <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                <input type="file" name="soap_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-700 bg-[#1e293b] p-1.5 rounded-lg shadow-inner">
                                 <div class="group/date">
-                                    <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
-                                    <div class="flex items-center border border-slate-800 rounded-xl bg-slate-950 px-3 py-2.5 focus-within:border-blue-500 transition-all">
-                                        <input type="text" name="soap_expires_at" x-model="editingVehicle.soap_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer" placeholder="Seleccionar fecha">
+                                    <label class="block text-[9px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                        <input type="text" name="soap_expires_at" x-model="editingVehicle.soap_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
                                     </div>
                                 </div>
                             </div>
@@ -944,11 +926,11 @@
                                 <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
                             <div class="space-y-4">
-                                <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner">
+                                <input type="file" name="permit_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-700 bg-[#1e293b] p-1.5 rounded-lg shadow-inner">
                                 <div class="group/date">
-                                    <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
-                                    <div class="flex items-center border border-slate-800 rounded-xl bg-slate-950 px-3 py-2.5 focus-within:border-blue-500 transition-all">
-                                        <input type="text" name="permit_expires_at" x-model="editingVehicle.permit_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer" placeholder="Seleccionar fecha">
+                                    <label class="block text-[9px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                        <input type="text" name="permit_expires_at" x-model="editingVehicle.permit_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
                                     </div>
                                 </div>
                             </div>
@@ -961,11 +943,11 @@
                                 <svg class="w-3.5 h-3.5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-800 bg-slate-900 p-1.5 rounded-2xl shadow-inner h-fit self-end">
+                                <input type="file" name="technical_file" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all border border-slate-700 bg-[#1e293b] p-1.5 rounded-lg shadow-inner h-fit self-end">
                                 <div class="group/date">
-                                    <label class="block text-[9px] font-black text-slate-600 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
-                                    <div class="flex items-center border border-slate-800 rounded-xl bg-slate-950 px-3 py-2.5 focus-within:border-blue-500 transition-all">
-                                        <input type="text" name="technical_expires_at" x-model="editingVehicle.technical_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer" placeholder="Seleccionar fecha">
+                                    <label class="block text-[9px] font-black text-slate-500 mb-1.5 uppercase tracking-widest">{{ __('Vencimiento') }}</label>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                                        <input type="text" name="technical_expires_at" x-model="editingVehicle.technical_expires_at" class="flatpickr-date w-full bg-transparent border-none outline-none text-white text-xs font-bold cursor-pointer focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
                                     </div>
                                 </div>
                             </div>
@@ -975,10 +957,10 @@
 
                 <!-- Footer -->
                 <div class="px-6 py-5 bg-slate-900/80 backdrop-blur-md border-t border-slate-800 flex items-center justify-end gap-3 sticky bottom-0 z-10">
-                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors cursor-pointer">
+                    <button type="button" @click="$dispatch('close')" class="px-6 py-2.5 bg-rose-600 border border-transparent rounded-lg text-xs font-semibold text-white shadow-lg shadow-rose-500/30 hover:bg-rose-500 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer uppercase tracking-wider">
                         {{ __('Cancelar') }}
                     </button>
-                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-blue-600/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 border border-transparent rounded-lg text-xs font-semibold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 cursor-pointer uppercase tracking-wider">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                         {{ __('Actualizar Vehículo') }}
                     </button>
