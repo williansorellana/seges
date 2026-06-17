@@ -946,8 +946,7 @@
 
         <!-- Modal Ver Detalle Vehículo -->
         <x-modal name="view-vehicle-modal" :show="false" focusable zIndex="z-[60]" maxWidth="4xl">
-            <template x-if="viewingVehicle && viewingVehicle.id">
-                <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
                 <!-- Header con Imagen de Fondo -->
                 <div class="relative h-48 bg-slate-900/50">
                     <template x-if="viewingVehicle.imageUrl">
@@ -1020,7 +1019,7 @@
                             </h3>
 
                             <div class="space-y-4">
-                                <template x-for="doc in viewingVehicle.documents" :key="doc.id">
+                                <template x-for="doc in (viewingVehicle.documents || [])" :key="doc.id">
                                     <div class="flex items-center justify-between bg-slate-950/40 p-5 rounded-[1.5rem] border border-slate-800/50 hover:border-blue-500/30 transition-all group">
                                         <div class="flex items-center gap-5">
                                             <div class="w-12 h-12 rounded-2xl bg-slate-900 group-hover:bg-blue-600/10 group-hover:text-blue-500 transition-colors flex items-center justify-center shadow-inner border border-slate-800">
@@ -1072,14 +1071,12 @@
                     </button>
                 </div>
             </div>
-            </template>
         </x-modal>
 
 
         <!-- Modal Mantenimiento -->
         <x-modal name="maintenance-vehicle-modal" :show="false" focusable maxWidth="4xl">
-            <template x-if="maintenanceVehicle && maintenanceVehicle.id">
-                <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" x-data="{ tab: 'status' }">
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" x-data="{ tab: 'status' }">
                 <!-- Header -->
                 <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
                     <div class="flex items-center gap-4">
@@ -1252,7 +1249,6 @@
                     </div>
                 </div>
             </div>
-            </template>
         </x-modal>
         <!-- Modal Solicitudes Pendientes -->
         <x-modal name="maintenance-requests-modal" :show="false" focusable maxWidth="5xl">
@@ -1496,8 +1492,7 @@
         </x-modal>
         <!-- Modal Gestionar Documentos -->
         <x-modal name="manage-documents-modal" :show="false" focusable>
-            <template x-if="viewingVehicle && viewingVehicle.id">
-                <div class="p-8 bg-[#0f172a] text-slate-100" x-data="{ activeTab: 'list' }">
+            <div class="p-8 bg-[#0f172a] text-slate-100" x-data="{ activeTab: 'list' }">
                 <div class="mb-8 border-b border-slate-800 pb-4">
                     <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30">
@@ -1607,15 +1602,13 @@
                     </button>
                 </div>
             </div>
-            </template>
         </x-modal>
     </div>
 
     <!-- Modal Detalle de Reserva -->
     <!-- Modal Detalle Reserva -->
     <x-modal name="reservation-detail-modal" :show="false" focusable maxWidth="4xl">
-        <template x-if="viewingVehicle && viewingVehicle.reservation">
-            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" 
+        <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" 
             x-data="{ 
                 showEarlyTermination: false,
                 getDates() {
@@ -1673,14 +1666,14 @@
                             <div class="flex items-center justify-between gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800 mb-6">
                                 <div class="flex-1 text-center">
                                     <div class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Inicio</div>
-                                    <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.start_date.split(' ')[0]"></div>
-                                    <div class="text-[10px] font-bold text-slate-400 mt-0.5" x-text="viewingVehicle.reservation?.start_date.split(' ')[1] + ' hrs'"></div>
+                                    <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.start_date?.split(' ')[0] || ''"></div>
+                                    <div class="text-[10px] font-bold text-slate-400 mt-0.5" x-text="(viewingVehicle.reservation?.start_date?.split(' ')[1] || '') + ' hrs'"></div>
                                 </div>
                                 <div class="w-10 h-[1px] bg-slate-800"></div>
                                 <div class="flex-1 text-center">
                                     <div class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Retorno</div>
-                                    <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.end_date.split(' ')[0]"></div>
-                                    <div class="text-[10px] font-bold text-slate-400 mt-0.5" x-text="viewingVehicle.reservation?.end_date.split(' ')[1] + ' hrs'"></div>
+                                    <div class="text-sm font-black text-white" x-text="viewingVehicle.reservation?.end_date?.split(' ')[0] || ''"></div>
+                                    <div class="text-[10px] font-bold text-slate-400 mt-0.5" x-text="(viewingVehicle.reservation?.end_date?.split(' ')[1] || '') + ' hrs'"></div>
                                 </div>
                             </div>
 
@@ -1757,7 +1750,7 @@
                                 <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-lg text-[9px] font-black text-blue-400" x-text="viewingVehicle.reservation?.companions?.length"></span>
                             </div>
                             <div class="flex -space-x-3 overflow-hidden mb-4">
-                                <template x-for="(companion, index) in viewingVehicle.reservation?.companions" :key="index">
+                                <template x-for="(companion, index) in (viewingVehicle.reservation?.companions || [])" :key="index">
                                     <div class="inline-block h-10 w-10 rounded-2xl ring-4 ring-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-300 border border-slate-700 hover:scale-110 hover:z-20 transition-all cursor-help" :title="companion.name">
                                         <span x-text="companion.name.charAt(0)"></span>
                                     </div>
@@ -1818,13 +1811,11 @@
                 </button>
             </div>
         </div>
-        </template>
     </x-modal>
 
     <!-- Modal Lista de Acompañantes -->
     <x-modal name="companions-list-modal" :show="false" focusable maxWidth="2xl">
-        <template x-if="viewingCompanions">
-            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+        <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
             <!-- Header -->
             <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md">
                 <div class="flex items-center gap-4">
@@ -1876,7 +1867,6 @@
                 </button>
             </div>
         </div>
-        </template>
     </x-modal>
 
     <script>
