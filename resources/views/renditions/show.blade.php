@@ -32,19 +32,19 @@
             <div class="flex items-center gap-3">
                 <a href="{{ route('renditions.pdf', $rendition->id) }}"
                 target="_blank"
-                class="px-5 py-2.5 bg-indigo-600 text-white text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-indigo-500 hover:bg-indigo-500 transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                class="px-5 py-2.5 bg-rose-600 text-white text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-rose-500 hover:bg-rose-500 transition-all hover:-translate-y-0.5 flex items-center gap-2 shadow-lg shadow-rose-600/30">
                     PDF Rendición
                 </a>
 
                 <a href="{{ route('route-plannings.pdf', $rendition->routePlanning->id) }}"
                 target="_blank"
-                class="px-5 py-2.5 bg-slate-900 text-slate-300 text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition-all flex items-center gap-2 shadow-lg shadow-black/20">
+                class="px-5 py-2.5 bg-rose-600 text-white text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-rose-500 hover:bg-rose-500 transition-all hover:-translate-y-0.5 flex items-center gap-2 shadow-lg shadow-rose-600/30">
                     PDF Planificación
                 </a>
 
                 <a href="{{ $backRoute }}"
-                class="px-5 py-2.5 bg-slate-900 text-slate-300 text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition-all flex items-center gap-2 shadow-lg shadow-black/20 group">
-                    <svg class="w-4 h-4 text-slate-500 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="px-5 py-2.5 bg-blue-600 text-white text-[11px] font-black uppercase tracking-[0.1em] rounded-xl border border-blue-500 hover:bg-blue-500 transition-all hover:-translate-y-0.5 flex items-center gap-2 shadow-lg shadow-blue-600/30 group">
+                    <svg class="w-4 h-4 text-blue-200 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     {{ $backLabel }}
