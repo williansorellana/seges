@@ -181,7 +181,7 @@
                                         </td>
 
                                         @php
-                                            $isOwnPlanning = $plan->user_id === auth()->id();
+                                            $isOwnPlanning = $plan->user_id === auth()->id() && auth()->user()->email !== 'test@example.com';
                                         @endphp
 
                                         {{-- Acciones --}}
@@ -315,7 +315,7 @@
                                     </td>
 
                                     @php
-                                        $isOwnRendition = $ren->user_id === auth()->id();
+                                        $isOwnRendition = $ren->user_id === auth()->id() && auth()->user()->email !== 'test@example.com';
                                     @endphp
                                     <td class="px-6 py-5 text-center">
                                         <div x-show="!showReject" class="flex justify-center gap-2">

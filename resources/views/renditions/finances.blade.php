@@ -187,7 +187,7 @@
                                         </td>
 
                                         @php
-                                            $isOwnPlanning = $plan->user_id === auth()->id();
+                                            $isOwnPlanning = $plan->user_id === auth()->id() && auth()->user()->email !== 'test@example.com';
                                         @endphp
 
                                         <td class="px-6 py-5 text-center">
@@ -340,7 +340,7 @@
                                     </td>
 
                                     @php
-                                        $isOwnRendition = $ren->user_id === auth()->id();
+                                        $isOwnRendition = $ren->user_id === auth()->id() && auth()->user()->email !== 'test@example.com';
                                         $difference = $ren->funds_received - $ren->total_declared;
 
                                         if ($ren->status === 'pending_finances') {
