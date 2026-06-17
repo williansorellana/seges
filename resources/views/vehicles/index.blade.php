@@ -487,7 +487,7 @@
                                                 <div class="h-4 w-[1px] bg-slate-800"></div>
 
                                                 <!-- Ficha -->
-                                                <button @click="viewingVehicle = {{ $jsonVehicle }}; $dispatch('open-modal', 'view-vehicle-modal');"
+                                                <button @click="viewingVehicle = {{ $jsonVehicle }}; viewingVehicle.reservation = viewingVehicle.active_reservation || viewingVehicle.effective_reservation || null; $dispatch('open-modal', 'view-vehicle-modal');"
                                                     class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-emerald-500 hover:text-white hover:bg-emerald-600 hover:border-emerald-500 shadow-lg hover:shadow-emerald-600/20 transition-all duration-300 flex items-center justify-center cursor-pointer"
                                                     title="Ver Ficha">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -946,7 +946,8 @@
 
         <!-- Modal Ver Detalle Vehículo -->
         <x-modal name="view-vehicle-modal" :show="false" focusable zIndex="z-[60]" maxWidth="4xl">
-            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+            <template x-if="viewingVehicle && viewingVehicle.id">
+                <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
                 <!-- Header con Imagen de Fondo -->
                 <div class="relative h-48 bg-slate-900/50">
                     <template x-if="viewingVehicle.imageUrl">
@@ -1071,12 +1072,14 @@
                     </button>
                 </div>
             </div>
+            </template>
         </x-modal>
 
 
         <!-- Modal Mantenimiento -->
         <x-modal name="maintenance-vehicle-modal" :show="false" focusable maxWidth="4xl">
-            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" x-data="{ tab: 'status' }">
+            <template x-if="maintenanceVehicle && maintenanceVehicle.id">
+                <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" x-data="{ tab: 'status' }">
                 <!-- Header -->
                 <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
                     <div class="flex items-center gap-4">
@@ -1249,6 +1252,7 @@
                     </div>
                 </div>
             </div>
+            </template>
         </x-modal>
         <!-- Modal Solicitudes Pendientes -->
         <x-modal name="maintenance-requests-modal" :show="false" focusable maxWidth="5xl">
@@ -1492,7 +1496,8 @@
         </x-modal>
         <!-- Modal Gestionar Documentos -->
         <x-modal name="manage-documents-modal" :show="false" focusable>
-            <div class="p-8 bg-[#0f172a] text-slate-100" x-data="{ activeTab: 'list' }">
+            <template x-if="viewingVehicle && viewingVehicle.id">
+                <div class="p-8 bg-[#0f172a] text-slate-100" x-data="{ activeTab: 'list' }">
                 <div class="mb-8 border-b border-slate-800 pb-4">
                     <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30">
@@ -1602,13 +1607,15 @@
                     </button>
                 </div>
             </div>
+            </template>
         </x-modal>
     </div>
 
     <!-- Modal Detalle de Reserva -->
     <!-- Modal Detalle Reserva -->
     <x-modal name="reservation-detail-modal" :show="false" focusable maxWidth="4xl">
-        <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" 
+        <template x-if="viewingVehicle && viewingVehicle.reservation">
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative" 
             x-data="{ 
                 showEarlyTermination: false,
                 getDates() {
@@ -1756,7 +1763,7 @@
                                     </div>
                                 </template>
                             </div>
-                            <button type="button" @click="$dispatch('open-modal', 'companions-list-modal')" class="text-[9px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2">
+                            <button type="button" @click="viewingCompanions = viewingVehicle.reservation?.companions || []; $dispatch('open-modal', 'companions-list-modal')" class="text-[9px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2">
                                 Ver nómina completa
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg>
                             </button>
@@ -1811,11 +1818,13 @@
                 </button>
             </div>
         </div>
+        </template>
     </x-modal>
 
     <!-- Modal Lista de Acompañantes -->
     <x-modal name="companions-list-modal" :show="false" focusable maxWidth="2xl">
-        <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
+        <template x-if="viewingCompanions">
+            <div class="p-0 bg-slate-900 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-800 shadow-2xl relative">
             <!-- Header -->
             <div class="px-8 py-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md">
                 <div class="flex items-center gap-4">
@@ -1867,6 +1876,7 @@
                 </button>
             </div>
         </div>
+        </template>
     </x-modal>
 
     <script>
