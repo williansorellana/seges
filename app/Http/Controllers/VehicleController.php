@@ -13,12 +13,13 @@ use Illuminate\Validation\Rule;
 class VehicleController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
+    * Muestra el listado y dashboard de vehículos.
+    */
     public function index(Request $request)
     {
         $query = Vehicle::query();
 
+        
         // Filtro por búsqueda (patente, marca, modelo)
         if ($request->has('search') && $request->search) {
             $search = $request->search;
@@ -29,6 +30,7 @@ class VehicleController extends Controller
             });
         }
 
+        // Filtrar vehículos según su estado.
         // Filtros (solo para la vista de lista, pero no hacen daño en dashboard)
         if ($request->has('status') && $request->status) {
             // Nota: El estado 'occupied' y permisos se calculan dinámicamente en el modelo,
@@ -41,6 +43,7 @@ class VehicleController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Obtener estadísticas para las tarjetas del panel con
         // Contadores para las tarjetas
         $totalVehicles = Vehicle::count();
         $countDisponible = Vehicle::where('status', 'available')->count();
@@ -98,7 +101,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Registra un nuevo vehículo en el sistema.
      */
     public function store(Request $request)
     {
@@ -128,7 +131,7 @@ class VehicleController extends Controller
         $data = $request->except(['image', 'soap_file', 'permit_file', 'technical_file']);
         $data['status'] = 'available'; // Default status
 
-        // Guardar imagen si existe
+        // Guardar imagen la imagen del vehículo si existe
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('vehicles', 'public');
             $data['image_path'] = $path;

@@ -26,7 +26,21 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $request->validate([
+            'license_photo' => [
+                $request->user()->license_photo_path ? 'nullable' : 'required',
+                'image',
+                'mimes:jpg,jpeg,png',
+                'max:10240',
+            ],
+            'license_expires_at' => 'required|date|after_or_equal:today',
+        ], [
+            'license_photo.required' => 'Debe subir una foto de su licencia de conducir.',
+            'license_photo.image' => 'El archivo de licencia debe ser una imagen válida.',
+            'license_photo.mimes' => 'La licencia debe estar en formato JPG, JPEG o PNG.',
+            'license_expires_at.required' => 'Debe ingresar la fecha de vencimiento de su licencia.',
+            'license_expires_at.after_or_equal' => 'La fecha de vencimiento de la licencia no puede estar vencida.',
+        ]);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;

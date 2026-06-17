@@ -19,9 +19,13 @@ class DashboardController extends Controller
                 'actions' => array_filter([
 
                     // TODOS
-                    ['label' => 'Panel de Vehículos', 'route' => 'vehicles.dashboard'], //DASHBOARD GENERAL PARA TODOS para el MÓDULO VEHÍCULOS
-                    ['label' => 'Reservar Vehículos', 'route' => 'requests.create'],
-                    ['label' => 'Ver tus reservas', 'route' => 'requests.index'],
+                ['label' => 'Panel de Vehículos', 'route' => 'vehicles.dashboard'], //DASHBOARD GENERAL PARA TODOS para el MÓDULO VEHÍCULOS
+
+                in_array($user->role, ['admin','supervisor','worker','driver']) ?
+                    ['label' => 'Reservar Vehículos', 'route' => 'requests.create'] : null,
+
+                in_array($user->role, ['admin','supervisor','worker','driver']) ?
+                    ['label' => 'Ver tus reservas', 'route' => 'requests.index'] : null,
 
                     // SOLO supervisor
                     $user->role === 'supervisor'
@@ -59,7 +63,10 @@ class DashboardController extends Controller
                         ['label' => 'Gestionar Salas', 'route' => 'rooms.index'] : null,
 
                     $user->role === 'supervisor' ? 
-                        ['label' => 'Agenda', 'route' => 'rooms.agenda'] : null,
+                        ['label' => 'Gestion de Reservas', 'route' => 'rooms.agenda'] : null,
+
+                    $user->role === 'supervisor' ? 
+                        ['label' => 'Historial de Reservas', 'route' => 'rooms.history'] : null,
 
                 ])
             ],

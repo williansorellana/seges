@@ -45,6 +45,16 @@
             }
         }" @resize.window="width = window.innerWidth" @open-create-modal.window="openCreateModal = true">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @if ($errors->any())
+                <div class="mb-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
+                    <p class="font-bold">No se pudo guardar el conductor:</p>
+                    <ul class="list-disc list-inside text-sm mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div x-show="width >= 768"
                 class="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden border border-gray-700">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -487,8 +497,9 @@
 
                                 <!-- Fotografía -->
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-semibold text-white mb-2">Fotografía
-                                        (Opcional)</label>
+                                    <label class="block text-sm font-semibold text-white mb-2">
+                                        Foto de Licencia / Carnet de Conducir
+                                    </label>
 
                                     <!-- Preview -->
                                     <div class="mb-3" x-show="photoPreview" style="display: none;">
@@ -509,7 +520,7 @@
                                             seleccionado</span>
                                     </div>
 
-                                    <input id="create-fotografia" name="fotografia" type="file" accept="image/*"
+                                    <input id="create-fotografia" name="fotografia" type="file" accept="image/*" required
                                         class="hidden" x-ref="photo" x-on:change="
                                             const file = $refs.photo.files[0];
                                             if (file) {
@@ -671,8 +682,9 @@
 
                                 <!-- Fotografía -->
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-semibold text-white mb-2">Cambiar Fotografía
-                                        (Opcional)</label>
+                                    <label class="block text-sm font-semibold text-white mb-2">
+                                        Foto de Licencia / Carnet de Conducir
+                                    </label>
 
                                     <!-- Preview Box -->
                                     <div class="mb-3" x-show="photoPreview || editingConductor.has_foto"
@@ -694,8 +706,9 @@
                                         <div x-show="!photoPreview && !editingConductor.has_foto"
                                             class="text-xs text-gray-500">Ningún archivo seleccionado</div>
                                         <div x-show="editingConductor.has_foto && !photoPreview"
-                                            class="text-xs text-gray-400 italic">Se mantendrá la foto actual si no
-                                            seleccionas otra</div>
+                                            class="text-xs text-gray-400 italic">
+                                            Si el conductor ya tiene licencia cargada, se mantendrá la actual si no seleccionas otra.
+                                        </div>
                                     </div>
 
                                     <input id="edit-fotografia" name="fotografia" type="file" accept="image/*"

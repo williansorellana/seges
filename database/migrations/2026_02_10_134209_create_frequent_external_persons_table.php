@@ -16,6 +16,8 @@ return new class extends Migration {
             $table->string('rut')->nullable();
             $table->timestamps();
 
+            $table->softDeletes();
+
             // Índice para búsqueda rápida
             $table->index('name');
         });

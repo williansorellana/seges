@@ -252,7 +252,7 @@
                         </svg>
                         {{ __('Filtros') }}
                         @php
-                            $activeFiltersCount = collect([request('estado'), request('categoria')])->filter()->count();
+                            $activeFiltersCount = collect([request('estado'), request('categoria'), request('tipo')])->filter()->count();
                         @endphp
                         @if($activeFiltersCount > 0)
                             <span
@@ -825,7 +825,38 @@
                             </label>
                         </div>
                     </div>
+                    <!-- Filter: Type -->
+                    <div class="mb-4 border-b border-gray-700 pb-4" x-data="{ open: true }">
+                        <button type="button" @click="open = !open"
+                            class="flex items-center justify-between w-full text-left text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 focus:outline-none">
+                            <span>Tipo</span>
+                            <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
 
+                        <div x-show="open" class="space-y-2 mt-2">
+                            <label
+                                class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('tipo') === null ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
+                                <input type="radio" name="tipo" value="" class="hidden" {{ request('tipo') === null ? 'checked' : '' }} onchange="this.form.submit()">
+                                <span class="text-gray-200 font-medium">Todos</span>
+                            </label>
+
+                            <label
+                                class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('tipo') === 'hardware' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
+                                <input type="radio" name="tipo" value="hardware" class="hidden" {{ request('tipo') === 'hardware' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <span class="text-gray-200">Hardware</span>
+                            </label>
+
+                            <label
+                                class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('tipo') === 'software' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
+                                <input type="radio" name="tipo" value="software" class="hidden" {{ request('tipo') === 'software' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <span class="text-gray-200">Software</span>
+                            </label>
+                        </div>
+                    </div>                  
                     <!-- Filter: Category -->
                     <div class="mb-4 border-b border-gray-700 pb-4 border-none" x-data="{ open: true }">
                         <button type="button" @click="open = !open"
@@ -860,7 +891,7 @@
                             class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-500/30">
                             Aplicar Filtros
                         </button>
-                        @if(request('estado') || request('categoria'))
+                        @if(request('estado') || request('categoria') || request('tipo'))
                             <a href="{{ route('assets.index', ['search' => request('search')]) }}"
                                 class="w-full py-3 text-center text-gray-400 hover:text-white font-medium hover:bg-gray-700 rounded-lg transition-colors">
                                 Limpiar Filtros
@@ -976,9 +1007,22 @@
                             class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm"
                             required>
                             <option value="">Seleccione una categoría</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->nombre }}</option>
-                            @endforeach
+
+                            <optgroup label="Hardware">
+                                @foreach($categories->where('tipo', 'hardware') as $category)
+                                    <option value="{{ $category->id }}" {{ old('categoria_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->nombre }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+
+                            <optgroup label="Software">
+                                @foreach($categories->where('tipo', 'software') as $category)
+                                    <option value="{{ $category->id }}" {{ old('categoria_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->nombre }}
+                                    </option>
+                                @endforeach
+                            </optgroup>                     
                         </select>
                         <x-input-error :messages="$errors->get('categoria_id')" class="mt-2" />
                     </div>
@@ -1200,9 +1244,17 @@
                         <select id="edit_categoria_id" name="categoria_id" x-model="editingAsset.categoria_id"
                             class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm"
                             required>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->nombre }}</option>
-                            @endforeach
+                            <optgroup label="Hardware">
+                                @foreach($categories->where('tipo', 'hardware') as $category)
+                                    <option value="{{ $category->id }}">{{ $category->nombre }}</option>
+                                @endforeach
+                            </optgroup>
+
+                            <optgroup label="Software">
+                                @foreach($categories->where('tipo', 'software') as $category)
+                                    <option value="{{ $category->id }}">{{ $category->nombre }}</option>
+                                @endforeach
+                            </optgroup>
                         </select>
                     </div>
 
