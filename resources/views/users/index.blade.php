@@ -415,7 +415,7 @@
                 </div>
 
                 <div class="mt-8 flex justify-end gap-3">
-                    <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 border border-slate-600 text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-800 hover:border-slate-500 transition-all">
+                    <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 bg-rose-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-500/30 hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
                         Cancelar
                     </button>
                     <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5">
@@ -627,7 +627,7 @@
             </div>
 
             <div class="mt-6 flex justify-end gap-3">
-                <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 border border-slate-600 text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-800 hover:border-slate-500 transition-all">
+                <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 bg-rose-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-500/30 hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
                     Cancelar
                 </button>
                 <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5">
