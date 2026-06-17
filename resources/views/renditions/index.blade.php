@@ -210,19 +210,23 @@
                                                     </a>
                                                 @else
                                                     <a href="{{ route('renditions.show', $ren->id) }}" wire:navigate
-                                                    class="group/btn px-5 py-2.5 bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-700 hover:bg-slate-700 hover:text-white transition-all cursor-pointer">
+                                                    class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-emerald-500/20 hover:bg-emerald-500 hover:-translate-y-0.5 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
                                                         {{ __('Ver Detalles') }}
                                                     </a>
 
-                                                    @if($ren->status === 'approved' || $ren->status === 'closed')
-                                                        <a href="{{ route('renditions.pdf', $ren->id) }}"
-                                                        class="group/btn px-5 py-2.5 bg-rose-600/10 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-rose-500/20 hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-rose-900/10">
-                                                            <svg class="w-4 h-4 group-hover/btn:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                            </svg>
-                                                            PDF
-                                                        </a>
-                                                    @endif
+                                                     @if($ren->status === 'approved' || $ren->status === 'closed')
+                                                         <a href="{{ route('renditions.pdf', $ren->id) }}"
+                                                         class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                                                             <svg class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                             </svg>
+                                                             {{ __('Descargar PDF') }}
+                                                         </a>
+                                                     @endif
                                                 @endif
                                             </div>
                                         </td>

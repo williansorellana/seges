@@ -205,12 +205,12 @@
                                                     <div x-show="!showReject" class="flex gap-3 transition-all">
                                                         <form action="{{ route('route-plannings.approve-finances', $plan->id) }}" method="POST">
                                                             @csrf
-                                                            <button type="submit" class="px-6 py-3 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 transition-all cursor-pointer">
+                                                            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-emerald-500/20 hover:bg-emerald-500 hover:-translate-y-0.5 transition-all cursor-pointer">
                                                                 Liberar Fondos
                                                             </button>
                                                         </form>
                                                         
-                                                        <button @click="showReject = true" class="px-6 py-3 bg-slate-800 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-700 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all cursor-pointer">
+                                                        <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">
                                                             Rechazar
                                                         </button>
                                                     </div>
