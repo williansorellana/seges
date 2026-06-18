@@ -81,7 +81,7 @@
                 <div x-show="open && vehicleMenu" x-collapse
                     class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer', 'worker']))
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer', 'worker', 'driver']))
                         <a href="{{ route('vehicles.dashboard') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('vehicles.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
@@ -108,7 +108,7 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker']))
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker', 'driver']))
                         <a href="{{ route('requests.create') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('requests.create') ? "'text-white bg-gray-800'" : "''" }}">
@@ -161,7 +161,7 @@
                         Ver Salas
                     </a>
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker']))
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker', 'driver']))
                         <a href="{{ route('reservations.my_reservations') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('reservations.my_reservations') ? "'text-white bg-gray-800'" : "''" }}">
@@ -174,7 +174,7 @@
                         <a href="{{ route('reservations.create_external') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
                             :class="{{ request()->routeIs('reservations.create_external') ? "'text-white bg-gray-800'" : "'text-gray-400 hover:text-white hover:bg-gray-800'" }}">
-                            Reseva Manual
+                            Reserva Manual
                         </a>
 
                         <a href="{{ route('rooms.index') }}" wire:navigate
@@ -241,6 +241,10 @@
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ (request()->routeIs('assets.*') && !request()->routeIs('assets.dashboard') && !request()->routeIs('assets.reports.*')) ? "'text-white bg-gray-800'" : "''" }}">
                             Gestión de Activos
+                        </a>
+                        <a href="{{ route('asset-categories.index') }}"
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800">
+                            Categorías
                         </a>
                         <a href="{{ route('workers.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"

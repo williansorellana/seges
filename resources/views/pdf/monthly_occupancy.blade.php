@@ -22,7 +22,7 @@
     <h1>Informe de Ocupación de Salas</h1>
     
     <div class="meta">
-        <strong>Mes:</strong> {{ ucfirst($month) }} {{ $year }} <br>
+        <strong>Periodo:</strong> {{ $month }} <br>
         <strong>Total Reservas:</strong> {{ $reservations->count() }}
     </div>
 
@@ -38,25 +38,33 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($reservations as $res)
+            @if ($reservations->isEmpty())
                 <tr>
-                    <td>{{ $res->start_time->format('d/m/Y') }}</td>
-                    <td>{{ $res->start_time->format('H:i') }} - {{ $res->end_time->format('H:i') }}</td>
-                    <td>{{ $res->meetingRoom->name }}</td>
-                    <td>{{ $res->user->name }}</td>
-                    
-                    <td class="center">{{ $res->attendees }}</td>
-                    
-                    <td>{{ $res->purpose }}</td>
-                    <td>
-                        @if($res->end_time->isPast())
-                            <span class="status-finished">Finalizada</span>
-                        @else
-                            <span class="status-scheduled">Programada</span>
-                        @endif
+                    <td colspan="7" style="text-align:center; padding:20px;">
+                        No se encontraron reservas para este periodo.
                     </td>
                 </tr>
-            @endforeach
+            @else
+                @foreach($reservations as $res)
+                    <tr>
+                        <td>{{ $res->start_time->format('d/m/Y') }}</td>
+                        <td>{{ $res->start_time->format('H:i') }} - {{ $res->end_time->format('H:i') }}</td>
+                        <td>{{ $res->meetingRoom->name ?? 'Sala Eliminada' }}</td>
+                        <td>{{ $res->user->name ?? 'Usuario Eliminado' }}</td>
+                    
+                        <td class="center">{{ $res->attendees }}</td>
+                    
+                        <td>{{ $res->purpose }}</td>
+                        <td>
+                            @if($res->end_time->isPast())
+                                <span class="status-finished">Finalizada</span>
+                            @else
+                                <span class="status-scheduled">Programada</span>
+                         @endif
+                        </td>
+                    </tr>
+                @endforeach
+            @endif
         </tbody>
     </table>
 </body>

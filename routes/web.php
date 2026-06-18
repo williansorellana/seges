@@ -33,7 +33,7 @@ Route::get('/vehicles/dashboard', [VehicleController::class, 'index'])
 
     // Gestión de Activos
 Route::get('/assets/dashboard', [AssetController::class, 'dashboard'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,viewer'])
     ->name('assets.dashboard');
 
     // Gestion de Salas
@@ -120,19 +120,22 @@ Route::middleware('auth')->group(function () {
     });
 
     // Rutas de Mantenimiento
-    Route::post('vehiculos/{vehicle}/maintenance/state', [MaintenanceController::class, 'updateState'])->name('vehicles.maintenance.state');
-    Route::post('vehiculos/{vehicle}/maintenance/request', [MaintenanceController::class, 'storeRequest'])->name('vehicles.maintenance.request');
-    Route::post('vehiculos/{vehicle}/maintenance/complete', [MaintenanceController::class, 'complete'])->name('vehicles.maintenance.complete');
-    Route::post('maintenance/requests/{id}/accept', [MaintenanceController::class, 'acceptRequest'])->name('maintenance.requests.accept');
-    Route::get('vehiculos/{vehicle}/historial-mantenimiento', [MaintenanceController::class, 'history'])->name('vehicles.maintenance.history');
-    Route::get('vehiculos/{vehicle}/historial-mantenimiento/pdf', [MaintenanceController::class, 'downloadHistoryPdf'])->name('vehicles.maintenance.history.pdf');
+    Route::middleware(['role:supervisor'])->group(function () {
+        Route::post('vehiculos/{vehicle}/maintenance/state', [MaintenanceController::class, 'updateState'])->name('vehicles.maintenance.state');
+        Route::post('vehiculos/{vehicle}/maintenance/request', [MaintenanceController::class, 'storeRequest'])->name('vehicles.maintenance.request');
+        Route::post('vehiculos/{vehicle}/maintenance/complete', [MaintenanceController::class, 'complete'])->name('vehicles.maintenance.complete');
+        Route::post('maintenance/requests/{id}/accept', [MaintenanceController::class, 'acceptRequest'])->name('maintenance.requests.accept');
+        Route::get('vehiculos/{vehicle}/historial-mantenimiento', [MaintenanceController::class, 'history'])->name('vehicles.maintenance.history');
+        Route::get('vehiculos/{vehicle}/historial-mantenimiento/pdf', [MaintenanceController::class, 'downloadHistoryPdf'])->name('vehicles.maintenance.history.pdf');
 
-    // Trigger manual de alertas (Solo para pruebas/demo)
-    // Trigger manual de alertas (Solo para pruebas/demo)
-    Route::get('/maintenance/check', function (\App\Services\MaintenanceService $service) {
+        Route::get('/maintenance/check', function (\App\Services\MaintenanceService $service) {
         $service->checkAndNotify();
         return redirect()->back()->with('success', 'Chequeo de alertas ejecutado.');
-    })->name('maintenance.check');
+        })->name('maintenance.check');
+    });
+    // Trigger manual de alertas (Solo para pruebas/demo)
+    // Trigger manual de alertas (Solo para pruebas/demo)
+
 
     // Rutas de Solicitudes de Vehículos (Reservas)
     Route::get('/solicitar-vehiculo', [VehicleRequestController::class, 'create'])->name('requests.create');
@@ -151,16 +154,20 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/requests/{id}/cancel-supervisor', [VehicleRequestController::class, 'cancelBySupervisor'])
             ->name('requests.cancel.supervisor');
+        
+        Route::get('/historial-uso-vehiculos', [VehicleRequestController::class, 'history'])->name('requests.history.index');
+        Route::get('/historial-uso-vehiculos/papelera', [VehicleRequestController::class, 'trash'])->name('requests.history.trash');
+        Route::delete('/historial-uso-vehiculos/{id}', [VehicleRequestController::class, 'destroy'])->name('requests.history.destroy');
+        Route::put('/historial-uso-vehiculos/{id}/restore', [VehicleRequestController::class, 'restore'])->name('requests.history.restore');
+        Route::delete('/historial-uso-vehiculos/{id}/force', [VehicleRequestController::class, 'forceDelete'])->name('requests.history.force-delete');
     });
 
     Route::get('/mis-reservas', [VehicleRequestController::class, 'index'])->name('requests.index');
-    Route::post('/requests/{id}/complete', [VehicleRequestController::class, 'complete'])->name('requests.complete');
-    Route::post('/requests/{id}/finish-early', [VehicleRequestController::class, 'finishEarly'])->name('requests.finish-early');
-    Route::get('/historial-uso-vehiculos', [VehicleRequestController::class, 'history'])->name('requests.history.index');
-    Route::get('/historial-uso-vehiculos/papelera', [VehicleRequestController::class, 'trash'])->name('requests.history.trash');
-    Route::delete('/historial-uso-vehiculos/{id}', [VehicleRequestController::class, 'destroy'])->name('requests.history.destroy');
-    Route::put('/historial-uso-vehiculos/{id}/restore', [VehicleRequestController::class, 'restore'])->name('requests.history.restore');
-    Route::delete('/historial-uso-vehiculos/{id}/force', [VehicleRequestController::class, 'forceDelete'])->name('requests.history.force-delete');
+    Route::middleware(['role:admin,supervisor,worker,driver'])->group(function () {
+        Route::post('/requests/{id}/complete', [VehicleRequestController::class, 'complete'])->name('requests.complete');
+        Route::post('/requests/{id}/finish-early', [VehicleRequestController::class, 'finishEarly'])->name('requests.finish-early');
+        Route::post('/requests/{id}/start-trip', [VehicleRequestController::class, 'startTrip'])->name('requests.start-trip');
+    });
 
     // AJAX Check for External RUT
     Route::get('/requests/check-external-rut', [VehicleRequestController::class, 'checkExternalRut'])->name('requests.check-external-rut');
@@ -168,7 +175,7 @@ Route::middleware('auth')->group(function () {
     // Delivery Photos (Check-in) y Start Trip
     Route::post('/requests/{id}/delivery-photos', [VehicleRequestController::class, 'uploadDeliveryPhotos'])->name('requests.delivery-photos');
     Route::delete('/requests/{id}/delivery-photos', [VehicleRequestController::class, 'deleteDeliveryPhoto'])->name('requests.delete-delivery-photo');
-    Route::post('/requests/{id}/start-trip', [VehicleRequestController::class, 'startTrip'])->name('requests.start-trip');
+    
 
 
     // Historial de Devoluciones (Admin)
@@ -207,6 +214,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/assets/{id}/maintenance/finish', [\App\Http\Controllers\AssetController::class, 'finishMaintenance'])->name('assets.maintenance.finish');
         Route::post('/assets/{id}/write-off', [\App\Http\Controllers\AssetController::class, 'writeOff'])->name('assets.write-off');
 
+        Route::resource('asset-categories', \App\Http\Controllers\AssetCategoryController::class)
+            ->except(['show', 'create', 'edit']);
         Route::resource('assets', \App\Http\Controllers\AssetController::class)
             ->except(['show']);
 

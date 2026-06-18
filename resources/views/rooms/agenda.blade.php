@@ -8,9 +8,9 @@
                     Agenda de Salas
                 @endif
             </h2>                
-            <a href="{{ route('rooms.index') }}" 
+            <a href="{{ route('reservations.catalog') }}" 
                 class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-bold hover:bg-gray-500 transition shadow-sm">
-                ← Volver al Panel
+                ← Volver al Catálogo de Salas
             </a>
         </div>
     </x-slot>
@@ -40,6 +40,16 @@
             modalCancel: false,
             modalCreate: false,
             fullDay: false,
+            guests: [],
+            addGuest() {
+                this.guests.push({
+                    name: '',
+                    email: ''
+                });
+            },
+            removeGuest(index) {
+                this.guests.splice(index, 1);
+            },
             startTime: '',
             endTime: '',
 
@@ -84,6 +94,29 @@
          }">
         
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+
+            @if(session('error'))
+                <div class="mb-4 p-4 rounded-lg bg-red-900/40 border border-red-700 text-red-200">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div class="mb-4 p-4 rounded-lg bg-green-900/40 border border-green-700 text-green-200">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="mb-4 p-4 rounded-lg bg-red-900/40 border border-red-700 text-red-200">
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif          
+
             @if (isset($selectedRoom) && $selectedRoom && Auth::user()->role !== 'viewer')
                 <div class="mb-6 flex justify-end">
                     <button 
@@ -108,11 +141,33 @@
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('rooms.agenda', ['month' => $prevDate->month, 'year' => $prevDate->year]) }}" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></a>
+                    <a href="{{ route('rooms.agenda', array_filter([
+                        'month' => $prevDate->month, 
+                        'year' => $prevDate->year,
+                        'room_id' => $selectedRoomId ?? null,
+                        ])) }}" 
+                        class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" 
+                            stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                    </a>
+
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-white capitalize min-w-[200px] text-center">
                         {{ $currentDate->locale('es')->monthName }} <span class="text-gray-400 font-light">{{ $year }}</span>
                     </h2>
-                    <a href="{{ route('rooms.agenda', ['month' => $nextDate->month, 'year' => $nextDate->year]) }}" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></a>
+                    <a href="{{ route('rooms.agenda', array_filter([
+                        'month' => $nextDate->month, 
+                        'year' => $nextDate->year,
+                        'room_id' => $selectedRoomId ?? null,
+                        ])) }}" 
+                        class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                            </path>
+                        </svg>
+                    </a>
                 </div>
                 
                 <div x-data="{ open: false, currentYear: {{ $year }} }" class="relative">
@@ -122,6 +177,11 @@
                     </button>
                     <div x-show="open" @click.away="open = false" style="display: none;" class="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
                         <form method="GET" action="{{ route('rooms.agenda') }}" class="p-4">
+
+                            @if(isset($selectedRoomId) && $selectedRoomId)
+                                <input type="hidden" name="room_id" value="{{ $selectedRoomId }}">
+                            @endif
+
                             <div class="flex justify-between items-center mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">
                                 <button type="button" @click="currentYear--" class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-indigo-600 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                                 <span class="text-lg font-bold text-indigo-600 dark:text-indigo-400 select-none" x-text="currentYear"></span>
@@ -220,8 +280,14 @@
                                 @if($hasReservations)
                                     <div class="space-y-1 mb-3">
                                         @foreach($dayReservations->take(2) as $reservation)
-                                            <div class="text-[11px] bg-gray-900/60 rounded px-2 py-1 text-gray-200">
-                                                {{ $reservation->start_time->format('H:i') }} - {{ $reservation->end_time->format('H:i') }}
+                                            <div class="text-[11px] bg-gray-900/60 rounded px-2 py-1 text-gray-200 leading-tight">
+                                                <div>
+                                                    {{ $reservation->start_time->format('H:i') }} - {{ $reservation->end_time->format('H:i') }}
+                                                </div>
+
+                                                <div class="text-[10px] text-blue-300 font-semibold truncate">
+                                                    {{ $reservation->meetingRoom->name ?? 'Sala eliminada' }}
+                                                </div>
                                             </div>
                                         @endforeach
 
@@ -510,6 +576,65 @@
                                         value="1"
                                         required
                                         class="w-full bg-gray-900 border-gray-700 rounded text-white">
+                                </div>
+
+                                <div class="bg-gray-900/70 border border-gray-700 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-300">
+                                                Invitados a la reunión
+                                            </label>
+                                            <p class="text-xs text-gray-500">
+                                                Opcional. Se les notificará por correo cuando la reserva sea aprobada.
+                                            </p>
+                                        </div>
+
+                                        <button type="button"
+                                            @click="addGuest()"
+                                            class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition">
+                                            + Agregar invitado
+                                        </button>
+                                    </div>
+
+                                    <div x-show="guests.length === 0" class="text-sm text-gray-500 text-center py-4">
+                                        No hay invitados agregados.
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <template x-for="(guest, index) in guests" :key="index">
+                                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-gray-800 border border-gray-700 rounded-lg p-3">
+                                                <div class="md:col-span-5">
+                                                    <label class="block text-xs font-semibold text-gray-400 mb-1">
+                                                        Nombre
+                                                    </label>
+                                                    <input type="text"
+                                                        :name="'guests[' + index + '][name]'"
+                                                        x-model="guest.name"
+                                                        placeholder="Ej: Juan Pérez"
+                                                        class="w-full bg-gray-900 border-gray-700 rounded text-white text-sm">
+                                                </div>
+
+                                                <div class="md:col-span-6">
+                                                    <label class="block text-xs font-semibold text-gray-400 mb-1">
+                                                        Correo
+                                                    </label>
+                                                    <input type="email"
+                                                        :name="'guests[' + index + '][email]'"
+                                                        x-model="guest.email"
+                                                        placeholder="correo@empresa.cl"
+                                                        class="w-full bg-gray-900 border-gray-700 rounded text-white text-sm">
+                                                </div>
+
+                                                <div class="md:col-span-1 flex justify-end">
+                                                    <button type="button"
+                                                        @click="removeGuest(index)"
+                                                        class="px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg">
+                                                        X
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
 
                                 <div>

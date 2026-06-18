@@ -13,14 +13,14 @@
                     {{-- MENSAJE DE EXITOO --}}
 
                     @if(session('success'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                        <div class="mb-4 p-4 rounded-lg bg-green-900/40 border border-green-700 text-green-200" role="alert">
                             <strong class="font-bold">¡Éxito! </strong>
                             <span class="block sm:inline">{{ session('success') }}</span>
                         </div>
                     @endif
 
                     @if (session('error'))
-                        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                        <div class="mb-4 p-4 rounded-lg bg-red-900/40 border border-red-700 text-red-200">
                             {{ session('error') }}
                         </div> 
                         

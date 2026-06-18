@@ -1,5 +1,7 @@
 import './bootstrap';
+import './chileLocations';
 import Alpine from 'alpinejs';
+
 
 window.Alpine = Alpine;
 

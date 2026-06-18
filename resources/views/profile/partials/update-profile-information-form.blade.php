@@ -127,6 +127,20 @@
             </div>
         </div>
 
+        @if ($errors->any())
+            <div class="mb-6 rounded-lg border border-red-500 bg-red-900/20 p-4">
+                <div class="text-red-400 font-semibold mb-2">
+                    Se encontraron errores en el formulario:
+                </div>
+
+                <ul class="list-disc list-inside text-sm text-red-300 space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- License Section -->
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">{{ __('Licencia de Conducir') }}</h3>
@@ -167,7 +181,7 @@
 
                     <div class="flex items-center gap-4">
                         <x-secondary-button type="button" x-on:click.prevent="$refs.license.click()">
-                            {{ __('Subir Foto Licencia') }}
+                            {{ __('Subir Foto de Licencia') }}
                         </x-secondary-button>
                     </div>
 
@@ -176,6 +190,7 @@
                         x-on:change="processLicense($refs.license)" />
                     <x-input-error class="mt-2" :messages="$errors->get('license_photo')" />
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        La fotografía de licencia es obligatoria para solicitar vehículos.
                         Por favor, suba una fotografía clara de su licencia.
                     </p>
                 </div>

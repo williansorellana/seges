@@ -9,6 +9,10 @@ use Intervention\Image\Laravel\Facades\Image;
 
 class MeetingRoomController extends Controller
 {
+
+/**
+ * Muestra la gestión de salas y solicitudes pendientes.
+ */
     public function index()
     {
         $rooms = MeetingRoom::all();
@@ -20,6 +24,9 @@ class MeetingRoomController extends Controller
         return view('rooms.index', compact('rooms', 'pendingReservations'));        
     }
 
+/**
+ * Registra una nueva sala de reuniones.
+ */
     public function store(Request $request)
     {
         $request->validate([
@@ -31,7 +38,7 @@ class MeetingRoomController extends Controller
 
         $data = $request->all();
 
-       
+// Procesar imagen de la sala si fue enviada.       
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             
@@ -56,6 +63,9 @@ class MeetingRoomController extends Controller
         return view('rooms.edit', compact('room'));
     }
 
+    /**
+ * Actualiza los datos de una sala existente.
+ */
     public function update(Request $request, MeetingRoom $room)
     {
         $request->validate([
@@ -67,7 +77,7 @@ class MeetingRoomController extends Controller
 
         $data = $request->except('image'); 
 
-     
+// Reemplazar imagen anterior por la nueva.
         if ($request->hasFile('image')) {
             
            
@@ -99,6 +109,9 @@ class MeetingRoomController extends Controller
         return redirect()->route('rooms.index')->with('success', 'Sala movida a la papelera.');
     }
 
+/**
+ * Muestra las salas enviadas a papelera.
+ */
     public function trash()
     {
         $rooms = MeetingRoom::onlyTrashed()->get();
