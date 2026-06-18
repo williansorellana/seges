@@ -20,7 +20,7 @@
     <div class="h-16 flex items-center justify-between px-4 bg-gray-900 border-b border-gray-800">
         <div class="flex flex-col items-start overflow-hidden" :class="{'items-center': !open}">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center justify-center overflow-hidden">
-                <img src="{{ asset('images/dimak-logo.png') }}" alt="Dimak Logo"
+                <img src="{{ asset('images/Dimak-logo.png') }}" alt="Dimak Logo"
                     class="object-contain transition-all duration-300" :class="open ? 'h-10' : 'h-8'" />
             </a>
             <!-- Version Info, LUEGO MAS ADELANTE COMBIENE CAMBIARLO A CONFIG/APP, PERO AHORA ES SEGURO DEJARLO ACA. -->
