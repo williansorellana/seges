@@ -66,7 +66,7 @@ class RoutePlanningController extends Controller
 
     public function create()
     {
-        return redirect()->route('route-plannings.index', ['tab' => 'crear']);
+        return redirect()->route('route-plannings.index');
     }
 
     public function store(Request $request)

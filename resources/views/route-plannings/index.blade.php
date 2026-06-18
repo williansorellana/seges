@@ -10,6 +10,26 @@
                 <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Planificación de Viajes y Alimentación</span>
             </div>
         </div>
+
+        <!-- Import Flatpickr -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+        <style>
+            /* Custom Flatpickr Overrides for Seges */
+            .flatpickr-calendar.dark {
+                background: #2b2b2b;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                border: 1px solid #444;
+                border-radius: 12px;
+            }
+            .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
+                background: #f97316;
+                border-color: #f97316;
+            }
+        </style>
     </x-slot>
 
     <div class="py-12">
@@ -38,38 +58,16 @@
                 </div>
             @endif
 
-            @php
-                $activeTab = request('tab', 'solicitudes');
-            @endphp
-
-            <!-- Tabs Navigation -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-px mb-8">
-                <div class="flex gap-8">
-                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'solicitudes', 'plannings_page' => 1]) }}"
-                       class="pb-4 text-xs font-black uppercase tracking-widest relative transition-all duration-300 cursor-pointer flex items-center gap-2 group {{ $activeTab === 'solicitudes' ? 'text-blue-400' : 'text-slate-400 hover:text-slate-200' }}">
-                        <svg class="w-4 h-4 {{ $activeTab === 'solicitudes' ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span>Mis Solicitudes</span>
-                        @if($activeTab === 'solicitudes')
-                            <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
-                        @endif
-                    </a>
-                    
-                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'crear']) }}"
-                       class="pb-4 text-xs font-black uppercase tracking-widest relative transition-all duration-300 cursor-pointer flex items-center gap-2 group {{ $activeTab === 'crear' ? 'text-orange-400' : 'text-slate-400 hover:text-slate-200' }}">
-                        <svg class="w-4 h-4 {{ $activeTab === 'crear' ? 'text-orange-400' : 'text-slate-500 group-hover:text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span>Crear Planificación</span>
-                        @if($activeTab === 'crear')
-                            <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.5)]"></div>
-                        @endif
-                    </a>
-                </div>
+            <!-- Action Bar -->
+            <div class="flex justify-end mb-6">
+                <button x-data="" x-on:click.prevent="$dispatch('open-modal', 'create-planning-modal')"
+                    class="inline-flex items-center px-5 py-2 bg-blue-600 border border-blue-500 rounded-lg font-bold text-[11px] text-white uppercase tracking-wider hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all duration-300 group h-10 shadow-[0_0_20px_rgba(37,99,235,0.3)] cursor-pointer">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    {{ __('Crear Planificación') }}
+                </button>
             </div>
-
-            @if($activeTab === 'solicitudes')
             <!-- 1. MIS SOLICITUDES -->
             <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
                 
@@ -83,10 +81,10 @@
                         <h3 class="text-xl font-semibold text-white">No tienes solicitudes</h3>
                         <p class="mt-2 text-sm text-slate-400 max-w-sm mx-auto">Comienza creando tu primera planificación de ruta para gestionar tus viajes y viáticos.</p>
                         <div class="mt-8">
-                            <a href="{{ route('route-plannings.index', ['tab' => 'crear']) }}" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                            <button x-data="" x-on:click.prevent="$dispatch('open-modal', 'create-planning-modal')" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                 Crear Planificación
-                            </a>
+                            </button>
                         </div>
                     </div>
                 @else
@@ -332,19 +330,21 @@
                     </div>
                     
                     <div class="px-6 py-4 border-t border-slate-700/40 bg-slate-950/20">
-                        {{ $plannings->appends(['tab' => 'solicitudes'])->links() }}
+                        {{ $plannings->links() }}
                     </div>
                 @endif
                 
             </div>
-            @endif
 
-            @if($activeTab === 'crear')
-            <!-- 2. CREAR PLANIFICACIÓN -->
-            <div class="max-w-4xl mx-auto">
-                <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
-                    
-                    <div class="p-8 border-b border-slate-700/40">
+            <!-- 2. CREAR PLANIFICACIÓN MODAL -->
+            <x-modal name="create-planning-modal" :show="$errors->any() || request('tab') === 'crear' || request('open_create')" focusable maxWidth="4xl">
+                <div class="p-0 bg-slate-800 text-slate-100 overflow-hidden rounded-[2.5rem] border border-slate-700 shadow-2xl relative">
+                    <!-- Close button in top right -->
+                    <button type="button" @click="$dispatch('close-modal', 'create-planning-modal'); window.history.replaceState({}, '', '{{ route('route-plannings.index') }}')" class="absolute top-6 right-6 w-9 h-9 bg-slate-800/50 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-all flex items-center justify-center cursor-pointer backdrop-blur-md border border-slate-700/30 z-10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+
+                    <div class="p-8 border-b border-slate-700/40 bg-slate-900/50">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="bg-orange-500/10 text-orange-400 p-2.5 rounded-xl ring-1 ring-orange-500/20">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
@@ -356,27 +356,8 @@
                         <p class="text-slate-400 text-sm">Completa los detalles de tu viaje para solicitar fondos o alimentación antes de rendir.</p>
                     </div>
 
-                    <!-- Import Flatpickr -->
-                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
-                    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-                    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-
-                    <style>
-                        /* Custom Flatpickr Overrides for Seges */
-                        .flatpickr-calendar.dark {
-                            background: #2b2b2b;
-                            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-                            border: 1px solid #444;
-                            border-radius: 12px;
-                        }
-                        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
-                            background: #f97316;
-                            border-color: #f97316;
-                        }
-                    </style>
-
-                    <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ requiresFunds: false, requiresAmipass: false }">
+                    <div class="max-h-[70vh] overflow-y-auto custom-scrollbar">
+                        <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ requiresFunds: false, requiresAmipass: false }">
                         @csrf
                         
                         @php
@@ -584,7 +565,7 @@
 
                         <!-- Submit -->
                         <div class="flex items-center justify-end mt-8 border-t border-slate-700 pt-6">
-                            <a href="{{ route('route-plannings.index', ['tab' => 'solicitudes']) }}" class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer mr-4">
+                            <a href="{{ route('route-plannings.index') }}" @click.prevent="$dispatch('close-modal', 'create-planning-modal'); window.history.replaceState({}, '', '{{ route('route-plannings.index') }}')" class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer mr-4">
                                 Cancelar
                             </a>
                             <button type="submit" class="inline-flex items-center justify-center px-5 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-md shadow-blue-500/20 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1e293b] transition-all hover:-translate-y-0.5 cursor-pointer">
@@ -598,32 +579,50 @@
                     </form>
                 </div>
             </div>
+            </x-modal>
             
             <script>
                 // Initialize Flatpickr
                 document.addEventListener('DOMContentLoaded', function() {
-                    flatpickr("#dateRange", {
-                        mode: "range",
-                        dateFormat: "Y-m-d",
-                        altInput: true,
-                        altFormat: "d/m/Y",
-                        locale: "es",
-                        monthSelectorType: "static",
-                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-                        onChange: function(selectedDates, dateStr, instance) {
-                            if (selectedDates.length === 2) {
-                                const start = selectedDates[0].toLocaleDateString('en-CA');
-                                const end = selectedDates[1].toLocaleDateString('en-CA');
-                                document.getElementById('start_date').value = start;
-                                document.getElementById('end_date').value = end;
-                            } else if (selectedDates.length === 1) {
-                                const start = selectedDates[0].toLocaleDateString('en-CA');
-                                document.getElementById('start_date').value = start;
-                                document.getElementById('end_date').value = start;
-                            } else {
-                                document.getElementById('start_date').value = '';
-                                document.getElementById('end_date').value = '';
-                            }
+                    let fpInstance = null;
+                    const initFlatpickr = () => {
+                        if (fpInstance) {
+                            fpInstance.destroy();
+                        }
+                        const el = document.getElementById('dateRange');
+                        if (el) {
+                            fpInstance = flatpickr(el, {
+                                mode: "range",
+                                dateFormat: "Y-m-d",
+                                altInput: true,
+                                altFormat: "d/m/Y",
+                                locale: "es",
+                                monthSelectorType: "static",
+                                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                                onChange: function(selectedDates, dateStr, instance) {
+                                    if (selectedDates.length === 2) {
+                                        const start = selectedDates[0].toLocaleDateString('en-CA');
+                                        const end = selectedDates[1].toLocaleDateString('en-CA');
+                                        document.getElementById('start_date').value = start;
+                                        document.getElementById('end_date').value = end;
+                                    } else if (selectedDates.length === 1) {
+                                        const start = selectedDates[0].toLocaleDateString('en-CA');
+                                        document.getElementById('start_date').value = start;
+                                        document.getElementById('end_date').value = start;
+                                    } else {
+                                        document.getElementById('start_date').value = '';
+                                        document.getElementById('end_date').value = '';
+                                    }
+                                }
+                            });
+                        }
+                    };
+
+                    initFlatpickr();
+
+                    window.addEventListener('open-modal', (event) => {
+                        if (event.detail === 'create-planning-modal') {
+                            setTimeout(initFlatpickr, 100);
                         }
                     });
                 });
@@ -693,8 +692,6 @@
                     }
                 }
             </script>
-            @endif
-
         </div>
     </div>
 </x-app-layout>
