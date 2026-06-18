@@ -144,8 +144,12 @@
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Desde:
                                         </label>
-                                        <input type="date" name="start_date" required
-                                            class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white text-black dark:bg-gray-900 dark:text-white">
+                                        <input type="text"
+                                                name="start_date"
+                                                required
+                                                placeholder="Seleccione fecha"
+                                                class="flatpickr-date w-full cursor-pointer rounded-lg border-gray-300 dark:border-gray-700 bg-white text-black dark:bg-gray-900 dark:text-white">
+                                        
                                             
                                     </div>
 
@@ -153,8 +157,11 @@
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Hasta:
                                         </label>
-                                        <input type="date" name="end_date" required 
-                                            class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white text-black dark:bg-gray-900 dark:text-white">
+                                        <input type="text"
+                                            name="end_date"
+                                            required
+                                            placeholder="Seleccione fecha"
+                                            class="flatpickr-date w-full cursor-pointer rounded-lg border-gray-300 dark:border-gray-700 bg-white text-black dark:bg-gray-900 dark:text-white">
                                             
                                     </div>
                                     
@@ -173,4 +180,18 @@
         </template>
         
     </div>
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr('.flatpickr-date', {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd-m-Y',
+                locale: 'es',
+                allowInput: false,
+                disableMobile: true
+            });
+        });
+    </script>
+    @endpush
 </x-app-layout>

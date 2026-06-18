@@ -32,7 +32,14 @@ class NotificationController extends Controller
         $vehicleId = $notification->data['vehicle_id'] ?? null;
 
         if ($vehicleId) {
-            return redirect()->route('vehicles.index')->with('success', 'Redirigiendo a vehículo...');
+            if (Auth::user()->role !== 'supervisor'){
+                return redirect()->route('vehicles.index')->with('success', 'Redirigiendo a vehículo...');
+            }
+
+            return redirect()
+            ->route('requests.index')
+            ->with('error', 'Solo el supervisor puede acceder a la gestión del vehículo.');
+
         }
 
         if (isset($notification->data['asset_code'])) {

@@ -29,6 +29,32 @@
                         search: '',
                         startDate: '{{ old('start_date') }}',
                         endDate: '{{ old('end_date') }}',
+                        destinationType: '{{ old('destination_type') }}',
+                        chileLocations: window.chileLocations || {},
+                        originRegion: '',
+                        originCommune: '',
+                        destinationRegion: '',
+                        destinationCommune: '',
+                        get regions() {
+                            return Object.keys(this.chileLocations);
+                        },
+                        get originCommunes() {
+                            return this.originRegion ? this.chileLocations[this.originRegion] : [];
+                        },
+                        get destinationCommunes() {
+                            return this.destinationRegion ? this.chileLocations[this.destinationRegion] : [];
+                        },
+                        formatDateTime(date) {
+                            const pad = (n) => n.toString().padStart(2, '0');
+
+                            return date.getFullYear() + '-' +
+                                pad(date.getMonth() + 1) + '-' +
+                                pad(date.getDate()) + ' ' +
+                                pad(date.getHours()) + ':' +
+                                pad(date.getMinutes());
+                        },
+
+                      
                       vehicles: {{ $vehicles->map(function ($vehicle) {
                         return [
                             'id' => $vehicle->id,
@@ -91,6 +117,19 @@
                         }
                     }">
 
+                    @if(!$userHasValidLicense)
+                        <div class="p-4 rounded-lg bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800">
+                            <p class="font-bold">Licencia no registrada o vencida</p>
+                            <p class="text-sm mt-1">
+                                Puede registrar su licencia desde su perfil o continuar seleccionando un conductor existente para esta solicitud.
+                            </p>
+
+                            <a href="{{ route('profile.edit') }}"
+                            class="inline-block mt-3 px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-semibold hover:bg-yellow-700">
+                                Registrar licencia en perfil
+                            </a>
+                        </div>
+                    @endif
                         <!-- PASO 1: Selección de Vehículo -->
                         <div class="space-y-6">
                             <div
@@ -221,11 +260,12 @@
                                     class="col-span-1 md:col-span-2 lg:col-span-1 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
                                     <h4 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">¿Cuándo lo
                                         necesitas?</h4>
+                                  
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                                         <div class="relative">
                                             <x-input-label for="start_date" :value="__('Retiro')" class="mb-1.5" />
-                                            <input type="datetime-local" id="start_date" name="start_date"
+                                            <input type="text" id="start_date" name="start_date"
                                                 x-model="startDate" @change="checkAvailability()"
                                                 required
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
@@ -240,7 +280,7 @@
 
                                         <div class="relative">
                                             <x-input-label for="end_date" :value="__('Devolución')" class="mb-1.5" />
-                                            <input type="datetime-local" id="end_date" name="end_date"
+                                            <input type="text" id="end_date" name="end_date"
                                                 x-model="endDate" @change="checkAvailability()"
                                                 required
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-colors text-sm py-2.5">
@@ -255,44 +295,94 @@
                                     </p>
                                 </div>
 
-                                <!-- Destino -->
-                                <div
-                                    class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
-                                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">¿A dónde
-                                        vas?</h4>
+                                <!-- Tipo de Viaje -->
+                                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+                                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">
+                                        ¿A dónde vas?
+                                    </h4>
 
                                     <div class="space-y-4">
                                         <div>
-                                            <x-input-label for="destination_type" :value="__('Tipo de Viaje')"
-                                                class="mb-1.5" />
-                                            <select id="destination_type" name="destination_type" required
+                                            <x-input-label for="destination_type" :value="__('Tipo de Viaje')" class="mb-1.5" />
+
+                                            <select id="destination_type" name="destination_type" x-model="destinationType" required
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
-                                                <option value="" disabled selected>-- Selecciona opción --</option>
+                                                <option value="">-- Selecciona opción --</option>
                                                 <option value="local">🏙️ Local (Urbano)</option>
                                                 <option value="outside">🛣️ Fuera de Ciudad (Carretera/Rural)</option>
                                             </select>
+
                                             <x-input-error :messages="$errors->get('destination_type')" class="mt-2" />
                                         </div>
 
-                                        <!-- Origen -->
-                                        <div>
-                                            <x-input-label for="origin" :value="__('Origen')"
-                                                class="mb-1.5" />
-                                            <input type="text" id="origin" name="origin" required value="{{ old('origin') }}"
-                                                placeholder="Ej: Oficina Santiago Centro"
-                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
-                                            <x-input-error :messages="$errors->get('origin')" class="mt-2" />
-                                        </div>
+                                <!-- Origen -->
+                                <div>
+                                    <x-input-label for="origin" :value="__('Origen')" class="mb-1.5" />
 
-                                        <!-- Destino -->
-                                        <div>
-                                            <x-input-label for="destination" :value="__('Destino (Opcional)')"
-                                                class="mb-1.5" />
-                                            <input type="text" id="destination" name="destination"
-                                                value="{{ old('destination') }}" placeholder="Ej: Planta Rancagua"
+                                    <template x-if="destinationType !== 'outside'">
+                                        <input type="text" id="origin" name="origin" required value="{{ old('origin') }}"
+                                            placeholder="Ej: Oficina Santiago Centro"
+                                            class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
+                                    </template>
+
+                                    <template x-if="destinationType === 'outside'">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <select x-model="originRegion"
                                                 class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
-                                            <x-input-error :messages="$errors->get('destination')" class="mt-2" />
+                                                <option value="">Seleccione región</option>
+                                                <template x-for="region in regions" :key="region">
+                                                    <option :value="region" x-text="region"></option>
+                                                </template>
+                                            </select>
+
+                                            <select name="origin" x-model="originCommune" required
+                                                :disabled="!originRegion"
+                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5 disabled:opacity-50">
+                                                <option value="">Seleccione comuna</option>
+                                                <template x-for="commune in originCommunes" :key="commune">
+                                                    <option :value="originRegion + ' - ' + commune" x-text="commune"></option>
+                                                </template>
+                                            </select>
                                         </div>
+                                    </template>
+
+                                    <x-input-error :messages="$errors->get('origin')" class="mt-2" />
+                                </div>
+
+                                <!-- Destino -->
+                                <div>
+                                    <x-input-label for="destination" :value="__('Destino')" class="mb-1.5" />
+
+                                    <template x-if="destinationType !== 'outside'">
+                                        <input type="text" id="destination" name="destination" required
+                                            value="{{ old('destination') }}" placeholder="Ej: Planta Rancagua"
+                                            class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
+                                    </template>
+
+                                    <template x-if="destinationType === 'outside'">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <select x-model="destinationRegion"
+                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5">
+                                                <option value="">Seleccione región</option>
+                                                <template x-for="region in regions" :key="region">
+                                                    <option :value="region" x-text="region"></option>
+                                                </template>
+                                            </select>
+
+                                            <select name="destination" x-model="destinationCommune" required
+                                                :disabled="!destinationRegion"
+                                                class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500 shadow-sm py-2.5 disabled:opacity-50">
+                                                <option value="">Seleccione comuna</option>
+                                                <template x-for="commune in destinationCommunes" :key="commune">
+                                                    <option :value="destinationRegion + ' - ' + commune" x-text="commune"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                    </template>
+
+                                    <x-input-error :messages="$errors->get('destination')" class="mt-2" />
+                                </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -311,7 +401,7 @@
                                 </div>
 
                                 <div x-data="{ 
-                                    isThirdParty: false, 
+                                    isThirdParty: {{ !$userHasValidLicense ? 'true' : 'false' }},
                                     isNewDriver: false, 
                                     selectedConductorId: '{{ old('conductor_id') }}',
                                     newConductorRut: '{{ old('new_conductor_rut') }}',
@@ -331,8 +421,15 @@
 
                                     <label
                                         class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors w-fit">
-                                        <input type="checkbox" name="is_third_party" x-model="isThirdParty" value="1"
+                                        <input type="checkbox"
+                                                name="is_third_party"
+                                                x-model="isThirdParty"
+                                                value="1"
+                                                {{ !$userHasValidLicense ? 'checked disabled' : '' }}
                                             class="rounded text-indigo-600 focus:ring-indigo-500 w-5 h-5 border-gray-300">
+                                            @if(!$userHasValidLicense)
+                                                <input type="hidden" name="is_third_party" value="1">
+                                            @endif
                                         <span class="ml-3 font-medium text-gray-700 dark:text-gray-300">Solicitar para un
                                             Tercero / Conductor Externo</span>
                                     </label>
@@ -363,8 +460,11 @@
                                                     class="block w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 py-2.5">
                                                     <option value="">-- Seleccionar --</option>
                                                     @foreach($conductors as $conductor)
-                                                        <option value="{{ $conductor->id }}">{{ $conductor->nombre }}
-                                                            ({{ $conductor->cargo ?? 'Sin cargo' }})</option>
+                                                        <option value="{{ $conductor->id }}">
+                                                            {{ $conductor->nombre }}
+                                                            ({{ $conductor->cargo ?? 'Sin cargo' }})
+                                                            - Licencia hasta {{ optional($conductor->fecha_licencia)->format('d-m-Y') }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -381,6 +481,18 @@
                                                 <x-input-label for="new_conductor_rut" :value="__('RUT (Opcional)')" />
                                                 <x-text-input id="new_conductor_rut" class="block w-full mt-1" type="text"
                                                     name="new_conductor_rut" x-model="newConductorRut" @input="formatRut()" placeholder="Ej: 12.345.678-9" />
+                                            </div>
+
+                                            <div>
+                                                <x-input-label for="new_conductor_license_date" :value="__('Vencimiento de Licencia')" />
+                                                <input id="new_conductor_license_date"
+                                                    class="block w-full mt-1 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:border-indigo-500 focus:ring-indigo-500"
+                                                    type="date"
+                                                    name="new_conductor_license_date"
+                                                    min="{{ now()->format('Y-m-d') }}" />
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    Debe indicar una fecha vigente si desea guardar el conductor en la lista.
+                                                </p>
                                             </div>
                                             
                                             {{-- Checkbox para guardar permanentemente --}}
@@ -631,6 +743,44 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof flatpickr === 'undefined') {
+                console.error('Flatpickr no está cargado.');
+                return;
+            }
+
+            flatpickr("#start_date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                altInput: true,
+                altFormat: "d-m-Y H:i",
+                time_24hr: true,
+                locale: "es",
+                minDate: "today",
+                minuteIncrement: 15,
+                onChange: function(selectedDates, dateStr, instance) {
+                    instance.input.dispatchEvent(new Event('input'));
+                    instance.input.dispatchEvent(new Event('change'));
+                }
+            });
+
+            flatpickr("#end_date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                altInput: true,
+                altFormat: "d-m-Y H:i",
+                time_24hr: true,
+                locale: "es",
+                minDate: "today",
+                minuteIncrement: 15,
+                onChange: function(selectedDates, dateStr, instance) {
+                    instance.input.dispatchEvent(new Event('input'));
+                    instance.input.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    </script>
 </x-app-layout>
 
 <style>
@@ -669,5 +819,67 @@
     .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background-color: #4338ca;
         /* indigo-700 */
+    }
+    /* Flatpickr - Tema oscuro Dimak */
+    .flatpickr-calendar {
+        background: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
+        color: #f9fafb !important;
+    }
+
+    .flatpickr-months,
+    .flatpickr-weekdays {
+        background: #1f2937 !important;
+    }
+
+    .flatpickr-current-month,
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year {
+        color: #f9fafb !important;
+        background: #1f2937 !important;
+    }
+
+    .flatpickr-weekday {
+        color: #9ca3af !important;
+    }
+
+    .flatpickr-day {
+        color: #e5e7eb !important;
+    }
+
+    .flatpickr-day:hover {
+        background: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+        color: white !important;
+    }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+        background: #6366f1 !important;
+        border-color: #6366f1 !important;
+        color: white !important;
+    }
+
+    .flatpickr-day.today {
+        border-color: #818cf8 !important;
+    }
+
+    .flatpickr-day.flatpickr-disabled,
+    .flatpickr-day.prevMonthDay,
+    .flatpickr-day.nextMonthDay {
+        color: #4b5563 !important;
+    }
+
+    .flatpickr-time {
+        background: #111827 !important;
+        border-top: 1px solid #374151 !important;
+    }
+
+    .flatpickr-time input,
+    .flatpickr-time .flatpickr-am-pm {
+        color: #f9fafb !important;
+        background: #111827 !important;
     }
 </style>

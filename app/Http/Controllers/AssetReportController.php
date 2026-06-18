@@ -12,15 +12,15 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class AssetReportController extends Controller
 {
-    /**
-     * Display report dashboard.
-     */
+/**
+ * Muestra reportes estadísticos de activos.
+ */
     public function index(Request $request)
     {
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
-        // 1. Most Used Assets
+// Consultar activos más utilizados.
         $mostUsedAssetsQuery = AssetAssignment::select('activo_id', DB::raw('count(*) as total'))
             ->groupBy('activo_id')
             ->orderByDesc('total')
@@ -39,7 +39,7 @@ class AssetReportController extends Controller
         }
         $mostUsedAssets = $mostUsedAssetsQuery->get();
 
-        // 2. Top Users (Internal)
+        // Consultar usuarios internos con más asignaciones.
         $topUsersQuery = AssetAssignment::select('usuario_id', DB::raw('count(*) as total'))
             ->whereNotNull('usuario_id')
             ->groupBy('usuario_id')
@@ -55,7 +55,7 @@ class AssetReportController extends Controller
         }
         $topUsers = $topUsersQuery->get();
 
-        // 3. Top Workers (External)
+        // Consultar trabajadores externos con más asignaciones.
         $topWorkersQuery = AssetAssignment::select('worker_id', DB::raw('count(*) as total'))
             ->whereNotNull('worker_id')
             ->groupBy('worker_id')
@@ -71,7 +71,7 @@ class AssetReportController extends Controller
         }
         $topWorkers = $topWorkersQuery->get();
 
-        // 4. Write Offs
+        // Consultar activos dados de baja.
         $writeOffsQuery = AssetWriteOff::with([
             'asset' => function ($q) {
                 $q->withTrashed();
@@ -96,6 +96,9 @@ class AssetReportController extends Controller
         ));
     }
 
+    /**
+ * Exporta reportes de activos en PDF.
+ */
     public function export(Request $request)
     {
         $startDate = $request->query('start_date');

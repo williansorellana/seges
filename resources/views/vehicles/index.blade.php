@@ -105,37 +105,89 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- Stats Cards -->
+            @php
+                $canOpenVehicleManagement = auth()->user()->role === 'supervisor';
+
+                $cards = [
+                    [
+                        'label' => 'Total',
+                        'count' => $totalVehicles,
+                        'status' => null,
+                        'color' => 'gray',
+                        'active' => !request('status'),
+                    ],
+                    [
+                        'label' => 'Disponibles',
+                        'count' => $countDisponible,
+                        'status' => 'available',
+                        'color' => 'green',
+                        'active' => request('status') === 'available',
+                    ],
+                    [
+                        'label' => 'En Uso',
+                        'count' => $countAsignado,
+                        'status' => 'occupied',
+                        'color' => 'blue',
+                        'active' => request('status') === 'occupied',
+                    ],
+                    [
+                        'label' => 'Mantenimiento',
+                        'count' => $countMantenimiento,
+                        'status' => 'maintenance',
+                        'color' => 'yellow',
+                        'active' => request('status') === 'maintenance',
+                    ],
+                    [
+                        'label' => 'Fuera Servicio',
+                        'count' => $countFueraDeServicio,
+                        'status' => 'out_of_service',
+                        'color' => 'red',
+                        'active' => request('status') === 'out_of_service',
+                    ],
+                ];
+            @endphp
+
             <div class="mb-6 flex flex-wrap justify-center gap-3">
-                <a href="{{ route('vehicles.index', request()->except(['status', 'page'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-gray-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ !request('status') ? 'ring-2 ring-gray-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase truncate">Total</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $totalVehicles }}</div>
-                </a>
+                @foreach($cards as $card)
+                    @php
+                        $url = $card['status']
+                            ? route('vehicles.index', array_merge(request()->except('page'), ['status' => $card['status']]))
+                            : route('vehicles.index', request()->except(['status', 'page']));
 
-                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'available'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-green-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'available' ? 'ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-green-600 dark:text-green-400 text-[10px] font-bold uppercase truncate">Disponibles</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countDisponible }}</div>
-                </a>
+                        $cardClass = "flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-{$card['color']}-500 transition-all";
 
-                 <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'occupied'])) }}" 
-                    class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'occupied' ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase truncate">En Uso</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countAsignado }}</div>
-                </a>
+                        if ($canOpenVehicleManagement) {
+                            $cardClass .= " hover:shadow-md hover:scale-105 cursor-pointer";
+                        } else {
+                            $cardClass .= " cursor-default";
+                        }
 
-                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'maintenance'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-yellow-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'maintenance' ? 'ring-2 ring-yellow-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-yellow-600 dark:text-yellow-400 text-[10px] font-bold uppercase truncate">Mantenimiento</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countMantenimiento }}</div>
-                </a>
+                        if ($card['active']) {
+                            $cardClass .= " ring-2 ring-{$card['color']}-500 ring-offset-2 dark:ring-offset-gray-900";
+                        }
+                    @endphp
 
-                <a href="{{ route('vehicles.index', array_merge(request()->except('page'), ['status' => 'out_of_service'])) }}" 
-                   class="flex-1 min-w-[140px] bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border-l-4 border-red-500 hover:shadow-md hover:scale-105 transition-all cursor-pointer {{ request('status') === 'out_of_service' ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-gray-900' : '' }}">
-                    <div class="text-red-600 dark:text-red-400 text-[10px] font-bold uppercase truncate">Fuera Servicio</div>
-                    <div class="text-xl font-bold text-gray-800 dark:text-white">{{ $countFueraDeServicio }}</div>
-                </a>
-            </div>
+                    @if($canOpenVehicleManagement)
+                        <a href="{{ $url }}" class="{{ $cardClass }}">
+                    @else
+                        <div class="{{ $cardClass }}">
+                    @endif
+
+                        <div class="text-{{ $card['color'] }}-600 dark:text-{{ $card['color'] }}-400 text-[10px] font-bold uppercase truncate">
+                            {{ $card['label'] }}
+                        </div>
+
+                        <div class="text-xl font-bold text-gray-800 dark:text-white">
+                            {{ $card['count'] }}
+                        </div>
+
+                    @if($canOpenVehicleManagement)
+                        </a>
+                    @else
+                        </div>
+                    @endif
+                @endforeach
+            </div>          
 
             <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center">
                 <div class="relative w-full sm:max-w-md">

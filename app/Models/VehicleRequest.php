@@ -16,6 +16,8 @@ class VehicleRequest extends Model
         'start_date',
         'end_date',
         'status',
+        'start_reminder_sent_at',
+        'end_reminder_sent_at',
         'return_mileage',
         'destination_type',
         'origin',
@@ -56,12 +58,15 @@ class VehicleRequest extends Model
         return [
             'start_date' => 'datetime',
             'end_date' => 'datetime',
+            'start_reminder_sent_at' => 'datetime',
+            'end_reminder_sent_at' => 'datetime',
             'original_end_date' => 'datetime',
             'return_mileage' => 'integer',
             'delivery_photos' => 'array',
         ];
     }
 
+    // Estados disponibles de una solicitud.
     const STATUS_PENDING = 'pending';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';

@@ -21,6 +21,7 @@ class AssetController extends Controller
      */
     public function dashboard(Request $request)
     {
+        // Cargar relaciones necesarias para mostrar el inventario.
         $query = Asset::with(['category', 'assignments.user', 'assignments.worker', 'maintenances', 'writeOff']);
 
         // Filtro de Búsqueda
@@ -44,6 +45,13 @@ class AssetController extends Controller
         if ($request->filled('categoria')) {
             $query->where('categoria_id', $request->input('categoria'));
         }
+
+        // Filtro de Tipo: Hardware / Software
+        if ($request->filled('tipo')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('tipo', $request->input('tipo'));
+            });
+        }       
 
         $assets = $query->orderBy('created_at', 'desc')->get();
 
@@ -58,11 +66,12 @@ class AssetController extends Controller
         return view('assets.dashboard', compact('assets', 'countDisponible', 'countAsignado', 'countMantenimiento', 'countBaja', 'categories'));
     }
 
-    /**
-     * Display a listing of the resource.
-     */
+  /**
+ * Muestra la gestión principal de activos.
+ */
     public function index(Request $request)
     {
+        // Cargar relaciones necesarias para mostrar el inventario.
         $query = Asset::with(['category', 'assignments.user', 'assignments.worker', 'maintenances', 'writeOff']);
 
         // Filtro de Búsqueda
@@ -86,6 +95,12 @@ class AssetController extends Controller
         if ($request->filled('categoria')) {
             $query->where('categoria_id', $request->input('categoria'));
         }
+        // Filtro de Tipo: Hardware / Software
+        if ($request->filled('tipo')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('tipo', $request->input('tipo'));
+            });
+        }       
 
         // Conteos para tarjetas
         $totalAssets = Asset::count();
@@ -117,6 +132,7 @@ class AssetController extends Controller
      */
     public function exportPdf(Request $request)
     {
+        // Cargar relaciones necesarias para mostrar el inventario.
         $query = Asset::with(['category', 'assignments.user', 'assignments.worker', 'maintenances', 'writeOff']);
 
         // Filtro de Búsqueda
@@ -205,9 +221,9 @@ class AssetController extends Controller
         return $pdf->download('inventario_activos_' . now()->format('dmY') . '.pdf');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+/**
+ * Registra un nuevo activo en el sistema.
+ */
     public function store(Request $request)
     {
         // Limpiar formato de moneda
@@ -355,10 +371,14 @@ class AssetController extends Controller
 
         return redirect()->route('assets.trash')->with('success', "Se eliminaron permanentemente {$count} activos de la papelera.");
     }
+    /**
+ * Asigna un activo a usuario interno o trabajador externo.
+ */
     public function assign(Request $request, $id)
     {
         $asset = Asset::findOrFail($id);
 
+        // Solo los activos disponibles pueden asignarse.
         if ($asset->estado !== 'available') {
             return back()->with('error', 'El activo no está disponible para asignación.');
         }
@@ -392,6 +412,7 @@ class AssetController extends Controller
         $workerId = null;
         $workerData = null;
 
+        // Resolver trabajador externo nuevo o existente.
         if ($request->tipo_asignacion === 'worker') {
             if ($request->has('is_new_worker') && $request->is_new_worker == 1) {
                 // Crear o actualizar (si el RUT ya existía, actualizamos datos)
@@ -548,6 +569,9 @@ class AssetController extends Controller
         return $pdf->download('etiquetas-activos-' . now()->format('dmY-His') . '.pdf');
     }
 
+    /**
+ * Registra la devolución de un activo asignado.
+ */
     public function cancelAssignment(Request $request, $id)
     {
         $asset = Asset::findOrFail($id);

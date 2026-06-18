@@ -63,23 +63,19 @@ class VehicleRequestController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Verificar si tiene licencia registrada
-        if (!$user->license_expires_at) {
-            return redirect()->route('profile.edit')
-                ->with('error', 'Para solicitar un vehículo, primero debe registrar su Licencia de Conducir en su perfil.');
-        }
-
-        // 2. Verificar si está vencida
-        if ($user->license_expires_at < now()->startOfDay()) {
-            return redirect()->route('profile.edit')
-                ->with('error', 'Su Licencia de Conducir está vencida. Por favor actualice el documento para continuar.');
-        }
+        // Verificar si el usuario tiene licencia vigente.
+        $userHasValidLicense = $user->license_expires_at 
+            && $user->license_expires_at >= now()->startOfDay();
 
         $vehicles = Vehicle::whereNotIn('status', ['maintenance', 'out_of_service'])->get();
 
-        $conductors = in_array($user->role, ['admin', 'supervisor','worker']) ? \App\Models\Conductor::all() : collect([]);
+        $conductors = in_array($user->role, ['admin', 'supervisor', 'worker'])
+            ? \App\Models\Conductor::whereDate('fecha_licencia', '>=', now()->startOfDay())
+                ->orderBy('nombre')
+                ->get()
+            : collect([]);
 
-        // Obtener usuarios activos para acompañantes
+        // Obtener usuarios disponibles para acompañantes.
         $users = \App\Models\User::where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -87,10 +83,18 @@ class VehicleRequestController extends Controller
         // Obtener personas externas frecuentes para acompañantes
         $frequentExternalPersons = \App\Models\FrequentExternalPerson::orderBy('name')->get();
 
-        return view('requests.create', compact('vehicles', 'conductors', 'users', 'frequentExternalPersons'));
+        return view('requests.create', compact(
+            'vehicles',
+            'conductors',
+            'users',
+            'frequentExternalPersons',
+            'userHasValidLicense'
+        ));
     }
     /**
-    * Consulta disponibilidad visual de vehículos según rango de fechas.
+    * Consulta disponibilidad visual de vehículos según rango de fechas y Buscar reservas que generen conflicto para mostrar estado (Disponible, Reservado, En viaje).
+     * Se utiliza en el formulario de creación de solicitud para mostrar disponibilidad en tiempo real.
+     * Retorna JSON con estado de cada vehículo.
     */
     public function availability(Request $request)
     {
@@ -131,10 +135,14 @@ class VehicleRequestController extends Controller
     {
         $user = Auth::user();
 
-        // Verificar validez de licencia antes de procesar
-        if (!$user->license_expires_at || $user->license_expires_at < now()->startOfDay()) {
-            return redirect()->route('profile.edit')
-                ->with('error', 'Su Licencia de Conducir está vencida o no registrada. Por favor actualícela para continuar.');
+        // Si el usuario no tiene licencia vigente, debe asignar un conductor existente.
+        $userHasValidLicense = $user->license_expires_at 
+            && $user->license_expires_at >= now()->startOfDay();
+
+        if (!$userHasValidLicense && !$request->filled('conductor_id')) {
+            return back()->withErrors([
+                'conductor_id' => 'No tiene licencia vigente. Debe registrar su licencia en el perfil o seleccionar un conductor existente.'
+            ])->withInput();
         }
 
         $request->validate([
@@ -148,13 +156,8 @@ class VehicleRequestController extends Controller
             'companions.*.user_id' => 'nullable|exists:users,id',
             'companions.*.external_name' => 'nullable|string|max:255',
             'companions.*.external_rut' => 'nullable|string|max:20',
+            'new_conductor_license_date' => 'nullable|date|after_or_equal:today|required_if:save_conductor_permanently,1',
         ]);
-
-        $user = Auth::user();
-        if (!$user->license_expires_at || $user->license_expires_at < now()->startOfDay()) {
-            return redirect()->route('profile.edit')
-                ->with('error', 'Su licencia de conducir no es válida o no está registrada.');
-        }
 
         $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
@@ -163,6 +166,8 @@ class VehicleRequestController extends Controller
                 'vehicle_id' => 'El vehículo ya está reservado en el rango de fechas seleccionado.'
                 ])->withInput();
         }
+
+        // Crear la solicitud y sus datos relacionados.
         try {
             $vehicleRequest = VehicleRequest::create([
                 'user_id' => Auth::id(),
@@ -173,7 +178,7 @@ class VehicleRequestController extends Controller
                 'destination_type' => $request->destination_type,
                 'origin' => $request->origin,
                 'destination' => $request->destination,
-                'conductor_id' => (in_array($user->role, ['admin', 'supervisor']) && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
+                'conductor_id' => (in_array($user->role, ['admin', 'supervisor','worker']) && $request->has('is_third_party') && $request->conductor_id) ? $request->conductor_id : null,
             ]);
 
             // Manejo de nuevo conductor si se solicita
@@ -187,7 +192,7 @@ class VehicleRequestController extends Controller
                         'rut' => $request->input('new_conductor_rut'), // Puede ser nulo
                         'cargo' => 'Externo', // Valor por defecto
                         'departamento' => 'Externo',
-                        'fecha_licencia' => now()->addYear(), // Valor por defecto para evitar error SQL
+                        'fecha_licencia' => $request->input('new_conductor_license_date'), 
                     ]);
 
                     $vehicleRequest->update(['conductor_id' => $conductor->id]);
@@ -243,8 +248,17 @@ class VehicleRequestController extends Controller
                         ->orWhereJsonContains('authorized_modules', 'all');
                 })
                 ->get();
-            Notification::send($recipients, new NewVehicleRequestNotification($vehicleRequest));
-
+            try {
+                if ($recipients->count() > 0) {
+                    Notification::send($recipients, new NewVehicleRequestNotification($vehicleRequest));
+                }
+            } catch (Exception $e) {
+                Log::error('Error al enviar notificación de solicitud de vehículo', [
+                    'vehicle_request_id' => $vehicleRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+                // Continuar sin interrumpir el proceso principal
+            }
             return redirect()->route('requests.index')->with('success', 'Solicitud enviada correctamente. Esperando aprobación.');
     
             } catch (Exception $e) {

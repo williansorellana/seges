@@ -13,16 +13,22 @@ use App\Notifications\ReservationConfirmed;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\ReservationCancelled;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\RoomReservationGuest;
+use Illuminate\Notifications\AnonymousNotifiable;
+use App\Notifications\RoomGuestInvitationNotification;
 
 class RoomReservationController extends Controller
 {
 
+/**
+ * Muestra el catálogo de salas disponibles.
+ */
     public function index()
     {
     
         $rooms = MeetingRoom::where('status', 'active')->get();
         
-       
+       // Verificar si cada sala está ocupada actualmente.
         foreach($rooms as $room) {
             $now = Carbon::now();
             $currentReservation = RoomReservation::where('meeting_room_id', $room->id)
@@ -38,7 +44,9 @@ class RoomReservationController extends Controller
         return view('reservations.catalog', compact('rooms'));
     }
 
-    
+    /**
+ * Registra una solicitud de reserva de sala.
+ */
     public function store(Request $request)
     {
         
@@ -49,17 +57,20 @@ class RoomReservationController extends Controller
             'purpose' => 'required|string|max:255',
             'attendees' => 'required|integer|min:1', 
             'resources' => 'nullable|string|max:500',
+            'guests' => 'nullable|array|max:20',
+            'guests.*.name' => 'required_with:guests.*.email|string|max:255',
+            'guests.*.email' => 'required_with:guests.*.name|email|max:255',
         
         ]);
         $timezone = 'America/Santiago';
 
-        //parsea en horario local
+        // Convertir fechas usando zona horaria local.
         $start = Carbon::parse($request->start_time, $timezone);
         $end = Carbon::parse($request->end_time, $timezone);
         $now = Carbon::now($timezone);
 
         //no modificaremos $now pero añadiremos una función que permite comprobar mejor la fecha
-        if ($start->lt($now->subMinute())) {
+        if ($start->lt($now->copy()->subMinute())) {
             return back()->withErrors(['start_time' => '⚠️ No puedes reservar en una fecha u hora pasada (Hora actual: ' . $now->format('H:i') . ').']);
         }
 
@@ -67,15 +78,12 @@ class RoomReservationController extends Controller
             return back()->withErrors(['end_time' => '⚠️ La hora de término debe ser después del inicio.']);
         }
         
-        //verificación de solapamiento (todo en horario local)
-        $exists = RoomReservation::where('meeting_room_id', $request->meeting_room_id)
-            ->whereIn('status', ['approved', 'pending'])
-            ->where(function ($query) use ($start, $end) {
-                $query->where('start_time', '<', $end)
-                      ->where('end_time', '>', $start);
-                      
-            })
-            ->exists();
+        // Validar que no exista solapamiento de reservas.
+        $exists = $this->hasRoomConflict(
+            $request->meeting_room_id,
+            $start,
+            $end
+        );
 
         if ($exists) {
             return back()->withErrors(['error' => '⚠️ Lo sentimos, ya existe una reserva en ese intervalo de horario. Por favor revisa la disponibilidad.']);
@@ -93,7 +101,20 @@ class RoomReservationController extends Controller
             'status' => 'pending' 
         ]);
 
-        //vamos a dejar que solo los supervisores con modulo rooms les lleguen las notificaciones.
+        // Registrar invitados externos de la reserva.
+        if ($request->filled('guests')) {
+            foreach ($request->guests as $guest) {
+                if (!empty($guest['name']) && !empty($guest['email'])) {
+                    RoomReservationGuest::create([
+                        'room_reservation_id' => $reservation->id,
+                        'name' => $guest['name'],
+                        'email' => $guest['email'],
+                    ]);
+                }
+            }
+        }
+
+        // Notificar a supervisores del módulo de salas.
         $recipients = User::where('is_active', 1)
             ->where('role', 'supervisor')
             ->where(function($sq) {
@@ -115,7 +136,9 @@ class RoomReservationController extends Controller
         return redirect()->route('reservations.my_reservations')->with('success', 'Solicitud enviada correctamente.');
     }
 
-    // Aprobar Reserva
+    /**
+ * Aprueba una reserva pendiente.
+ */
     public function approve($id)
     {
         $reservation = RoomReservation::findOrFail($id);
@@ -124,15 +147,12 @@ class RoomReservationController extends Controller
         $end = Carbon::parse($reservation->end_time);
 
      
-        $exists = RoomReservation::where('meeting_room_id', $reservation->meeting_room_id)
-            ->whereIn('status', ['approved', 'pending'])
-            ->where('id', '!=', $id)
-            ->where(function ($query) use ($start, $end) {
-               
-                $query->where('start_time', '<', $end)
-                      ->where('end_time', '>', $start);
-            })
-            ->exists();
+        $exists = $this->hasRoomConflict(
+            $reservation->meeting_room_id,
+            $start,
+            $end,
+            $reservation->id
+        );
 
         
         if ($exists) {
@@ -143,10 +163,21 @@ class RoomReservationController extends Controller
         $reservation->save();
         $reservation->user->notify(new ReservationConfirmed($reservation));
 
+        $reservation->load(['guests', 'meetingRoom', 'user']);
+        
+// Enviar invitación por correo a los invitados.
+            foreach ($reservation->guests as $guest) {
+                (new AnonymousNotifiable)
+                    ->route('mail', $guest->email)
+                    ->notify(new RoomGuestInvitationNotification($reservation, $guest->name));
+            }
+
         return redirect()->back()->with('success', 'Reserva aprobada con éxito.');
     }
 
-    // Rechazar Reserva
+/**
+ * Rechaza una reserva pendiente.
+ */
     public function reject($id)
     {
         $reservation = RoomReservation::findOrFail($id);
@@ -156,7 +187,9 @@ class RoomReservationController extends Controller
         return redirect()->back()->with('success', 'Reserva rechazada.');
     }
 
-    // Mostrar las reservas del usuario logueado
+/**
+ * Muestra las reservas del usuario autenticado(logado).
+ */
     public function myReservations()
     {
         $reservations = RoomReservation::where('user_id', Auth::id())
@@ -167,7 +200,9 @@ class RoomReservationController extends Controller
         return view('reservations.my_reservations', compact('reservations'));
     }
 
-   
+   /**
+ * Cancela una reserva del usuario autenticado.
+ */
     public function cancel($id)
     {
         $reservation = RoomReservation::findOrFail($id);
@@ -313,6 +348,10 @@ class RoomReservationController extends Controller
 
         return redirect()->back()->with('success', 'Reserva cancelada y usuario notificado.');
     }
+
+    /**
+ * Genera reporte PDF de ocupación por rango.
+ */
     public function downloadMonthlyReport(Request $request)
     {
         $request->validate([
@@ -324,7 +363,7 @@ class RoomReservationController extends Controller
         $endDate = Carbon::parse($request->end_date)->endOfDay();
     
         $reservations = RoomReservation::with(['user', 'meetingRoom'])
-            ->where('status', '!=', 'cancelled')
+            ->where('status', 'approved')
             ->whereBetween('start_time', [$startDate, $endDate])
             ->orderBy('start_time', 'asc')
             ->get();
@@ -369,7 +408,7 @@ class RoomReservationController extends Controller
             return back()->with('error_modal', 'Formato de fecha inválido.');
         }
 
-        if ($start->lt($now->subMinute())) {
+        if ($start->lt($now->copy()->subMinute())) {
             return back()->with('error_modal', '⚠️ Error: No puedes agendar en el pasado. La hora seleccionada ya pasó.');
         }
 
@@ -377,13 +416,11 @@ class RoomReservationController extends Controller
             return back()->with('error_modal', '⚠️ Error Lógico: La hora de término debe ser DESPUÉS de la hora de inicio.');
         }
         
-        $exists = RoomReservation::where('meeting_room_id', $request->meeting_room_id)
-            ->whereIn('status', ['approved', 'pending'])
-            ->where(function ($query) use ($start, $end) {
-                $query->where('start_time', '<', $end)
-                      ->where('end_time', '>', $start);
-            })
-            ->exists();
+        $exists = $this->hasRoomConflict(
+            $request->meeting_room_id,
+            $start,
+            $end
+        );      
 
         if ($exists) {
             return back()
@@ -406,6 +443,19 @@ class RoomReservationController extends Controller
         ]);
 
         return redirect()->route('rooms.agenda')->with('success', 'Reserva externa agendada correctamente.');
+    }
+    
+    private function hasRoomConflict($meetingRoomId, $start, $end, $excludeId = null){
+        return  RoomReservation::where('meeting_room_id', $meetingRoomId)
+            ->whereIn('status', ['approved', 'pending'])
+            ->when($excludeId, function ($query) use ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            })
+            ->where(function ($query) use ($start, $end) {
+                $query->where('start_time', '<', $end)
+                      ->where('end_time', '>', $start);
+            })
+            ->exists();
     }
 
 }
