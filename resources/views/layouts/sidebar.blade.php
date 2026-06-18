@@ -25,7 +25,7 @@
             </a>
             <!-- Version Info, LUEGO MAS ADELANTE COMBIENE CAMBIARLO A CONFIG/APP, PERO AHORA ES SEGURO DEJARLO ACA. -->
             <span x-show="open" class="mt-0.5 text-[11px] text-gray-500 tracking-wide">
-                Sistema v{{ env('APP_VERSION', '1.8') }}
+                Sistema V{{ env('APP_VERSION', '1.8') }}
             </span>
         </div>
         <button @click="open = !open" x-show="open" class="text-gray-400 hover:text-white focus:outline-none">
