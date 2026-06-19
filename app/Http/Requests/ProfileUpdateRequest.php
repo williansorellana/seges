@@ -15,7 +15,7 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [
+        return [
             'name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -35,11 +35,5 @@ class ProfileUpdateRequest extends FormRequest
             'license_expires_at' => ['nullable', 'date'],
             'delete_license_photo' => ['nullable', 'in:0,1'],
         ];
-
-        if ($this->user() && $this->user()->role === 'admin') {
-            $rules['departamento'] = ['nullable', 'string', 'max:255'];
-        }
-
-        return $rules;
     }
 }
