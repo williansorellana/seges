@@ -193,7 +193,7 @@
         @endif
 
         <!-- Módulo Activos -->
-        @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']) && Auth::user()->hasModuleAccess('assets'))
+        @if(Auth::user()->hasModuleAccess('assets'))
             <div>
                 <button
                     @click="if(!open) { open = true; setTimeout(() => assetMenu = true, 100); } else { assetMenu = !assetMenu; }"
@@ -214,7 +214,7 @@
                 </button>
 
                 <div x-show="open && assetMenu" x-collapse class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']))
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer', 'worker', 'jefatura']))
                         <a href="{{ route('assets.dashboard') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('assets.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
