@@ -402,30 +402,91 @@
         @endif
     </table>
 
-    <table style="margin-top: 20px; border: none;">
-        <tr style="border: none;">
-            <td style="border: none; text-align: center; width: 50%;">
-                ___________________________<br><br>
-                Firma Trabajador<br>
-                {{ $rendition->user->name }}
-            </td>
-            <td style="border: none; text-align: center; width: 50%;">
-                ___________________________<br><br>
-                Aprobación Finanzas<br>
-                @if($rendition->status === 'approved' && $rendition->refund_resolved_at)
-                    Aprobado por Finanzas: {{ \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') }}<br>
+    @php
+        $workerSignature = $rendition->digitalSignatures->where('signature_type', 'rendition_worker_signature')->first();
+        $jefaturaSignature = $rendition->digitalSignatures->where('signature_type', 'rendition_jefatura_signature')->first();
+        $hasJefatura = $rendition->user && $rendition->user->jefatura_id;
+    @endphp
 
-                    @if($rendition->payment_completed && $rendition->payment_completed_at)
-                        Cierre confirmado: {{ \Carbon\Carbon::parse($rendition->payment_completed_at)->format('d/m/Y H:i') }}
-                    @elseif($rendition->refund_to_company || $rendition->refund_to_worker)
-                        Cierre financiero pendiente
-                    @else
-                        Sin saldo pendiente
-                    @endif
-                @elseif($rendition->status === 'rejected')
-                    Rendición rechazada
+    <table style="margin-top: 25px; border: none; width: 100%; table-layout: fixed;">
+        <tr style="border: none;">
+            <!-- 1. Firma Trabajador -->
+            <td style="border: none; width: 33%; padding: 4px; vertical-align: top;">
+                @if($workerSignature)
+                    <div style="border: 1px solid #10b981; padding: 6px; border-radius: 4px; background-color: #f0fdf4; text-align: left;">
+                        <div style="color: #15803d; font-weight: bold; font-size: 8px; margin-bottom: 3px; text-transform: uppercase;">
+                            ✔ FIRMADO DIGITALMENTE
+                        </div>
+                        <div style="font-size: 7px; color: #374151; line-height: 1.2;">
+                            <strong>Colaborador:</strong> {{ $workerSignature->user ? $workerSignature->user->name . ' ' . $workerSignature->user->last_name : $rendition->user->name }}<br>
+                            <strong>Fecha:</strong> {{ $workerSignature->signed_at ? $workerSignature->signed_at->format('d/m/Y H:i:s') : 'N/A' }}<br>
+                            <strong>IP:</strong> {{ $workerSignature->ip_address ?? 'N/A' }}<br>
+                            <strong>Token:</strong> <span style="font-family: monospace; font-size: 6.5px; color: #1e3a8a;">{{ $workerSignature->verification_token }}</span><br>
+                            <span style="font-size: 6px; color: #6b7280; font-family: monospace; display: block; margin-top: 2px; word-break: break-all;">
+                                HASH: {{ substr($workerSignature->hash, 0, 24) }}...
+                            </span>
+                        </div>
+                    </div>
                 @else
-                    Pendiente de aprobación
+                    <div style="border: 1px dashed #d1d5db; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        FIRMA TRABAJADOR PENDIENTE
+                    </div>
+                @endif
+            </td>
+
+            <!-- 2. Firma Jefatura -->
+            <td style="border: none; width: 33%; padding: 4px; vertical-align: top;">
+                @if($jefaturaSignature)
+                    <div style="border: 1px solid #10b981; padding: 6px; border-radius: 4px; background-color: #f0fdf4; text-align: left;">
+                        <div style="color: #15803d; font-weight: bold; font-size: 8px; margin-bottom: 3px; text-transform: uppercase;">
+                            ✔ APROBADO JEFATURA
+                        </div>
+                        <div style="font-size: 7px; color: #374151; line-height: 1.2;">
+                            <strong>Jefatura:</strong> {{ $jefaturaSignature->user ? $jefaturaSignature->user->name . ' ' . $jefaturaSignature->user->last_name : 'Usuario' }}<br>
+                            <strong>Fecha:</strong> {{ $jefaturaSignature->signed_at ? $jefaturaSignature->signed_at->format('d/m/Y H:i:s') : 'N/A' }}<br>
+                            <strong>IP:</strong> {{ $jefaturaSignature->ip_address ?? 'N/A' }}<br>
+                            <strong>Token:</strong> <span style="font-family: monospace; font-size: 6.5px; color: #1e3a8a;">{{ $jefaturaSignature->verification_token }}</span><br>
+                            <span style="font-size: 6px; color: #6b7280; font-family: monospace; display: block; margin-top: 2px; word-break: break-all;">
+                                HASH: {{ substr($jefaturaSignature->hash, 0, 24) }}...
+                            </span>
+                        </div>
+                    </div>
+                @elseif($hasJefatura)
+                    <div style="border: 1px dashed #d1d5db; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        FIRMA JEFATURA PENDIENTE
+                    </div>
+                @else
+                    <div style="border: 1px solid #e5e7eb; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        FIRMA JEFATURA (NO APLICA)
+                    </div>
+                @endif
+            </td>
+
+            <!-- 3. Aprobación Finanzas -->
+            <td style="border: none; width: 33%; padding: 4px; vertical-align: top;">
+                @if($rendition->status === 'approved' || $rendition->status === 'closed')
+                    <div style="border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; background-color: #eff6ff; text-align: left;">
+                        <div style="color: #1d4ed8; font-weight: bold; font-size: 8px; margin-bottom: 3px; text-transform: uppercase;">
+                            ✔ CERRADO CONTABLE
+                        </div>
+                        <div style="font-size: 7px; color: #374151; line-height: 1.2;">
+                            <strong>Finanzas:</strong> Aprobación Registrada<br>
+                            <strong>Aprobado el:</strong> {{ $rendition->refund_resolved_at ? \Carbon\Carbon::parse($rendition->refund_resolved_at)->format('d/m/Y H:i') : 'N/A' }}<br>
+                            @if($rendition->payment_completed && $rendition->payment_completed_at)
+                                <strong>Cierre Financiero:</strong> Confirmado el {{ \Carbon\Carbon::parse($rendition->payment_completed_at)->format('d/m/Y H:i') }}
+                            @else
+                                <strong>Cierre Financiero:</strong> Reembolso/Devolución Pendiente
+                            @endif
+                        </div>
+                    </div>
+                @elseif($rendition->status === 'rejected')
+                    <div style="border: 1px solid #ef4444; padding: 15px 6px; border-radius: 4px; color: #b91c1c; text-align: center; font-size: 8px; font-weight: bold; background-color: #fef2f2;">
+                        RENDICIÓN RECHAZADA
+                    </div>
+                @else
+                    <div style="border: 1px dashed #d1d5db; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        APROBACIÓN FINANZAS PENDIENTE
+                    </div>
                 @endif
             </td>
         </tr>

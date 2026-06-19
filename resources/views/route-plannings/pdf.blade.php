@@ -261,22 +261,93 @@
         </tr>
     </table>
 
-    <table style="margin-top: 24px; border: none;">
+    @php
+        $workerSignature = $planning->digitalSignatures->where('signature_type', 'planning_worker_signature')->first();
+        $jefaturaSignature = $planning->digitalSignatures->where('signature_type', 'jefatura_approval')->first();
+        $financesSignature = $planning->digitalSignatures->where('signature_type', 'planning_finances_approval')->first();
+        $hasJefatura = $planning->user && $planning->user->jefatura_id;
+    @endphp
+
+    <table style="margin-top: 25px; border: none; width: 100%; table-layout: fixed;">
         <tr style="border: none;">
-            <td style="border: none; text-align: center; width: 33%;">
-                ___________________________<br><br>
-                Solicitante<br>
-                {{ $fullName ?: 'Trabajador' }}
+            <!-- 1. Firma Solicitante -->
+            <td style="border: none; width: 33%; padding: 4px; vertical-align: top;">
+                @if($workerSignature)
+                    <div style="border: 1px solid #10b981; padding: 6px; border-radius: 4px; background-color: #f0fdf4; text-align: left;">
+                        <div style="color: #15803d; font-weight: bold; font-size: 8px; margin-bottom: 3px; text-transform: uppercase;">
+                            ✔ SOLICITUD FIRMADA
+                        </div>
+                        <div style="font-size: 7px; color: #374151; line-height: 1.2;">
+                            <strong>Colaborador:</strong> {{ $workerSignature->user ? $workerSignature->user->name . ' ' . $workerSignature->user->last_name : $planning->user->name }}<br>
+                            <strong>Fecha:</strong> {{ $workerSignature->signed_at ? $workerSignature->signed_at->format('d/m/Y H:i:s') : 'N/A' }}<br>
+                            <strong>IP:</strong> {{ $workerSignature->ip_address ?? 'N/A' }}<br>
+                            <strong>Token:</strong> <span style="font-family: monospace; font-size: 6.5px; color: #1e3a8a;">{{ $workerSignature->verification_token }}</span><br>
+                            <span style="font-size: 6px; color: #6b7280; font-family: monospace; display: block; margin-top: 2px; word-break: break-all;">
+                                HASH: {{ substr($workerSignature->hash, 0, 24) }}...
+                            </span>
+                        </div>
+                    </div>
+                @else
+                    <div style="border: 1px dashed #d1d5db; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        FIRMA SOLICITANTE PENDIENTE
+                    </div>
+                @endif
             </td>
-            <td style="border: none; text-align: center; width: 33%;">
-                ___________________________<br><br>
-                Jefatura<br>
-                Revisión / aprobación
+
+            <!-- 2. Firma Jefatura -->
+            <td style="border: none; width: 33%; padding: 4px; vertical-align: top;">
+                @if($jefaturaSignature)
+                    <div style="border: 1px solid #10b981; padding: 6px; border-radius: 4px; background-color: #f0fdf4; text-align: left;">
+                        <div style="color: #15803d; font-weight: bold; font-size: 8px; margin-bottom: 3px; text-transform: uppercase;">
+                            ✔ APROBADO JEFATURA
+                        </div>
+                        <div style="font-size: 7px; color: #374151; line-height: 1.2;">
+                            <strong>Jefatura:</strong> {{ $jefaturaSignature->user ? $jefaturaSignature->user->name . ' ' . $jefaturaSignature->user->last_name : 'Usuario' }}<br>
+                            <strong>Fecha:</strong> {{ $jefaturaSignature->signed_at ? $jefaturaSignature->signed_at->format('d/m/Y H:i:s') : 'N/A' }}<br>
+                            <strong>IP:</strong> {{ $jefaturaSignature->ip_address ?? 'N/A' }}<br>
+                            <strong>Token:</strong> <span style="font-family: monospace; font-size: 6.5px; color: #1e3a8a;">{{ $jefaturaSignature->verification_token }}</span><br>
+                            <span style="font-size: 6px; color: #6b7280; font-family: monospace; display: block; margin-top: 2px; word-break: break-all;">
+                                HASH: {{ substr($jefaturaSignature->hash, 0, 24) }}...
+                            </span>
+                        </div>
+                    </div>
+                @elseif($hasJefatura)
+                    <div style="border: 1px dashed #d1d5db; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        APROBACIÓN JEFATURA PENDIENTE
+                    </div>
+                @else
+                    <div style="border: 1px solid #e5e7eb; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        APROBACIÓN JEFATURA (NO APLICA)
+                    </div>
+                @endif
             </td>
-            <td style="border: none; text-align: center; width: 33%;">
-                ___________________________<br><br>
-                Finanzas<br>
-                Liberación de fondos
+
+            <!-- 3. Firma Finanzas -->
+            <td style="border: none; width: 33%; padding: 4px; vertical-align: top;">
+                @if($financesSignature)
+                    <div style="border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; background-color: #eff6ff; text-align: left;">
+                        <div style="color: #1d4ed8; font-weight: bold; font-size: 8px; margin-bottom: 3px; text-transform: uppercase;">
+                            ✔ FONDOS LIBERADOS
+                        </div>
+                        <div style="font-size: 7px; color: #374151; line-height: 1.2;">
+                            <strong>Finanzas:</strong> {{ $financesSignature->user ? $financesSignature->user->name . ' ' . $financesSignature->user->last_name : 'Finanzas' }}<br>
+                            <strong>Fecha:</strong> {{ $financesSignature->signed_at ? $financesSignature->signed_at->format('d/m/Y H:i:s') : 'N/A' }}<br>
+                            <strong>IP:</strong> {{ $financesSignature->ip_address ?? 'N/A' }}<br>
+                            <strong>Token:</strong> <span style="font-family: monospace; font-size: 6.5px; color: #1e3a8a;">{{ $financesSignature->verification_token }}</span><br>
+                            <span style="font-size: 6px; color: #6b7280; font-family: monospace; display: block; margin-top: 2px; word-break: break-all;">
+                                HASH: {{ substr($financesSignature->hash, 0, 24) }}...
+                            </span>
+                        </div>
+                    </div>
+                @elseif($planning->status === 'rejected')
+                    <div style="border: 1px solid #ef4444; padding: 15px 6px; border-radius: 4px; color: #b91c1c; text-align: center; font-size: 8px; font-weight: bold; background-color: #fef2f2;">
+                        SOLICITUD RECHAZADA
+                    </div>
+                @else
+                    <div style="border: 1px dashed #d1d5db; padding: 15px 6px; border-radius: 4px; color: #9ca3af; text-align: center; font-size: 8px; font-weight: bold; background-color: #f9fafb;">
+                        APROBACIÓN FINANZAS PENDIENTE
+                    </div>
+                @endif
             </td>
         </tr>
     </table>

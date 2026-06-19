@@ -649,7 +649,7 @@ class RoutePlanningController extends Controller
             abort(403, 'No autorizado.');
         }
 
-        $planning->load(['user']);
+        $planning->load(['user', 'digitalSignatures.user']);
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('route-plannings.pdf', [
             'planning' => $planning,
