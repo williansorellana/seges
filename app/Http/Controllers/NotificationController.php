@@ -80,4 +80,11 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function destroyAll()
+    {
+        Auth::user()->notifications()->delete();
+
+        return back()->with('success', 'Todas las notificaciones fueron eliminadas.');
+    }
+
 }

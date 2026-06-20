@@ -13,6 +13,7 @@ use App\Http\Controllers\VehicleReturnController;
 use App\Http\Controllers\MeetingRoomController;
 use App\Http\Controllers\RoomReservationController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\NotificationController;
 
 use App\Http\Controllers\RoutePlanningController;
 use App\Http\Controllers\RenditionController;
@@ -219,6 +220,7 @@ Route::middleware('auth')->group(function () {
     // Notificaciones
     Route::get('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'read'])->name('notifications.read');
     Route::delete('/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroyAll');
     Route::post('/notifications/mark-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAll');
     Route::get('/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
     Route::get('/notifications/latest', [\App\Http\Controllers\NotificationController::class, 'latest'])->name('notifications.latest');
