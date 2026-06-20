@@ -81,7 +81,13 @@ class UserController extends Controller
 
         $validated['authorized_modules'] = $request->input('authorized_modules', []);
 
+        $oldRole = $user->role;
+
         $user->update($validated);
+
+        if ($oldRole === 'jefatura' && $user->role !== 'jefatura') {
+            User::where('jefatura_id', $user->id)->update(['jefatura_id' => null]);
+        }
 
         return redirect()->back()->with('success', 'Usuario actualizado correctamente.');
     }

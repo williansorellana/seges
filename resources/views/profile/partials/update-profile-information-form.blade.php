@@ -327,10 +327,9 @@
 
                         <div class="group">
                             <label for="departamento" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Departamento') }}</label>
-                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
-                                <input id="departamento" name="departamento" type="text" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-700 text-sm font-bold focus:ring-0 focus:outline-none" value="{{ old('departamento', $user->departamento) }}" placeholder="Ej: Finanzas">
+                            <div class="flex items-center border border-slate-700/50 rounded-lg bg-[#1e293b]/50 px-3 py-2.5 cursor-not-allowed w-full">
+                                <input id="departamento" type="text" disabled class="w-full bg-transparent border-none outline-none text-slate-400 placeholder-slate-700 text-sm font-bold cursor-not-allowed focus:ring-0 focus:outline-none" value="{{ $user->departamento }}" placeholder="Sin Departamento">
                             </div>
-                            <x-input-error class="mt-2" :messages="$errors->get('departamento')" />
                         </div>
                     </div>
                 </div>

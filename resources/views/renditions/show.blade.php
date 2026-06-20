@@ -939,63 +939,92 @@
                                 @foreach($rendition->digitalSignatures->sortBy('signed_at') as $signature)
                                     @php
                                         $signatureLabels = [
-                                            'rendition_worker_signature' => 'Firma del trabajador',
-                                            'rendition_jefatura_signature' => 'Firma de jefatura',
-                                            'planning_worker_signature' => 'Firma planificación trabajador',
-                                            'jefatura_approval' => 'Firma aprobación jefatura',
+                                            'rendition_worker_signature' => 'Firma del Trabajador',
+                                            'rendition_jefatura_signature' => 'Firma de Jefatura',
+                                            'planning_worker_signature' => 'Firma Planificación Trabajador',
+                                            'jefatura_approval' => 'Firma Aprobación Jefatura',
                                         ];
 
                                         $signatureLabel = $signatureLabels[$signature->signature_type] ?? ucfirst(str_replace('_', ' ', $signature->signature_type));
+                                        
+                                        $isWorker = $signature->signature_type === 'rendition_worker_signature';
+                                        $borderColor = $isWorker ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'border-indigo-500/20 hover:border-indigo-500/40';
+                                        $glowColor = $isWorker ? 'bg-emerald-500/5 group-hover:bg-emerald-500/10' : 'bg-indigo-500/5 group-hover:bg-indigo-500/10';
+                                        $iconBg = $isWorker ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+                                        $badgeBg = $isWorker ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+                                        $tokenColor = $isWorker ? 'text-emerald-400' : 'text-indigo-400';
+                                        $helpIconColor = $isWorker ? 'group-hover/token:text-emerald-400' : 'group-hover/token:text-indigo-400';
                                     @endphp
 
-                                    <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
-                                        <div class="flex items-start justify-between gap-4">
-                                            <div>
-                                                <p class="text-sm font-black text-white uppercase tracking-tight">
-                                                    {{ $signatureLabel }}
-                                                </p>
-
-                                                <p class="text-[11px] text-slate-400 font-bold mt-1">
-                                                    Firmado por: {{ $signature->user->name ?? 'Usuario no disponible' }}
-                                                </p>
-
-                                                <p class="text-[11px] text-slate-500 font-bold mt-1">
-                                                    Fecha: {{ $signature->signed_at ? $signature->signed_at->format('d/m/Y H:i') : 'Sin fecha' }}
-                                                </p>
-
-                                                @if($signature->ip_address)
-                                                    <p class="text-[10px] text-slate-600 font-bold mt-1">
-                                                        IP: {{ $signature->ip_address }}
+                                    <div class="p-5 rounded-3xl bg-slate-950/80 border-2 {{ $borderColor }} relative overflow-hidden group transition-all duration-300">
+                                        <!-- Decorative stamp glow -->
+                                        <div class="absolute -right-12 -bottom-12 w-28 h-28 {{ $glowColor }} rounded-full blur-[25px] transition-all"></div>
+                                        
+                                        <div class="flex items-start justify-between gap-4 relative z-10">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-xl {{ $iconBg }} flex items-center justify-center border">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-xs font-black text-white uppercase tracking-wider">
+                                                        {{ $signatureLabel }}
                                                     </p>
-                                                @endif
+                                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">
+                                                        Certificado Digital
+                                                    </p>
+                                                </div>
                                             </div>
-
-                                            <span class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest">
+                                            <span class="px-2 py-0.5 rounded-md {{ $badgeBg }} border text-[9px] font-black uppercase tracking-widest">
                                                 Verificada
-                                             </span>
+                                            </span>
                                         </div>
 
-                                        <div class="mt-4 pt-4 border-t border-slate-700">
-                                            <p class="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-2">
-                                                Hash SHA-256
-                                            </p>
-
-                                            <p class="text-[10px] text-slate-400 font-mono break-all bg-slate-900 rounded-lg p-3 border border-slate-700">
-                                                {{ $signature->hash }}
-                                            </p>
-                                        </div>
-
-                                        @if($signature->verification_token)
-                                            <div class="mt-3">
-                                                <p class="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-1">
-                                                    Token de verificación
-                                                </p>
-
-                                                <p class="text-[10px] text-slate-500 font-mono break-all">
-                                                    {{ $signature->verification_token }}
-                                                </p>
+                                        <div class="mt-5 space-y-3 relative z-10">
+                                            <div class="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800/80">
+                                                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                                    <div>
+                                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Firmante</span>
+                                                        <span class="text-white font-bold">{{ $signature->user ? $signature->user->name . ' ' . $signature->user->last_name : 'No disponible' }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Rol</span>
+                                                        <span class="text-slate-300 font-semibold uppercase tracking-wider">{{ $signature->role ?? ($signature->user ? $signature->user->role : 'N/A') }}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="grid grid-cols-2 gap-2 text-[11px] mt-2.5 pt-2.5 border-t border-slate-800/50">
+                                                    <div>
+                                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Fecha y Hora</span>
+                                                        <span class="text-slate-300 font-semibold">{{ $signature->signed_at ? $signature->signed_at->format('d/m/Y H:i:s') : 'Sin fecha' }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Dirección IP</span>
+                                                        <span class="text-slate-400 font-mono">{{ $signature->ip_address ?? 'N/A' }}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        @endif
+
+                                            @if($signature->verification_token)
+                                                <div class="bg-slate-900/40 px-3.5 py-2.5 rounded-2xl border border-slate-800/60 flex items-center justify-between gap-3 group/token hover:bg-slate-900/80 transition-colors">
+                                                    <div class="flex-1 min-w-0">
+                                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Token de Verificación</span>
+                                                        <span class="text-[10px] {{ $tokenColor }} font-mono truncate block">{{ $signature->verification_token }}</span>
+                                                    </div>
+                                                    <svg class="w-4 h-4 text-slate-600 {{ $helpIconColor }} transition-colors cursor-help flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+
+                                            <div>
+                                                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-1">Firma Digital (Hash SHA-256)</span>
+                                                <div class="text-[9px] text-slate-400 font-mono break-all bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+                                                    {{ $signature->hash }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>

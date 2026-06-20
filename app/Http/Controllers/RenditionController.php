@@ -274,7 +274,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        $rendition->load(['user', 'routePlanning', 'expenses']);
+        $rendition->load(['user', 'routePlanning', 'expenses', 'digitalSignatures.user']);
 
         $isOwner = $rendition->user_id === $user->id;
         $isAdmin = $user->role === 'admin';

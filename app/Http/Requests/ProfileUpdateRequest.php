@@ -30,7 +30,6 @@ class ProfileUpdateRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'cargo' => ['nullable', 'string', 'max:255'],
-            'departamento' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'max:1024'], // Máx 1MB
             'license_photo' => ['nullable', 'image', 'max:5120'], // Máx 5MB (Higher for OCR)
             'license_expires_at' => ['nullable', 'date'],
