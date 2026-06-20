@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class WorkflowNotification extends Notification
@@ -17,7 +18,7 @@ class WorkflowNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     public function toDatabase(object $notifiable): array
@@ -27,5 +28,21 @@ class WorkflowNotification extends Notification
             'message' => $this->message,
             'action_url' => $this->actionUrl,
         ];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $mail = (new MailMessage)
+            ->subject($this->title)
+            ->greeting('Hola ' . ($notifiable->name ?? ''))
+            ->line($this->message);
+
+        if ($this->actionUrl) {
+            $mail->action('Revisar en SEGES', $this->actionUrl);
+        }
+
+        return $mail
+            ->line('Este correo fue generado automáticamente por el sistema SEGES / Secretaría y Gerencia.')
+            ->salutation('Saludos, SEGES Dimak');
     }
 }

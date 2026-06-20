@@ -173,11 +173,19 @@ class RenditionController extends Controller
             'user_observation' => 'nullable|string|max:1000',
         ]);
 
-        if ($rendition->expenses()->count() === 0) {
+        $hasBoleta = $rendition->expenses()
+            ->where('document_type', 'boleta')
+            ->exists();
+
+        $hasFactura = $rendition->expenses()
+            ->where('document_type', 'factura')
+            ->exists();
+
+        if (!$hasBoleta || !$hasFactura) {
             return redirect()
                 ->back()
                 ->withErrors([
-                    'expenses' => 'Debes subir al menos un documento antes de enviar la rendición.'
+                    'expenses' => 'Debes adjuntar al menos una boleta y una factura antes de enviar la rendición.'
                 ]);
         }
 
