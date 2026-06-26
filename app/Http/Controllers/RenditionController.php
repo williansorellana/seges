@@ -1035,6 +1035,76 @@ class RenditionController extends Controller
             ->with('success', 'Documento observado correctamente.');
     }
 
+    public function uploadTransferProof(Request $request, \App\Models\Rendition $rendition)
+    {
+        $user = auth()->user();
+
+        if ($rendition->user_id !== $user->id) {
+            abort(403, 'No autorizado.');
+        }
+
+        if ($rendition->status !== 'approved' || !$rendition->refund_to_company) {
+            abort(400, 'La rendición no se encuentra en estado de devolución de dinero.');
+        }
+
+        if ($rendition->payment_completed) {
+            abort(400, 'El cierre financiero ya ha sido completado.');
+        }
+
+        $request->validate([
+            'transfer_proof' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        if ($rendition->transfer_proof_path) {
+            Storage::disk('local')->delete($rendition->transfer_proof_path);
+        }
+
+        $path = $request->file('transfer_proof')->store('receipts/transfers', 'local');
+
+        $rendition->transfer_proof_path = $path;
+        $rendition->save();
+
+        \App\Models\WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => $user->id,
+            'action' => 'transfer_proof_uploaded',
+            'from_status' => $rendition->status,
+            'to_status' => $rendition->status,
+            'observation' => 'El colaborador adjuntó el comprobante de transferencia.',
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Comprobante de transferencia subido correctamente.');
+    }
+
+    public function downloadTransferProof(\App\Models\Rendition $rendition)
+    {
+        $user = auth()->user();
+
+        $isOwner = $rendition->user_id === $user->id;
+        $isAdmin = $user->role === 'admin';
+        $isJefatura = $rendition->user && $rendition->user->jefatura_id === $user->id;
+        $isFinanzas = $user->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_FINANCES;
+        $isControlling = $user->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING;
+
+        if (!$isOwner && !$isAdmin && !$isJefatura && !$isFinanzas && !$isControlling) {
+            abort(403, 'No autorizado.');
+        }
+
+        if (!$rendition->transfer_proof_path) {
+            abort(404, 'No hay comprobante de transferencia registrado.');
+        }
+
+        if (!Storage::disk('local')->exists($rendition->transfer_proof_path)) {
+            abort(404, 'El archivo no existe en el disco.');
+        }
+
+        return Storage::disk('local')->download($rendition->transfer_proof_path);
+    }
+
     public function history()
     {
         $user = auth()->user();

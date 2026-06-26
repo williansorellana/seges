@@ -17,6 +17,13 @@ class RoutePlanning extends Model
 
         'requires_funds' => 'boolean',
         'requested_funds' => 'decimal:2',
+        'funds_peaje' => 'decimal:2',
+        'funds_bencina' => 'decimal:2',
+        'funds_alojamiento' => 'decimal:2',
+        'funds_alimentacion' => 'decimal:2',
+        'funds_otros' => 'decimal:2',
+
+        'destinations' => 'array',
 
         'requires_amipass' => 'boolean',
         'amipass_days' => 'integer',

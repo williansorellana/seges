@@ -678,6 +678,59 @@
                                         @endif
                                     </div>
                                 @endif
+                                
+                                @if($rendition->status === 'approved' && $rendition->refund_to_company && !$rendition->payment_completed)
+                                    <div class="mt-6 pt-6 border-t border-slate-800/60">
+                                        @if($isOwner)
+                                            <div class="p-4 rounded-3xl bg-slate-950/40 border border-slate-800/80">
+                                                <h4 class="text-[11px] font-black text-white uppercase tracking-wider mb-3">Comprobante de Devolución</h4>
+                                                @if($rendition->transfer_proof_path)
+                                                    <div class="flex items-center justify-between mb-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl">
+                                                        <span class="text-xs text-emerald-400 font-bold">¡Comprobante adjuntado!</span>
+                                                        <a href="{{ route('renditions.download-transfer-proof', $rendition->id) }}" class="text-xs text-blue-400 hover:underline font-bold">Descargar actual</a>
+                                                    </div>
+                                                @endif
+                                                <form action="{{ route('renditions.upload-transfer-proof', $rendition->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                                    @csrf
+                                                    <div>
+                                                        <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">Subir nuevo comprobante (PDF, JPG, PNG)</label>
+                                                        <input type="file" name="transfer_proof" accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition-all cursor-pointer bg-slate-950/50 border border-slate-800 rounded-2xl p-1.5" required>
+                                                    </div>
+                                                    <button type="submit" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                                                        Subir Comprobante
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @else
+                                            @if($rendition->transfer_proof_path)
+                                                <div class="p-4 rounded-3xl bg-slate-950/40 border border-slate-800/80">
+                                                    <h4 class="text-[11px] font-black text-white uppercase tracking-wider mb-2">Comprobante de Devolución</h4>
+                                                    <p class="text-xs text-slate-400 mb-3">El colaborador ha adjuntado el comprobante de transferencia.</p>
+                                                    <a href="{{ route('renditions.download-transfer-proof', $rendition->id) }}" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all inline-flex items-center justify-center gap-2">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                        Descargar Comprobante
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <div class="p-4 rounded-3xl bg-slate-950/40 border border-slate-800/80">
+                                                    <h4 class="text-[11px] font-black text-white uppercase tracking-wider mb-2">Comprobante de Devolución</h4>
+                                                    <span class="text-xs text-rose-400 font-bold">El colaborador aún no ha subido el comprobante de transferencia.</span>
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </div>
+                                @elseif($rendition->status === 'approved' && $rendition->refund_to_company && $rendition->payment_completed && $rendition->transfer_proof_path)
+                                    <div class="mt-6 pt-6 border-t border-slate-800/60">
+                                        <div class="p-4 rounded-3xl bg-slate-950/40 border border-slate-800/80">
+                                            <h4 class="text-[11px] font-black text-white uppercase tracking-wider mb-2">Comprobante de Devolución</h4>
+                                            <a href="{{ route('renditions.download-transfer-proof', $rendition->id) }}" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all inline-flex items-center justify-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                Descargar Comprobante Adjunto
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endif
+                                
                                 </div>
                             </div>
 

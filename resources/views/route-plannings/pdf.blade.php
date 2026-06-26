@@ -168,11 +168,27 @@
             </td>
         </tr>
         <tr>
-            <th>Región</th>
-            <td>{{ $planning->region ?? 'No registrado' }}</td>
-            <th>Destino</th>
-            <td>{{ $planning->destination ?? 'No registrado' }}</td>
+            <th>Destino Principal</th>
+            <td colspan="3">
+                {{ $planning->destination ?? 'No registrado' }} @if($planning->region) (Región: {{ $planning->region }}) @endif
+            </td>
         </tr>
+        @if(!empty($planning->destinations))
+            <tr>
+                <th>Destinos Adicionales</th>
+                <td colspan="3">
+                    @php
+                        $additionalList = [];
+                        foreach($planning->destinations as $dest) {
+                            if (!empty($dest['destination'])) {
+                                $additionalList[] = $dest['destination'] . (!empty($dest['region']) ? ' (' . $dest['region'] . ')' : '');
+                            }
+                        }
+                    @endphp
+                    {{ implode(', ', $additionalList) }}
+                </td>
+            </tr>
+        @endif
         <tr>
             <th>Fecha inicio</th>
             <td>{{ $startDate }}</td>
@@ -191,10 +207,47 @@
 
     <div class="section-title">Solicitud financiera</div>
     <table>
-        <tr>
-            <th style="width: 35%;">Fondos por rendir solicitados</th>
-            <td style="text-align: right;">${{ number_format($requestedFunds, 0, ',', '.') }}</td>
-        </tr>
+        @if($planning->requires_funds)
+            <tr>
+                <th style="width: 50%;">Concepto de Gasto</th>
+                <th style="text-align: right; width: 50%;">Monto Solicitado</th>
+            </tr>
+            <tr>
+                <td>Bencina / Combustible</td>
+                <td style="text-align: right;">${{ number_format($planning->funds_bencina ?? 0, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td>Peajes</td>
+                <td style="text-align: right;">${{ number_format($planning->funds_peaje ?? 0, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td>Alojamiento</td>
+                <td style="text-align: right;">${{ number_format($planning->funds_alojamiento ?? 0, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td>Alimentación</td>
+                <td style="text-align: right;">${{ number_format($planning->funds_alimentacion ?? 0, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td>Otros Gastos</td>
+                <td style="text-align: right;">${{ number_format($planning->funds_otros ?? 0, 0, ',', '.') }}</td>
+            </tr>
+            <tr class="total-row">
+                <th>Subtotal Fondos por Rendir</th>
+                <td style="text-align: right;">${{ number_format($requestedFunds, 0, ',', '.') }}</td>
+            </tr>
+            @if($planning->funds_description)
+                <tr>
+                    <th>Justificación Fondos</th>
+                    <td>{{ $planning->funds_description }}</td>
+                </tr>
+            @endif
+        @else
+            <tr>
+                <th style="width: 35%;">Fondos por rendir solicitados</th>
+                <td style="text-align: right;">No solicitado</td>
+            </tr>
+        @endif
 
         @if($planning->requires_amipass)
             <tr>

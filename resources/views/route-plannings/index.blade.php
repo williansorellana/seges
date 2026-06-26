@@ -112,9 +112,9 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-700/40">
+                            <tbody class="divide-y divide-slate-700/40" x-data="{ activePlanning: null }">
                                 @foreach ($plannings as $plan)
-                                    <tr class="hover:bg-slate-800/60 transition-colors duration-200 group">
+                                    <tr class="hover:bg-slate-800/60 transition-colors duration-200 group cursor-pointer" @click="if (!$event.target.closest('a')) activePlanning = (activePlanning === {{ $plan->id }} ? null : {{ $plan->id }})">
                                         <!-- ID y Fecha -->
                                         <td class="px-6 py-5 whitespace-nowrap">
                                             <div class="flex flex-col items-start gap-2">
@@ -147,7 +147,7 @@
                                                     <div class="text-xs text-slate-400 mt-0.5 line-clamp-1 max-w-[220px]" title="{{ $plan->motive }}">{{ $plan->motive }}</div>
                                                     @if($plan->companions)
                                                         <div class="flex items-center gap-1 mt-0.5 text-[11px] text-blue-400">
-                                                            <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                            <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                                             <span class="line-clamp-1 max-w-[180px]" title="{{ $plan->companions }}">{{ $plan->companions }}</span>
                                                         </div>
                                                     @endif
@@ -324,6 +324,118 @@
                                             @endif
                                         </td>
                                     </tr>
+
+                                    <!-- Collapsible Detail Row -->
+                                    <tr x-show="activePlanning === {{ $plan->id }}" x-cloak class="bg-slate-900/40" x-transition>
+                                        <td colspan="6" class="px-8 py-6 border-b border-slate-700/40">
+                                            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                                
+                                                <!-- Columna Izquierda: Detalles Adicionales (7 cols) -->
+                                                <div class="md:col-span-7 space-y-6">
+                                                    <!-- Destinos Adicionales -->
+                                                    <div>
+                                                        <h5 class="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                            <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                                                            Destinos del Viaje
+                                                        </h5>
+                                                        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                                                            <div class="text-xs font-bold text-white mb-2">Destino Principal: {{ $plan->destination }} @if($plan->region) ({{ $plan->region }}) @endif</div>
+                                                            @if(!empty($plan->destinations))
+                                                                <div class="mt-2.5 pt-2.5 border-t border-slate-800/80">
+                                                                    <div class="text-[10px] text-slate-500 font-black uppercase tracking-wider mb-2">Destinos Adicionales:</div>
+                                                                    <ul class="space-y-1.5">
+                                                                        @foreach($plan->destinations as $dest)
+                                                                            @if(!empty($dest['destination']))
+                                                                                <li class="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                                                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                                                    {{ $dest['destination'] }} @if(!empty($dest['region'])) <span class="text-slate-500 font-medium">({{ $dest['region'] }})</span> @endif
+                                                                                </li>
+                                                                            @endif
+                                                                        @endforeach
+                                                                    </ul>
+                                                                </div>
+                                                            @else
+                                                                <p class="text-xs text-slate-500 font-medium italic mt-1">Sin destinos adicionales registrados.</p>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Desglose de Fondos -->
+                                                    @if($plan->requires_funds)
+                                                        <div>
+                                                            <h5 class="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                Desglose de Presupuesto Solicitado
+                                                            </h5>
+                                                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-4">
+                                                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                                                    <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 text-center">
+                                                                        <div class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Bencina</div>
+                                                                        <div class="text-xs font-bold text-white mt-1">${{ number_format($plan->funds_bencina ?? 0, 0, ',', '.') }}</div>
+                                                                    </div>
+                                                                    <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 text-center">
+                                                                        <div class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Peajes</div>
+                                                                        <div class="text-xs font-bold text-white mt-1">${{ number_format($plan->funds_peaje ?? 0, 0, ',', '.') }}</div>
+                                                                    </div>
+                                                                    <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 text-center">
+                                                                        <div class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Alojamiento</div>
+                                                                        <div class="text-xs font-bold text-white mt-1">${{ number_format($plan->funds_alojamiento ?? 0, 0, ',', '.') }}</div>
+                                                                    </div>
+                                                                    <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 text-center">
+                                                                        <div class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Alimentación</div>
+                                                                        <div class="text-xs font-bold text-white mt-1">${{ number_format($plan->funds_alimentacion ?? 0, 0, ',', '.') }}</div>
+                                                                    </div>
+                                                                    <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 text-center col-span-2 sm:col-span-1">
+                                                                        <div class="text-[9px] text-slate-500 font-black uppercase tracking-wider">Otros</div>
+                                                                        <div class="text-xs font-bold text-white mt-1">${{ number_format($plan->funds_otros ?? 0, 0, ',', '.') }}</div>
+                                                                    </div>
+                                                                </div>
+                                                                @if($plan->funds_description)
+                                                                    <div class="pt-3 border-t border-slate-800/80">
+                                                                        <div class="text-[10px] text-slate-500 font-black uppercase tracking-wider mb-1">Justificación del presupuesto:</div>
+                                                                        <p class="text-xs text-slate-300 font-medium leading-relaxed">{{ $plan->funds_description }}</p>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                
+                                                <!-- Columna Derecha: Notificaciones de viaje (5 cols) -->
+                                                <div class="md:col-span-5">
+                                                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 h-full flex flex-col justify-between">
+                                                        <div>
+                                                            <h5 class="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                                Notificación de Viaje (Anexo Contrato)
+                                                            </h5>
+                                                            <p class="text-[11px] text-slate-400 leading-relaxed mb-4">
+                                                                Envía un correo con los detalles del viaje a destinatarios específicos para notificar la actividad (anexo de contrato u otros fines).
+                                                            </p>
+                                                            
+                                                            <form action="{{ route('route-plannings.send-notification', $plan->id) }}" method="POST" class="space-y-3">
+                                                                @csrf
+                                                                <div>
+                                                                    <label class="block text-[9px] text-slate-500 font-black uppercase tracking-wider mb-1.5">Correos Destinatarios (separados por coma)</label>
+                                                                    <input type="text" name="emails" value="{{ $plan->notification_emails }}" placeholder="ej: contratos@empresa.com, jefatura@empresa.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-white placeholder-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" required>
+                                                                </div>
+                                                                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/10">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                                                                    Enviar Notificación
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                        @if($plan->notification_emails)
+                                                            <div class="mt-4 pt-3 border-t border-slate-800/80 text-[10px] text-slate-500">
+                                                                <span class="font-bold">Últimos notificados:</span> <span class="font-mono text-slate-400">{{ $plan->notification_emails }}</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -357,7 +469,7 @@
                     </div>
 
                     <div class="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ requiresFunds: false, requiresAmipass: false }">
+                        <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ requiresFunds: false, requiresAmipass: false, destinations: [], funds_bencina: 0, funds_peaje: 0, funds_alojamiento: 0, funds_alimentacion: 0, funds_otros: 0, get requested_funds() { return (parseInt(this.funds_bencina) || 0) + (parseInt(this.funds_peaje) || 0) + (parseInt(this.funds_alojamiento) || 0) + (parseInt(this.funds_alimentacion) || 0) + (parseInt(this.funds_otros) || 0); }, addDestination() { this.destinations.push({ region: '', destination: '' }); }, removeDestination(index) { this.destinations.splice(index, 1); } }">
                         @csrf
                         
                         @php
@@ -449,6 +561,39 @@
                                 </div>
                             </div>
 
+                            <!-- Additional Destinations Section -->
+                            <div class="col-span-1 md:col-span-2 pt-4 border-t border-slate-700/60">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-semibold text-slate-300">Destinos Adicionales (Múltiples Destinos)</label>
+                                    <button type="button" @click="addDestination()" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                        Agregar Destino
+                                    </button>
+                                </div>
+                                
+                                <input type="hidden" name="destinations" :value="JSON.stringify(destinations)">
+
+                                <div class="space-y-4">
+                                    <template x-for="(dest, index) in destinations" :key="index">
+                                        <div class="flex items-center gap-4 bg-slate-900/40 p-4 rounded-2xl border border-slate-800">
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                                                <div>
+                                                    <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Región</label>
+                                                    <input type="text" x-model="dest.region" placeholder="Ej: Región del Biobío" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-white placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Ciudad / Comuna</label>
+                                                    <input type="text" x-model="dest.destination" placeholder="Ej: Chillán" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-white placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
+                                                </div>
+                                            </div>
+                                            <button type="button" @click="removeDestination(index)" class="p-2 bg-rose-600/10 text-rose-500 hover:bg-rose-600 hover:text-white rounded-xl transition-all cursor-pointer border border-rose-500/20" title="Eliminar destino">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
                             <!-- Motivo -->
                             <div class="col-span-1 md:col-span-2">
                                 <label for="motive" class="block text-sm font-medium text-slate-300 mb-1">Motivo del viaje <span class="text-red-500">*</span></label>
@@ -490,11 +635,58 @@
                                 </label>
                                 <p class="text-xs text-slate-400 mb-4 ml-12">Adelanto de dinero para peajes, combustible, alojamiento, etc.</p>
                                 
-                                <div x-show="requiresFunds" x-transition.opacity class="ml-12" style="display: none;">
-                                    <label for="requested_funds" class="block text-sm font-medium text-slate-300 mb-1">Monto Solicitado ($)</label>
-                                    <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                                        <span class="text-slate-500 text-sm mr-2">$</span>
-                                        <input type="number" name="requested_funds" id="requested_funds" min="0" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: 50000" x-bind:required="requiresFunds">
+                                <div x-show="requiresFunds" x-transition.opacity class="ml-12 space-y-4" style="display: none;">
+                                    <p class="text-xs text-slate-400 font-semibold mb-3">Ingrese el desglose de fondos estimado. El total se calculará de forma automática.</p>
+                                    
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Bencina / Combustible ($)</label>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
+                                                <span class="text-slate-500 text-xs mr-1.5">$</span>
+                                                <input type="number" name="funds_bencina" x-model.number="funds_bencina" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Peajes ($)</label>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
+                                                <span class="text-slate-500 text-xs mr-1.5">$</span>
+                                                <input type="number" name="funds_peaje" x-model.number="funds_peaje" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Alojamiento ($)</label>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
+                                                <span class="text-slate-500 text-xs mr-1.5">$</span>
+                                                <input type="number" name="funds_alojamiento" x-model.number="funds_alojamiento" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Alimentación ($)</label>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
+                                                <span class="text-slate-500 text-xs mr-1.5">$</span>
+                                                <input type="number" name="funds_alimentacion" x-model.number="funds_alimentacion" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Otros Gastos ($)</label>
+                                            <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
+                                                <span class="text-slate-500 text-xs mr-1.5">$</span>
+                                                <input type="number" name="funds_otros" x-model.number="funds_otros" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-3 border-t border-slate-700/60">
+                                        <label for="requested_funds" class="block text-sm font-bold text-white mb-1">Monto Total Solicitado ($)</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-950 px-3 py-2.5">
+                                            <span class="text-slate-500 text-sm mr-2">$</span>
+                                            <input type="number" name="requested_funds" id="requested_funds" :value="requested_funds" readonly class="w-full bg-transparent border-none outline-none text-slate-300 text-sm font-black focus:ring-0 focus:outline-none" placeholder="0">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-300 mb-1">Justificación detallada del monto solicitado <span class="text-red-500">*</span></label>
+                                        <textarea name="funds_description" rows="3" placeholder="Por favor, explique la necesidad de los fondos y los montos estimados..." class="w-full bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:ring-blue-500" x-bind:required="requiresFunds"></textarea>
                                     </div>
                                 </div>
                             </div>

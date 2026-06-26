@@ -382,6 +382,19 @@
                 </td>
             </tr>
 
+            @if($rendition->refund_to_company)
+                <tr>
+                    <th>Comprobante de Devolución</th>
+                    <td style="text-align: right;">
+                        @if($rendition->transfer_proof_path)
+                            <span class="badge-green">Adjunto (Comprobante cargado)</span>
+                        @else
+                            <span class="badge-red">Pendiente de adjuntar</span>
+                        @endif
+                    </td>
+                </tr>
+            @endif
+
             @if($rendition->payment_completed && $rendition->payment_completed_at)
                 <tr>
                     <th>Fecha cierre financiero confirmado</th>

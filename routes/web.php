@@ -37,6 +37,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         // Acciones de Finanzas
         Route::post('/{planning}/approve-finances', [RoutePlanningController::class, 'approveByFinances'])->name('approve-finances');
         Route::post('/{planning}/reject-finances', [RoutePlanningController::class, 'rejectByFinances'])->name('reject-finances');
+        Route::post('/{planning}/send-notification', [RoutePlanningController::class, 'sendTravelNotification'])->name('send-notification');
     });
 
     // Rutas de Rendiciones
@@ -66,6 +67,8 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/{rendition}/payment-completed', [RenditionController::class, 'markPaymentCompleted'])->name('payment-completed');
         Route::post('/{rendition}/approve-finances', [RenditionController::class, 'approveByFinances'])->name('approve-finances-rendition');
         Route::post('/{rendition}/reject-finances', [RenditionController::class, 'rejectByFinances'])->name('reject-finances-rendition');
+        Route::post('/{rendition}/upload-transfer-proof', [RenditionController::class, 'uploadTransferProof'])->name('upload-transfer-proof');
+        Route::get('/{rendition}/download-transfer-proof', [RenditionController::class, 'downloadTransferProof'])->name('download-transfer-proof');
     });
 });
 

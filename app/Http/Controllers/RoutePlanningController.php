@@ -11,6 +11,7 @@ use App\Notifications\WorkflowNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
 use App\Services\AmipassCalculatorService;
+use App\Notifications\TravelNotification;
 
 class RoutePlanningController extends Controller
 {
@@ -81,7 +82,16 @@ class RoutePlanningController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
 
             'requires_funds' => 'nullable|boolean',
-            'requested_funds' => 'nullable|numeric|min:1|required_if:requires_funds,1',
+            'requested_funds' => 'nullable|numeric|min:0|required_if:requires_funds,1',
+
+            'funds_peaje' => 'nullable|numeric|min:0',
+            'funds_bencina' => 'nullable|numeric|min:0',
+            'funds_alojamiento' => 'nullable|numeric|min:0',
+            'funds_alimentacion' => 'nullable|numeric|min:0',
+            'funds_otros' => 'nullable|numeric|min:0',
+            'funds_description' => 'nullable|string|max:1000',
+
+            'destinations' => 'nullable|string',
 
             'requires_amipass' => 'nullable|boolean',
             'amipass_start_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',
@@ -99,10 +109,30 @@ class RoutePlanningController extends Controller
         $planning->start_date = $validated['start_date'];
         $planning->end_date = $validated['end_date'];
 
+        if ($request->filled('destinations')) {
+            $planning->destinations = json_decode($request->input('destinations'), true);
+        } else {
+            $planning->destinations = null;
+        }
+
         $planning->requires_funds = $request->has('requires_funds');
-        $planning->requested_funds = $request->has('requires_funds')
-            ? $validated['requested_funds']
-            : null;
+        if ($planning->requires_funds) {
+            $planning->funds_peaje = $request->input('funds_peaje') ?: 0;
+            $planning->funds_bencina = $request->input('funds_bencina') ?: 0;
+            $planning->funds_alojamiento = $request->input('funds_alojamiento') ?: 0;
+            $planning->funds_alimentacion = $request->input('funds_alimentacion') ?: 0;
+            $planning->funds_otros = $request->input('funds_otros') ?: 0;
+            $planning->funds_description = $request->input('funds_description');
+            $planning->requested_funds = $planning->funds_peaje + $planning->funds_bencina + $planning->funds_alojamiento + $planning->funds_alimentacion + $planning->funds_otros;
+        } else {
+            $planning->funds_peaje = null;
+            $planning->funds_bencina = null;
+            $planning->funds_alojamiento = null;
+            $planning->funds_alimentacion = null;
+            $planning->funds_otros = null;
+            $planning->funds_description = null;
+            $planning->requested_funds = null;
+        }
 
         $planning->requires_amipass = $request->has('requires_amipass');
 
@@ -155,10 +185,17 @@ class RoutePlanningController extends Controller
                 'trip_type' => $planning->trip_type,
                 'motive' => $planning->motive,
                 'destination' => $planning->destination,
+                'destinations' => $planning->destinations,
                 'start_date' => $planning->start_date,
                 'end_date' => $planning->end_date,
                 'requires_funds' => $planning->requires_funds,
                 'requested_funds' => $planning->requested_funds,
+                'funds_peaje' => $planning->funds_peaje,
+                'funds_bencina' => $planning->funds_bencina,
+                'funds_alojamiento' => $planning->funds_alojamiento,
+                'funds_alimentacion' => $planning->funds_alimentacion,
+                'funds_otros' => $planning->funds_otros,
+                'funds_description' => $planning->funds_description,
                 'requires_amipass' => $planning->requires_amipass,
                 'amipass_days' => $planning->amipass_days,
                 'amipass_business_days' => $planning->amipass_business_days,
@@ -631,6 +668,49 @@ class RoutePlanningController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Solicitud rechazada por Finanzas. Se ha notificado al colaborador.');
+    }
+
+    public function sendTravelNotification(Request $request, \App\Models\RoutePlanning $planning)
+    {
+        $user = auth()->user();
+
+        if (
+            $user->role !== WorkflowHelper::ROLE_ADMIN
+            && $planning->user_id !== $user->id
+            && $planning->user->jefatura_id !== $user->id
+            && !in_array($user->departamento, [
+                WorkflowHelper::DEPARTMENT_CONTROLLING,
+                WorkflowHelper::DEPARTMENT_FINANCES,
+            ])
+        ) {
+            abort(403, 'No autorizado.');
+        }
+
+        $request->validate([
+            'emails' => 'required|string',
+        ]);
+
+        $emailsString = $request->input('emails');
+        $emails = array_filter(array_map('trim', explode(',', $emailsString)), function ($email) {
+            return filter_var($email, FILTER_VALIDATE_EMAIL);
+        });
+
+        if (empty($emails)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Por favor, ingrese al menos una dirección de correo válida.');
+        }
+
+        $planning->notification_emails = implode(', ', $emails);
+        $planning->save();
+
+        foreach ($emails as $email) {
+            Notification::route('mail', $email)->notify(new TravelNotification($planning));
+        }
+
+        return redirect()
+            ->back()
+            ->with('success', 'Notificación de viaje enviada correctamente.');
     }
 
     public function downloadPdf(\App\Models\RoutePlanning $planning)
