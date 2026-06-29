@@ -527,37 +527,23 @@
 
                             <!-- Destino: Región y Ciudad -->
                             <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6" x-data="locationAutocomplete()">
-                                
-                                <!-- Región -->
-                                <div class="relative">
+                                <div>
                                     <label for="region" class="block text-sm font-medium text-slate-300 mb-1">Región <span class="text-red-500">*</span></label>
-                                    <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
-                                        <input type="text" name="region" id="region" x-model="searchRegion" @input="openRegion = true" @focus="openRegion = true" @click.away="openRegion = false" @keydown.escape="openRegion = false" required autocomplete="off" placeholder="Ej: Región del Biobío" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
-                                    </div>
-                                    
-                                    <ul x-show="openRegion && filteredRegions.length > 0" x-transition class="absolute z-50 w-full mt-1 bg-slate-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-slate-700" style="display: none;">
-                                        <template x-for="region in filteredRegions" :key="region">
-                                            <li @click="selectRegion(region)" class="text-slate-200 cursor-pointer select-none relative py-2 px-4 hover:bg-slate-700 hover:text-white transition-colors">
-                                                <span x-text="region" class="block truncate"></span>
-                                            </li>
+                                    <select name="region" id="region" x-model="searchRegion" @change="searchCity = ''" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 [&>option]:bg-slate-900" required>
+                                        <option value="">Seleccione una región</option>
+                                        <template x-for="regionObj in dataset" :key="regionObj.region">
+                                            <option :value="regionObj.region" x-text="regionObj.region"></option>
                                         </template>
-                                    </ul>
+                                    </select>
                                 </div>
-
-                                <!-- Ciudad -->
-                                <div class="relative">
+                                <div>
                                     <label for="destination" class="block text-sm font-medium text-slate-300 mb-1">Destino (Ciudad/Comuna) <span class="text-red-500">*</span></label>
-                                    <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
-                                        <input type="text" name="destination" id="destination" x-model="searchCity" @input="openCity = true" @focus="openCity = true" @click.away="openCity = false" @keydown.escape="openCity = false" required autocomplete="off" placeholder="Ej: Concepción" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
-                                    </div>
-                                    
-                                    <ul x-show="openCity && filteredCities.length > 0" x-transition class="absolute z-50 w-full mt-1 bg-slate-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-slate-700" style="display: none;">
-                                        <template x-for="city in filteredCities" :key="city">
-                                            <li @click="selectCity(city)" class="text-slate-200 cursor-pointer select-none relative py-2 px-4 hover:bg-slate-700 hover:text-white transition-colors">
-                                                <span x-text="city" class="block truncate"></span>
-                                            </li>
+                                    <select name="destination" id="destination" x-model="searchCity" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 [&>option]:bg-slate-900" required>
+                                        <option value="">Seleccione una comuna</option>
+                                        <template x-for="city in availableCities" :key="city">
+                                            <option :value="city" x-text="city"></option>
                                         </template>
-                                    </ul>
+                                    </select>
                                 </div>
                             </div>
 
@@ -575,15 +561,27 @@
 
                                 <div class="space-y-4">
                                     <template x-for="(dest, index) in destinations" :key="index">
-                                        <div class="flex items-center gap-4 bg-slate-900/40 p-4 rounded-2xl border border-slate-800">
+                                        <div class="flex items-center gap-4 bg-slate-900/40 p-4 rounded-2xl border border-slate-800" 
+                                             x-data="locationAutocomplete()" 
+                                             x-init="searchRegion = dest.region; searchCity = dest.destination; $watch('searchRegion', val => { destinations[index].region = val; searchCity = ''; destinations[index].destination = ''; }); $watch('searchCity', val => destinations[index].destination = val)">
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
                                                 <div>
                                                     <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Región</label>
-                                                    <input type="text" x-model="dest.region" placeholder="Ej: Región del Biobío" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-white placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                                    <select x-model="searchRegion" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 [&>option]:bg-slate-900" required>
+                                                        <option value="">Seleccione una región</option>
+                                                        <template x-for="regionObj in dataset" :key="regionObj.region">
+                                                            <option :value="regionObj.region" x-text="regionObj.region"></option>
+                                                        </template>
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Ciudad / Comuna</label>
-                                                    <input type="text" x-model="dest.destination" placeholder="Ej: Chillán" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-white placeholder-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
+                                                    <select x-model="searchCity" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 [&>option]:bg-slate-900" required>
+                                                        <option value="">Seleccione una comuna</option>
+                                                        <template x-for="city in availableCities" :key="city">
+                                                            <option :value="city" x-text="city"></option>
+                                                        </template>
+                                                    </select>
                                                 </div>
                                             </div>
                                             <button type="button" @click="removeDestination(index)" class="p-2 bg-rose-600/10 text-rose-500 hover:bg-rose-600 hover:text-white rounded-xl transition-all cursor-pointer border border-rose-500/20" title="Eliminar destino">
@@ -612,6 +610,22 @@
                                     <textarea name="companions" id="companions" rows="2" placeholder="Ej: Juan Pérez, María González, Carlos López..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm resize-y"></textarea>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-1">Escribe los nombres de las personas que te acompañarán, separados por coma.</p>
+                            </div>
+
+                            <!-- Correos Dinámicos -->
+                            <div class="col-span-1 md:col-span-2 mt-4" x-data="{ emails: [''] }">
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Correos para Notificación de Anexo</label>
+                                <template x-for="(email, index) in emails" :key="index">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <input type="email" name="notification_emails[]" x-model="emails[index]" placeholder="ejemplo@dimak.cl" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                                        <button type="button" @click="emails.splice(index, 1)" class="px-3 py-2 bg-rose-600/10 text-rose-500 hover:bg-rose-600 hover:text-white rounded-lg transition-all border border-rose-500/20" title="Eliminar correo">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                </template>
+                                <button type="button" @click="emails.push('')" class="text-xs text-blue-400 font-bold hover:text-blue-300 transition-colors inline-flex items-center gap-1 mt-1">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Agregar otro correo
+                                </button>
                             </div>
 
                         </div>
@@ -843,6 +857,11 @@
                             { "region": "Región de Magallanes y de la Antártica Chilena", "comunas": ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos (Ex Navarino)", "Antártica", "Porvenir", "Primavera", "Timaukel", "Natales", "Torres del Paine"] },
                             { "region": "Región Metropolitana de Santiago", "comunas": ["Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "Santiago", "San Joaquín", "San Miguel", "San Ramón", "Vitacura", "Puente Alto", "Pirque", "San José de Maipo", "Colina", "Lampa", "Tiltil", "San Bernardo", "Buin", "Calera de Tango", "Paine", "Melipilla", "Alhué", "Curacaví", "María Pinto", "San Pedro", "Talagante", "El Monte", "Isla de Maipo", "Padre Hurtado", "Peñaflor"] }
                         ],
+                        get availableCities() {
+                            let regionData = this.dataset.find(r => r.region === this.searchRegion);
+                            return regionData ? regionData.comunas : [];
+                        },
+
                         get filteredRegions() {
                             if (this.searchRegion === '') {
                                 return this.dataset.map(item => item.region);

@@ -69,6 +69,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/{rendition}/reject-finances', [RenditionController::class, 'rejectByFinances'])->name('reject-finances-rendition');
         Route::post('/{rendition}/upload-transfer-proof', [RenditionController::class, 'uploadTransferProof'])->name('upload-transfer-proof');
         Route::get('/{rendition}/download-transfer-proof', [RenditionController::class, 'downloadTransferProof'])->name('download-transfer-proof');
+        Route::post('/{id}/reject-transfer', [RenditionController::class, 'rejectTransferProof'])->name('reject-transfer');
     });
 });
 

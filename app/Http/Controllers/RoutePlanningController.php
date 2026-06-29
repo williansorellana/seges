@@ -33,7 +33,7 @@ class RoutePlanningController extends Controller
 
         elseif (auth()->user()->role === WorkflowHelper::ROLE_JEFATURA) {
 
-            $query->where('status', 'pending_jefatura')
+            $query->where('status', WorkflowHelper::STATUS_PENDING_JEFATURA)
                 ->whereHas('user', function ($q) {
                     $q->where('jefatura_id', auth()->id());
                 });
@@ -46,7 +46,7 @@ class RoutePlanningController extends Controller
             || auth()->user()->role === WorkflowHelper::ROLE_ADMIN
         ) {
 
-            $query->where('status', 'pending_controlling');
+            $query->where('status', WorkflowHelper::STATUS_PENDING_CONTROLLING);
         }
 
         // finanzas
@@ -55,7 +55,7 @@ class RoutePlanningController extends Controller
             auth()->user()->departamento === WorkflowHelper::DEPARTMENT_FINANCES
         ) {
 
-            $query->where('status', 'pending_finances');
+            $query->where('status', WorkflowHelper::STATUS_PENDING_FINANCES);
         }
 
         $plannings = $query
@@ -164,14 +164,24 @@ class RoutePlanningController extends Controller
         }
 
         if (auth()->user()->jefatura_id) {
-            $planning->status = 'pending_jefatura';
+            $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
         } else {
             $planning->status = $planning->trip_type === 'reunion'
-                ? 'pending_finances'
-                : 'pending_controlling';
+                ? WorkflowHelper::STATUS_PENDING_FINANCES
+                : WorkflowHelper::STATUS_PENDING_CONTROLLING;
         }
 
         $planning->save();
+
+        if ($request->has('notification_emails')) {
+            $emails = array_filter($request->notification_emails);
+            foreach ($emails as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    \Illuminate\Support\Facades\Notification::route('mail', $email)
+                        ->notify(new \App\Notifications\TravelNotification($planning));
+                }
+            }
+        }
 
         $signatureService = new DigitalSignatureService();
 
@@ -229,6 +239,22 @@ class RoutePlanningController extends Controller
                     ? route('renditions.finances')
                     : route('renditions.controlling')
             ));
+        }
+
+        if ($request->has('notification_emails')) {
+            $emails = array_filter($request->notification_emails, function($email) {
+                return !empty(trim($email)) && filter_var($email, FILTER_VALIDATE_EMAIL);
+            });
+            
+            if (!empty($emails)) {
+                $planning->notification_emails = implode(', ', $emails);
+                $planning->save();
+                
+                foreach ($emails as $email) {
+                    \Illuminate\Support\Facades\Notification::route('mail', $email)
+                        ->notify(new \App\Notifications\TravelNotification($planning));
+                }
+            }
         }
 
         return redirect()

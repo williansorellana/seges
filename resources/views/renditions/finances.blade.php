@@ -98,10 +98,16 @@
                                     <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">Gestión</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-700/40">
+                            <tbody
+                                class="divide-y divide-slate-700/40"
+                                x-data="{ activePlanning: null }"
+                            >
                                 @foreach ($plannings as $plan)
-                                    <tr class="hover:bg-slate-800/60 transition-colors duration-200" x-data="{ showReject: false }">
-                                        
+                                    <tr
+                                        class="hover:bg-slate-800/60 transition-colors duration-200 group cursor-pointer"
+                                        x-data="{ showReject: false }"
+                                        @click="if(!$event.target.closest('form') && !$event.target.closest('button') && !$event.target.closest('textarea')) activePlanning = activePlanning === {{ $plan->id }} ? null : {{ $plan->id }}"
+                                    >    
                                         <td class="px-6 py-5">
                                             <div class="flex flex-col gap-1.5">
                                                 <span class="font-mono text-[12px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-md ring-1 ring-blue-500/20 self-start mt-1">REQ-{{ str_pad($plan->id, 4, '0', STR_PAD_LEFT) }}</span>
@@ -228,6 +234,160 @@
                                                     </div>
                                                 </div>
                                             @endif
+                                        </td>
+                                    </tr>
+                                    <tr
+                                        x-show="activePlanning === {{ $plan->id }}"
+                                        x-cloak
+                                        x-transition
+                                        class="bg-slate-900/40"
+                                    >
+                                        <td colspan="4" class="px-8 pt-6 pb-10 border-b border-slate-700/40">
+
+                                            <!-- Aplicamos el grid de 2 columnas -->
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                                                <!-- Columna Izquierda: Destinos y Amipass -->
+                                                <div class="flex flex-col gap-6">
+                                                    
+                                                    <!-- Tarjeta Destinos -->
+                                                    <div class="flex flex-col h-full">
+                                                        <h5 class="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                            Destinos del Viaje
+                                                        </h5>
+
+                                                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 flex-grow">
+
+                                                            <div class="text-sm font-bold text-white mb-2">
+                                                                Destino Principal:
+                                                                {{ $plan->destination }}
+                                                                @if($plan->region)
+                                                                    <span class="text-slate-400 font-normal">({{ $plan->region }})</span>
+                                                                @endif
+                                                            </div>
+
+                                                            @if(!empty($plan->destinations))
+                                                                <div class="mt-4 pt-3 border-t border-slate-800/80">
+                                                                    <div class="text-[10px] text-slate-500 font-black uppercase tracking-wider mb-2">
+                                                                        Destinos Adicionales
+                                                                    </div>
+                                                                    <ul class="space-y-1.5">
+                                                                        @foreach($plan->destinations as $dest)
+                                                                            @if(!empty($dest['destination']))
+                                                                                <li class="text-xs text-slate-300">
+                                                                                    • {{ $dest['destination'] }}
+                                                                                    @if(!empty($dest['region']))
+                                                                                        <span class="text-slate-500">({{ $dest['region'] }})</span>
+                                                                                    @endif
+                                                                                </li>
+                                                                            @endif
+                                                                        @endforeach
+                                                                    </ul>
+                                                                </div>
+                                                            @else
+                                                                <p class="text-xs text-slate-500 italic mt-2">
+                                                                    Sin destinos adicionales.
+                                                                </p>
+                                                            @endif
+
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Tarjeta Amipass -->
+                                                    @if($plan->requires_amipass)
+                                                    <div>
+                                                        <h5 class="text-xs font-black text-white uppercase tracking-wider mb-2">
+                                                            Amipass
+                                                        </h5>
+
+                                                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                                                            <div class="space-y-2 text-sm">
+                                                                <div class="flex justify-between">
+                                                                    <span class="text-slate-500">Monto</span>
+                                                                    <span class="font-bold text-emerald-400">
+                                                                        ${{ number_format($plan->amipass_amount,0,',','.') }}
+                                                                    </span>
+                                                                </div>
+                                                                <div class="flex justify-between">
+                                                                    <span class="text-slate-500">Días</span>
+                                                                    <span class="font-bold text-white">
+                                                                        {{ $plan->amipass_business_days ?? $plan->amipass_days }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    @endif
+
+                                                </div>
+
+                                                <!-- Columna Derecha: Desglose -->
+                                                <div class="flex flex-col h-full">
+                                                    @if($plan->requires_funds)
+                                                    <div class="flex flex-col h-full">
+                                                        <h5 class="text-xs font-black text-white uppercase tracking-wider mb-2">
+                                                            Desglose de Presupuesto
+                                                        </h5>
+
+                                                        <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800 flex-grow">
+
+                                                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+
+                                                                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center flex flex-col justify-center">
+                                                                    <div class="text-[9px] text-slate-500 uppercase font-black mb-1">Bencina</div>
+                                                                    <div class="text-sm font-bold text-white">
+                                                                        ${{ number_format($plan->funds_bencina,0,',','.') }}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center flex flex-col justify-center">
+                                                                    <div class="text-[9px] text-slate-500 uppercase font-black mb-1">Peajes</div>
+                                                                    <div class="text-sm font-bold text-white">
+                                                                        ${{ number_format($plan->funds_peaje,0,',','.') }}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center flex flex-col justify-center">
+                                                                    <div class="text-[9px] text-slate-500 uppercase font-black mb-1">Alojamiento</div>
+                                                                    <div class="text-sm font-bold text-white">
+                                                                        ${{ number_format($plan->funds_alojamiento,0,',','.') }}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center flex flex-col justify-center">
+                                                                    <div class="text-[9px] text-slate-500 uppercase font-black mb-1">Alimentación</div>
+                                                                    <div class="text-sm font-bold text-white">
+                                                                        ${{ number_format($plan->funds_alimentacion,0,',','.') }}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center flex flex-col justify-center col-span-2 sm:col-span-1">
+                                                                    <div class="text-[9px] text-slate-500 uppercase font-black mb-1">Otros</div>
+                                                                    <div class="text-sm font-bold text-white">
+                                                                        ${{ number_format($plan->funds_otros,0,',','.') }}
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+
+                                                            @if($plan->funds_description)
+                                                                <div class="pt-3 mt-4 border-t border-slate-800">
+                                                                    <div class="text-[10px] text-slate-500 uppercase font-black mb-1">
+                                                                        Justificación
+                                                                    </div>
+                                                                    <p class="text-xs text-slate-300">
+                                                                        {{ $plan->funds_description }}
+                                                                    </p>
+                                                                </div>
+                                                            @endif
+
+                                                        </div>
+                                                    </div>
+                                                    @endif
+                                                </div>
+
+                                            </div>
+
                                         </td>
                                     </tr>
                                 @endforeach
@@ -382,6 +542,14 @@
                                                     Ver detalle
                                                 </a>
 
+                                                @if($ren->transfer_proof_path)
+                                                    <a href="{{ route('renditions.download-transfer-proof', $ren->id) }}" target="_blank"
+                                                        class="px-4 py-2 bg-slate-800 text-emerald-400 border border-emerald-500/30 text-xs font-semibold rounded-lg hover:bg-slate-700 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                        Ver Transferencia
+                                                    </a>
+                                                @endif
+
                                                 @if($isOwnRendition)
                                                     <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[210px]">
                                                         <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
@@ -497,6 +665,12 @@
                                                         </button>
                                                     </div>
                                                 </form>
+
+                                                <form action="{{ route('renditions.reject-transfer', $ren->id) }}" method="POST" class="mt-2">
+                                                    @csrf
+                                                    <button type="submit" class="text-xs text-red-500 hover:underline">Rechazar comprobante y solicitar nuevo</button>
+                                                </form>
+
                                             </div>
                                         </div>
                                     </td>

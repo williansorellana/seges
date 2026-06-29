@@ -1153,4 +1153,11 @@ class RenditionController extends Controller
 
         return view('renditions.history', compact('plannings', 'renditions'));
     }
+
+    public function rejectTransferProof(Request $request, $id) 
+    {
+        $rendition = \App\Models\Rendition::findOrFail($id);
+        $rendition->update(['transfer_proof_path' => null]);
+        return back()->with('success', 'Comprobante rechazado correctamente.');
+    }
 }
