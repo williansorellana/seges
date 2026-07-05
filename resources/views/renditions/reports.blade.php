@@ -158,6 +158,7 @@
                                     <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">ID</th>
                                     <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Colaborador</th>
                                     <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Destinos</th>
+                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Viaje</th>
                                     <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Presupuesto</th>
                                     <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Rendido</th>
                                     <th class="px-6 py-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado RP</th>
@@ -205,6 +206,20 @@
                                                 <div class="text-[9px] text-indigo-400 font-bold mt-1 uppercase tracking-tighter">
                                                     + {{ count($plan->destinations) }} destinos adicionales
                                                 </div>
+                                            @endif
+                                        </td>
+
+                                        <!-- Fecha Viaje -->
+                                        <td class="px-6 py-5 whitespace-nowrap">
+                                            @if($plan->departure_date)
+                                                <div class="text-xs font-black text-white">
+                                                    {{ \Carbon\Carbon::parse($plan->departure_date)->format('d/m/Y') }}
+                                                </div>
+                                                <div class="text-[9px] text-slate-500 font-bold mt-0.5 uppercase">
+                                                    {{ \Carbon\Carbon::parse($plan->departure_date)->translatedFormat('M Y') }}
+                                                </div>
+                                            @else
+                                                <span class="text-[10px] text-slate-600 font-bold italic">Sin fecha</span>
                                             @endif
                                         </td>
 
