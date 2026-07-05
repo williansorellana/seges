@@ -54,7 +54,7 @@
     </x-slot>
 
     <div class="py-12 bg-[#0f172a] min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="{ showApprovalsModal: false, showSignaturesModal: false }">
             
             <!-- Import Flatpickr -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -616,6 +616,18 @@
                 <!-- Columna Derecha: Panel Financiero (4 cols) -->
                 <div class="lg:col-span-4 space-y-8">
                     
+                    <!-- Botones para ver Historial y Firmas en Modales -->
+                    <div class="flex gap-4">
+                        <button type="button" @click="showApprovalsModal = true" class="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all border border-slate-750/80 shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Historial
+                        </button>
+                        <button type="button" @click="showSignaturesModal = true" class="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all border border-slate-750/80 shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            Firmas
+                        </button>
+                    </div>
+
                     <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
                         <div class="relative z-10">
                             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
@@ -934,15 +946,23 @@
                         </div>
                     </div>
                 </div>
-            </div>
+                </div> <!-- Closes lg:col-span-4 -->
+            </div> <!-- Closes grid-cols-12 -->
 
-            <!-- Seccion Historial y Firmas sin scroll -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
-                        <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-wider flex items-center gap-2">
+            <!-- Modal: Historial de Aprobaciones -->
+            <div x-show="showApprovalsModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" x-transition style="display: none;">
+                <div class="bg-slate-900 border border-slate-850 rounded-[2rem] p-8 max-w-xl w-full mx-auto shadow-2xl relative max-h-[85vh] flex flex-col" @click.away="showApprovalsModal = false">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+                    
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+                        <h3 class="text-lg font-black text-white flex items-center gap-2 uppercase tracking-tight">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             Historial de Aprobaciones
-                        </h4>
+                        </h3>
+                        <button type="button" @click="showApprovalsModal = false" class="text-slate-400 hover:text-white text-xs font-black uppercase cursor-pointer">Cerrar</button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-800 font-medium">
 
                         @if($rendition->workflowHistories->isEmpty())
                             <p class="text-sm text-slate-500 font-medium">
@@ -1032,13 +1052,23 @@
                             </div>
                         @endif
                     </div>
+                </div>
+            </div>
 
-                    <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
-                        <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-wider flex items-center gap-2">
+            <!-- Modal: Firmas Digitales -->
+            <div x-show="showSignaturesModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" x-transition style="display: none;">
+                <div class="bg-slate-900 border border-slate-850 rounded-[2rem] p-8 max-w-xl w-full mx-auto shadow-2xl relative max-h-[85vh] flex flex-col" @click.away="showSignaturesModal = false">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+                    
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+                        <h3 class="text-lg font-black text-white flex items-center gap-2 uppercase tracking-tight">
                             <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                             Firmas Digitales
-                        </h4>
+                        </h3>
+                        <button type="button" @click="showSignaturesModal = false" class="text-slate-400 hover:text-white text-xs font-black uppercase cursor-pointer">Cerrar</button>
+                    </div>
 
+                    <div class="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-800">
                         @if($rendition->digitalSignatures->isEmpty())
                             <p class="text-sm text-slate-500 font-medium">
                                 Aún no existen firmas digitales registradas para esta rendición.
@@ -1140,6 +1170,7 @@
                         @endif
                     </div>
                 </div>
+            </div>
 
         </div>
     </div>
