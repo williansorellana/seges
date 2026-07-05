@@ -211,12 +211,17 @@
 
                                         <!-- Fecha Viaje -->
                                         <td class="px-6 py-5 whitespace-nowrap">
-                                            @if($plan->departure_date)
+                                            @if($plan->start_date)
                                                 <div class="text-xs font-black text-white">
-                                                    {{ \Carbon\Carbon::parse($plan->departure_date)->format('d/m/Y') }}
+                                                    {{ \Carbon\Carbon::parse($plan->start_date)->format('d/m/Y') }}
                                                 </div>
-                                                <div class="text-[9px] text-slate-500 font-bold mt-0.5 uppercase">
-                                                    {{ \Carbon\Carbon::parse($plan->departure_date)->translatedFormat('M Y') }}
+                                                @if($plan->end_date && $plan->end_date !== $plan->start_date)
+                                                    <div class="text-[9px] text-slate-500 font-bold mt-0.5">
+                                                        al {{ \Carbon\Carbon::parse($plan->end_date)->format('d/m/Y') }}
+                                                    </div>
+                                                @endif
+                                                <div class="text-[9px] text-indigo-400/70 font-bold mt-0.5 uppercase">
+                                                    {{ \Carbon\Carbon::parse($plan->start_date)->translatedFormat('M Y') }}
                                                 </div>
                                             @else
                                                 <span class="text-[10px] text-slate-600 font-bold italic">Sin fecha</span>
