@@ -19,9 +19,26 @@ class RenditionController extends Controller
         $query = \App\Models\Rendition::with(['routePlanning', 'observations.user'])
             ->where('user_id', auth()->id());
 
-        // Filtro por estado
+        // Filtro por estado (agrupado)
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            switch ($request->status) {
+                case 'por_rendir':
+                    $query->whereIn('status', ['draft', 'rejected']);
+                    break;
+                case 'en_revision':
+                    $query->whereIn('status', ['pending_jefatura', 'pending_controlling', 'pending_finances']);
+                    break;
+                case 'cerrado':
+                    $query->where(function ($q) {
+                        $q->where(function ($sub) {
+                            $sub->where('status', 'approved')->where('payment_completed', true);
+                        })->orWhere('status', 'closed');
+                    });
+                    break;
+                case 'cierre_pendiente':
+                    $query->where('status', 'approved')->where('payment_completed', false);
+                    break;
+            }
         }
 
         // Filtro por destino (búsqueda de texto)

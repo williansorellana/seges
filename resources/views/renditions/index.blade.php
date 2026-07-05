@@ -52,63 +52,69 @@
             </div>
 
             <!-- Filtros de Búsqueda -->
-            <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6">
-                <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+            <div class="bg-slate-900 border border-slate-800 rounded-[2rem] shadow-2xl p-8 relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    Filtros de búsqueda
+                    Filtros de Búsqueda
                 </h3>
-                <form method="GET" action="{{ route('renditions.index') }}" id="renditions-filter-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                    <!-- Estado -->
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Estado</label>
-                        <div class="flex items-center border border-slate-700/60 rounded-xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
-                            <select name="status" class="w-full bg-transparent border-none text-white text-xs font-bold py-3 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('renditions-filter-form').submit()">
-                                <option value="">Todos los estados</option>
-                                <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Borrador</option>
-                                <option value="pending_jefatura" {{ request('status') === 'pending_jefatura' ? 'selected' : '' }}>Pendiente Jefatura</option>
-                                <option value="pending_controlling" {{ request('status') === 'pending_controlling' ? 'selected' : '' }}>Pendiente Controlling</option>
-                                <option value="pending_finances" {{ request('status') === 'pending_finances' ? 'selected' : '' }}>Pendiente Finanzas</option>
-                                <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Aprobada</option>
-                                <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Observada</option>
-                            </select>
+                <form method="GET" action="{{ route('renditions.index') }}" id="renditions-filter-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        <!-- Estado -->
+                        <div class="group">
+                            <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Estado</label>
+                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                                <select name="status" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('renditions-filter-form').submit()">
+                                    <option value="">Todos los estados</option>
+                                    <option value="por_rendir" {{ request('status') === 'por_rendir' ? 'selected' : '' }}>Por Rendir</option>
+                                    <option value="en_revision" {{ request('status') === 'en_revision' ? 'selected' : '' }}>En Revisión</option>
+                                    <option value="cierre_pendiente" {{ request('status') === 'cierre_pendiente' ? 'selected' : '' }}>Cierre Pendiente</option>
+                                    <option value="cerrado" {{ request('status') === 'cerrado' ? 'selected' : '' }}>Cerrado</option>
+                                </select>
+                            </div>
                         </div>
+
+                        <!-- Año -->
+                        <div class="group">
+                            <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Año del Viaje</label>
+                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                                <select name="year" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('renditions-filter-form').submit()">
+                                    <option value="">Todos los años</option>
+                                    @for($y = 2020; $y <= now()->year + 2; $y++)
+                                        <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Destino -->
+                        <div class="group">
+                            <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Destino</label>
+                            <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                                <input type="text" name="destination" value="{{ request('destination') }}"
+                                    placeholder="Buscar destino..."
+                                    class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 placeholder:text-slate-600"
+                                    onkeydown="if(event.key==='Enter'){document.getElementById('renditions-filter-form').submit();}">
+                            </div>
+                        </div>
+
                     </div>
 
-                    <!-- Año -->
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Año del viaje</label>
-                        <div class="flex items-center border border-slate-700/60 rounded-xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
-                            <select name="year" class="w-full bg-transparent border-none text-white text-xs font-bold py-3 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('renditions-filter-form').submit()">
-                                <option value="">Todos los años</option>
-                                @for($y = 2020; $y <= now()->year + 2; $y++)
-                                    <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Destino -->
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Destino</label>
-                        <div class="flex items-center border border-slate-700/60 rounded-xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
-                            <input type="text" name="destination" value="{{ request('destination') }}"
-                                placeholder="Buscar destino..."
-                                class="w-full bg-transparent border-none text-white text-xs font-bold py-3 px-4 focus:ring-0 placeholder:text-slate-600"
-                                onchange="document.getElementById('renditions-filter-form').submit()">
-                        </div>
-                    </div>
-
-                </form>
-
-                @if(request()->hasAny(['status', 'year', 'destination']))
-                    <div class="mt-4 flex justify-end">
-                        <a href="{{ route('renditions.index') }}" class="px-5 py-2 bg-slate-800/80 border border-slate-700/80 text-slate-300 hover:text-white hover:border-rose-500/60 hover:bg-rose-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <div class="flex justify-end gap-3 pt-6 border-t border-slate-800/60">
+                        <a href="{{ route('renditions.index') }}" class="px-6 py-3 bg-slate-800/80 border border-slate-700/80 text-slate-300 hover:text-white hover:border-rose-500/60 hover:bg-rose-500/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                             Limpiar Filtros
                         </a>
+                        <button type="submit" class="px-7 py-3 bg-slate-800 border border-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-700 transition-all cursor-pointer">
+                            Filtrar
+                        </button>
                     </div>
-                @endif
+                </form>
             </div>
 
             <!-- Listado de Rendiciones -->
