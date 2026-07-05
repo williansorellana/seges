@@ -162,6 +162,19 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/60">
+                                @php
+                                    $statusTranslations = [
+                                        'draft' => 'Borrador',
+                                        'pending_jefatura' => 'Pendiente Jefatura',
+                                        'pending_controlling' => 'Pendiente Controlling',
+                                        'pending_finances' => 'Pendiente Finanzas',
+                                        'approved' => 'Aprobado',
+                                        'rejected' => 'Rechazado',
+                                        'completed' => 'Completado',
+                                        'payment_completed' => 'Pago Realizado',
+                                        'closed' => 'Cerrado',
+                                    ];
+                                @endphp
                                 @foreach($plannings as $plan)
                                     <tr class="hover:bg-slate-800/20 transition-all duration-200">
                                         <!-- ID -->
@@ -233,7 +246,7 @@
                                                     bg-amber-500/10 text-amber-400 border border-amber-500/20
                                                 @endif
                                             ">
-                                                {{ ucfirst(str_replace('_', ' ', $plan->status)) }}
+                                                {{ $statusTranslations[$plan->status] ?? ucfirst(str_replace('_', ' ', $plan->status)) }}
                                             </span>
                                         </td>
 
@@ -249,7 +262,7 @@
                                                         bg-blue-500/10 text-blue-400 border border-blue-500/20
                                                     @endif
                                                 ">
-                                                    {{ ucfirst(str_replace('_', ' ', $plan->rendition->status)) }}
+                                                    {{ $statusTranslations[$plan->rendition->status] ?? ucfirst(str_replace('_', ' ', $plan->rendition->status)) }}
                                                 </span>
                                             @else
                                                 <span class="text-[10px] text-slate-600 font-bold uppercase tracking-tighter">N/A</span>

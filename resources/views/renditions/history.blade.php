@@ -352,7 +352,18 @@
                                                 $renditionStatusClass = 'bg-red-500/10 text-red-400 ring-red-500/20';
                                                 $renditionStatusIcon = 'rejected';
                                             } else {
-                                                $renditionStatusLabel = ucfirst(str_replace('_', ' ', $ren->status));
+                                                $statusTranslations = [
+                                                    'draft' => 'Borrador',
+                                                    'pending_jefatura' => 'Pendiente Jefatura',
+                                                    'pending_controlling' => 'Pendiente Controlling',
+                                                    'pending_finances' => 'Pendiente Finanzas',
+                                                    'approved' => 'Aprobado',
+                                                    'rejected' => 'Rechazado',
+                                                    'completed' => 'Completado',
+                                                    'payment_completed' => 'Pago Realizado',
+                                                    'closed' => 'Cerrado',
+                                                ];
+                                                $renditionStatusLabel = $statusTranslations[$ren->status] ?? ucfirst(str_replace('_', ' ', $ren->status));
                                                 $renditionStatusClass = 'bg-slate-500/10 text-slate-400 ring-slate-500/20';
                                                 $renditionStatusIcon = 'pending';
                                             }

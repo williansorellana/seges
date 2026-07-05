@@ -153,7 +153,18 @@
                                                     $statusDot = null;
                                                     $statusIcon = 'warning';
                                                 } else {
-                                                    $statusLabel = ucfirst(str_replace('_', ' ', $ren->status));
+                                                    $statusTranslations = [
+                                                        'draft' => 'Borrador',
+                                                        'pending_jefatura' => 'Pendiente Jefatura',
+                                                        'pending_controlling' => 'Pendiente Controlling',
+                                                        'pending_finances' => 'Pendiente Finanzas',
+                                                        'approved' => 'Aprobado',
+                                                        'rejected' => 'Rechazado',
+                                                        'completed' => 'Completado',
+                                                        'payment_completed' => 'Pago Realizado',
+                                                        'closed' => 'Cerrado',
+                                                    ];
+                                                    $statusLabel = $statusTranslations[$ren->status] ?? ucfirst(str_replace('_', ' ', $ren->status));
                                                     $statusClass = 'bg-slate-800 text-slate-400 border-slate-700';
                                                     $statusDot = 'bg-slate-500';
                                                     $statusIcon = null;
