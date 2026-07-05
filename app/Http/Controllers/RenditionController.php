@@ -14,13 +14,32 @@ use App\Services\DigitalSignatureService;
 
 class RenditionController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $renditions = \App\Models\Rendition::with(['routePlanning', 'observations.user'])
-            ->where('user_id', auth()->id())
-            ->orderBy('updated_at', 'desc')
-            ->paginate(10);
-            
+        $query = \App\Models\Rendition::with(['routePlanning', 'observations.user'])
+            ->where('user_id', auth()->id());
+
+        // Filtro por estado
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filtro por destino (búsqueda de texto)
+        if ($request->filled('destination')) {
+            $query->whereHas('routePlanning', function ($q) use ($request) {
+                $q->where('destination', 'like', '%' . $request->destination . '%');
+            });
+        }
+
+        // Filtro por año del viaje
+        if ($request->filled('year')) {
+            $query->whereHas('routePlanning', function ($q) use ($request) {
+                $q->whereYear('start_date', $request->year);
+            });
+        }
+
+        $renditions = $query->orderBy('updated_at', 'desc')->paginate(10)->withQueryString();
+
         return view('renditions.index', compact('renditions'));
     }
 

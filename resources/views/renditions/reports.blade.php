@@ -212,11 +212,11 @@
                                         <!-- Fecha Viaje -->
                                         <td class="px-6 py-5 whitespace-nowrap">
                                             @if($plan->start_date)
-                                                <div class="text-xs font-black text-white">
+                                                <div class="text-xs font-black text-blue-300">
                                                     {{ \Carbon\Carbon::parse($plan->start_date)->format('d/m/Y') }}
                                                 </div>
                                                 @if($plan->end_date && $plan->end_date !== $plan->start_date)
-                                                    <div class="text-[9px] text-slate-500 font-bold mt-0.5">
+                                                    <div class="text-[9px] text-slate-400 font-bold mt-0.5">
                                                         al {{ \Carbon\Carbon::parse($plan->end_date)->format('d/m/Y') }}
                                                     </div>
                                                 @endif

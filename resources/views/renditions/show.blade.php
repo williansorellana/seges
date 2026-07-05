@@ -942,6 +942,231 @@
                                                 </span>
                                             </div>
                                         @else
+                                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter italic">
+                                                No solicitado
+                                            </span>
+                                        @endif
+                                    </dd>
+                                </div>
+                                <div class="text-right">
+                                    <dt class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Solicitado por</dt>
+                                    <dd class="text-[10px] font-black text-white uppercase tracking-tight">{{ $rendition->user->name }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- Panel: Historial de Aprobaciones -->
+                    <div x-show="activePanel === 'history'" class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
+                        <div class="relative z-10">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                Historial de Aprobaciones
+                            </h3>
+                            
+                            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-800 font-medium">
+                                @if($rendition->workflowHistories->isEmpty())
+                                    <p class="text-sm text-slate-500 font-medium">
+                                        Aún no hay movimientos registrados para esta rendición.
+                                    </p>
+                                @else
+                                    <div class="space-y-4">
+                                        @foreach($rendition->workflowHistories->sortByDesc('created_at') as $history)
+                                            @php
+                                                $actionLabels = [
+                                                    'submitted_by_worker' => 'Enviado por trabajador',
+                                                    'approved_by_jefatura' => 'Aprobado por Jefatura',
+                                                    'rejected_by_jefatura' => 'Rechazado por Jefatura',
+                                                    'approved_by_controlling' => 'Aprobado por Controlling',
+                                                    'rejected_by_controlling' => 'Rechazado por Controlling',
+                                                    'approved_by_finances' => 'Aprobado por Finanzas',
+                                                    'rejected_by_finances' => 'Rechazado por Finanzas',
+                                                    'payment_completed_by_finances' => 'Cierre financiero confirmado por Finanzas',
+                                                    'payment_completed_automatically' => 'Cierre financiero automático',
+                                                    'expense_validated_by_controlling' => 'Documento validado por Controlling',
+                                                    'expense_observed_by_controlling' => 'Documento observado por Controlling',
+                                                ];
+
+                                                $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
+
+                                                $isRejected = str_contains($history->action, 'rejected') || str_contains($history->action, 'observed') || str_contains($history->action, 'returned');
+                                                $isApproved = str_contains($history->action, 'approved')
+                                                    || str_contains($history->action, 'validated')
+                                                    || str_contains($history->action, 'completed')
+                                                    || str_contains($history->action, 'automatically');
+                                            @endphp
+
+                                            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50 relative overflow-hidden">
+                                                <div class="absolute left-0 top-0 h-full w-1
+                                                    @if($isRejected)
+                                                        bg-rose-500
+                                                    @elseif($isApproved)
+                                                        bg-emerald-500
+                                                    @else
+                                                        bg-blue-500
+                                                    @endif
+                                                "></div>
+
+                                                <div class="pl-3">
+                                                    <div class="flex items-start justify-between gap-4">
+                                                        <div>
+                                                            <p class="text-sm font-black text-white uppercase tracking-tight">
+                                                                {{ $history->user->name ?? 'Sistema' }}
+                                                            </p>
+
+                                                            <p class="text-[11px] text-slate-400 font-bold mt-1">
+                                                                {{ $actionLabel }}
+                                                            </p>
+                                                        </div>
+
+                                                        <span class="text-[10px] text-slate-600 font-black uppercase tracking-tighter whitespace-nowrap">
+                                                            {{ $history->created_at->format('d/m/Y H:i') }}
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="mt-3 flex flex-wrap gap-2">
+                                                        <span class="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 text-[9px] font-black uppercase tracking-widest border border-slate-700">
+                                                            {{ $history->from_status ?? 'N/A' }}
+                                                        </span>
+
+                                                        <span class="text-slate-600 text-xs font-black">→</span>
+
+                                                        <span class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 text-[9px] font-black uppercase tracking-widest border border-slate-700">
+                                                            {{ $history->to_status ?? 'N/A' }}
+                                                        </span>
+                                                    </div>
+
+                                                    @if($history->observation)
+                                                        <div class="mt-4 text-sm text-slate-300 bg-slate-900/80 rounded-2xl p-3 border border-slate-800 leading-relaxed">
+                                                            {{ $history->observation }}
+                                                        </div>
+                                                    @endif
+
+                                                    @if($history->ip_address)
+                                                        <p class="mt-3 text-[10px] text-slate-600 font-mono">
+                                                            IP: {{ $history->ip_address }}
+                                                        </p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel: Firmas Digitales -->
+                    <div x-show="activePanel === 'signatures'" class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
+                        <div class="relative z-10">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                                Firmas Digitales
+                            </h3>
+                            
+                            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-800">
+                                @if($rendition->digitalSignatures->isEmpty())
+                                    <p class="text-sm text-slate-500 font-medium">
+                                        Aún no existen firmas digitales registradas para esta rendición.
+                                    </p>
+                                @else
+                                    <div class="space-y-4">
+                                        @foreach($rendition->digitalSignatures->sortBy('signed_at') as $signature)
+                                            @php
+                                                $signatureLabels = [
+                                                    'rendition_worker_signature' => 'Firma del Trabajador',
+                                                    'rendition_jefatura_signature' => 'Firma de Jefatura',
+                                                    'planning_worker_signature' => 'Firma Planificación Trabajador',
+                                                    'jefatura_approval' => 'Firma Aprobación Jefatura',
+                                                ];
+
+                                                $signatureLabel = $signatureLabels[$signature->signature_type] ?? ucfirst(str_replace('_', ' ', $signature->signature_type));
+                                                
+                                                $isWorker = $signature->signature_type === 'rendition_worker_signature';
+                                                $borderColor = $isWorker ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'border-indigo-500/20 hover:border-indigo-500/40';
+                                                $glowColor = $isWorker ? 'bg-emerald-500/5 group-hover:bg-emerald-500/10' : 'bg-indigo-500/5 group-hover:bg-indigo-500/10';
+                                                $iconBg = $isWorker ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+                                                $badgeBg = $isWorker ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+                                                $tokenColor = $isWorker ? 'text-emerald-400' : 'text-indigo-400';
+                                                $helpIconColor = $isWorker ? 'group-hover/token:text-emerald-400' : 'group-hover/token:text-indigo-400';
+                                            @endphp
+
+                                            <div class="p-5 rounded-3xl bg-slate-950/80 border-2 {{ $borderColor }} relative overflow-hidden group transition-all duration-300">
+                                                <!-- Decorative stamp glow -->
+                                                <div class="absolute -right-12 -bottom-12 w-28 h-28 {{ $glowColor }} rounded-full blur-[25px] transition-all"></div>
+                                                
+                                                <div class="flex items-start justify-between gap-4 relative z-10">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-10 h-10 rounded-xl {{ $iconBg }} flex items-center justify-center border">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <p class="text-xs font-black text-white uppercase tracking-wider">
+                                                                {{ $signatureLabel }}
+                                                            </p>
+                                                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">
+                                                                Certificado Digital
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <span class="px-2 py-0.5 rounded-md {{ $badgeBg }} border text-[9px] font-black uppercase tracking-widest">
+                                                        Verificada
+                                                    </span>
+                                                </div>
+
+                                                <div class="mt-5 space-y-3 relative z-10">
+                                                    <div class="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-850/60">
+                                                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                                            <div>
+                                                                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Firmante</span>
+                                                                <span class="text-white font-bold">{{ $signature->user ? $signature->user->name . ' ' . $signature->user->last_name : 'No disponible' }}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Rol</span>
+                                                                <span class="text-slate-300 font-semibold uppercase tracking-wider">{{ $signature->role ?? ($signature->user ? $signature->user->role : 'N/A') }}</span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="grid grid-cols-2 gap-2 text-[11px] mt-2.5 pt-2.5 border-t border-slate-800/50">
+                                                            <div>
+                                                                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Fecha y Hora</span>
+                                                                <span class="text-slate-300 font-semibold">{{ $signature->signed_at ? $signature->signed_at->format('d/m/Y H:i:s') : 'Sin fecha' }}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Dirección IP</span>
+                                                                <span class="text-slate-400 font-mono">{{ $signature->ip_address ?? 'N/A' }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    @if($signature->verification_token)
+                                                        <div class="bg-slate-900/40 px-3.5 py-2.5 rounded-2xl border border-slate-850/60 flex items-center justify-between gap-3 group/token hover:bg-slate-900/80 transition-colors">
+                                                            <div class="flex-1 min-w-0">
+                                                                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-0.5">Token de Verificación</span>
+                                                                <span class="text-[10px] {{ $tokenColor }} font-mono truncate block">{{ $signature->verification_token }}</span>
+                                                            </div>
+                                                            <svg class="w-4 h-4 text-slate-600 {{ $helpIconColor }} transition-colors cursor-help flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                            </svg>
+                                                        </div>
+                                                    @endif
+
+                                                    <div>
+                                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-1">Firma Digital (Hash SHA-256)</span>
+                                                        <div class="text-[9px] text-slate-400 font-mono break-all bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+                                                            {{ $signature->hash }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Panel: Historial de Aprobaciones -->

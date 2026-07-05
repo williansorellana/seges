@@ -51,6 +51,66 @@
                 </div>
             </div>
 
+            <!-- Filtros de Búsqueda -->
+            <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6">
+                <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    Filtros de búsqueda
+                </h3>
+                <form method="GET" action="{{ route('renditions.index') }}" id="renditions-filter-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                    <!-- Estado -->
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Estado</label>
+                        <div class="flex items-center border border-slate-700/60 rounded-xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                            <select name="status" class="w-full bg-transparent border-none text-white text-xs font-bold py-3 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('renditions-filter-form').submit()">
+                                <option value="">Todos los estados</option>
+                                <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Borrador</option>
+                                <option value="pending_jefatura" {{ request('status') === 'pending_jefatura' ? 'selected' : '' }}>Pendiente Jefatura</option>
+                                <option value="pending_controlling" {{ request('status') === 'pending_controlling' ? 'selected' : '' }}>Pendiente Controlling</option>
+                                <option value="pending_finances" {{ request('status') === 'pending_finances' ? 'selected' : '' }}>Pendiente Finanzas</option>
+                                <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Aprobada</option>
+                                <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Observada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Año -->
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Año del viaje</label>
+                        <div class="flex items-center border border-slate-700/60 rounded-xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                            <select name="year" class="w-full bg-transparent border-none text-white text-xs font-bold py-3 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('renditions-filter-form').submit()">
+                                <option value="">Todos los años</option>
+                                @for($y = 2020; $y <= now()->year + 2; $y++)
+                                    <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Destino -->
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Destino</label>
+                        <div class="flex items-center border border-slate-700/60 rounded-xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
+                            <input type="text" name="destination" value="{{ request('destination') }}"
+                                placeholder="Buscar destino..."
+                                class="w-full bg-transparent border-none text-white text-xs font-bold py-3 px-4 focus:ring-0 placeholder:text-slate-600"
+                                onchange="document.getElementById('renditions-filter-form').submit()">
+                        </div>
+                    </div>
+
+                </form>
+
+                @if(request()->hasAny(['status', 'year', 'destination']))
+                    <div class="mt-4 flex justify-end">
+                        <a href="{{ route('renditions.index') }}" class="px-5 py-2 bg-slate-800/80 border border-slate-700/80 text-slate-300 hover:text-white hover:border-rose-500/60 hover:bg-rose-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            Limpiar Filtros
+                        </a>
+                    </div>
+                @endif
+            </div>
+
             <!-- Listado de Rendiciones -->
             <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5">
                 @if($renditions->isEmpty())
@@ -93,9 +153,11 @@
                                             <div class="text-sm font-semibold text-white mb-1 tracking-tight">
                                                 {{ $ren->routePlanning->destination }}
                                             </div>
-                                            <div class="flex items-center gap-1.5 text-[11px] text-blue-400 mt-1">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                {{ \Carbon\Carbon::parse($ren->routePlanning->start_date)->format('d/m/Y') }} al {{ \Carbon\Carbon::parse($ren->routePlanning->end_date)->format('d/m/Y') }}
+                                            <div class="flex items-center gap-1.5 text-[11px] text-slate-300 mt-1">
+                                                <svg class="w-3 h-3 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                <span class="text-blue-300 font-bold">{{ \Carbon\Carbon::parse($ren->routePlanning->start_date)->format('d/m/Y') }}</span>
+                                                <span class="text-slate-500">al</span>
+                                                <span class="text-blue-300 font-bold">{{ \Carbon\Carbon::parse($ren->routePlanning->end_date)->format('d/m/Y') }}</span>
                                             </div>
                                         </td>
  
