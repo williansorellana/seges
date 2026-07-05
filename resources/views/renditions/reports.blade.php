@@ -24,14 +24,14 @@
                     Filtros de Búsqueda
                 </h3>
 
-                <form method="GET" action="{{ route('renditions.reports') }}" class="space-y-6">
+                <form method="GET" action="{{ route('renditions.reports') }}" class="space-y-6" id="reports-filter-form">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                         
                         <!-- Colaborador -->
                         <div class="group">
                             <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Colaborador</label>
                             <div class="flex items-center border border-slate-850 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-indigo-500 transition-all">
-                                <select name="user_id" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900">
+                                <select name="user_id" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('reports-filter-form').submit()">
                                     <option value="">Todos los colaboradores</option>
                                     @foreach($users as $u)
                                         <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>
@@ -46,7 +46,7 @@
                         <div class="group">
                             <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Mes</label>
                             <div class="flex items-center border border-slate-850 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-indigo-500 transition-all">
-                                <select name="month" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900">
+                                <select name="month" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('reports-filter-form').submit()">
                                     <option value="">Todos los meses</option>
                                     @php
                                         $months = [
@@ -68,9 +68,9 @@
                         <div class="group">
                             <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Año</label>
                             <div class="flex items-center border border-slate-850 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-indigo-500 transition-all">
-                                <select name="year" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900">
+                                <select name="year" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('reports-filter-form').submit()">
                                     <option value="">Todos los años</option>
-                                    @for($y = 2025; $y <= 2030; $y++)
+                                    @for($y = 2020; $y <= now()->year + 5; $y++)
                                         <option value="{{ $y }}" {{ request('year', now()->year) == $y ? 'selected' : '' }}>
                                             {{ $y }}
                                         </option>
@@ -83,7 +83,7 @@
                         <div class="group">
                             <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Estado</label>
                             <div class="flex items-center border border-slate-850 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-indigo-500 transition-all">
-                                <select name="status" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900">
+                                <select name="status" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('reports-filter-form').submit()">
                                     <option value="">Todos los estados</option>
                                     <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Borrador</option>
                                     <option value="pending_jefatura" {{ request('status') === 'pending_jefatura' ? 'selected' : '' }}>Pendiente Jefatura</option>
@@ -99,7 +99,7 @@
                         <div class="group">
                             <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Tipo Viaje</label>
                             <div class="flex items-center border border-slate-850 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-indigo-500 transition-all">
-                                <select name="trip_type" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900">
+                                <select name="trip_type" class="w-full bg-transparent border-none text-white text-xs font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" onchange="document.getElementById('reports-filter-form').submit()">
                                     <option value="">Todos los tipos</option>
                                     <option value="terreno" {{ request('trip_type') === 'terreno' ? 'selected' : '' }}>Terreno</option>
                                     <option value="reunion" {{ request('trip_type') === 'reunion' ? 'selected' : '' }}>Reunión</option>
@@ -110,7 +110,10 @@
                     </div>
 
                     <div class="flex justify-end gap-3 pt-6 border-t border-slate-800/60">
-                        <a href="{{ route('renditions.reports') }}" class="px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center">
+                        <a href="{{ route('renditions.reports') }}" class="px-6 py-3 bg-slate-800/80 border border-slate-700/80 text-slate-300 hover:text-white hover:border-rose-500/60 hover:bg-rose-500/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                             Limpiar Filtros
                         </a>
                         
