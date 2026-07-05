@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Lockable;
 
 class RoutePlanning extends Model
 {
-    use HasFactory;
+    use HasFactory, Lockable;
 
     protected $guarded = [];
 
@@ -65,5 +66,25 @@ class RoutePlanning extends Model
     public function rendition()
     {
         return $this->hasOne(\App\Models\Rendition::class);
+    }
+
+    /**
+     * Obtiene el auditor final de la planificación.
+     */
+    public function finalAuditor()
+    {
+        $history = $this->workflowHistories()
+            ->whereIn('action', [
+                'approved_by_finances',
+                'rejected_by_finances',
+                'approved_by_controlling',
+                'rejected_by_controlling',
+                'approved_by_jefatura',
+                'rejected_by_jefatura'
+            ])
+            ->orderBy('id', 'desc')
+            ->first();
+
+        return $history ? $history->user : null;
     }
 }

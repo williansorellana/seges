@@ -20,6 +20,7 @@ class RoutePlanningController extends Controller
         $query = \App\Models\RoutePlanning::with([
             'workflowHistories.user',
             'rendition',
+            'observations.user',
         ]);
 
         // Trabajador normal
@@ -172,16 +173,6 @@ class RoutePlanningController extends Controller
         }
 
         $planning->save();
-
-        if ($request->has('notification_emails')) {
-            $emails = array_filter($request->notification_emails);
-            foreach ($emails as $email) {
-                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    \Illuminate\Support\Facades\Notification::route('mail', $email)
-                        ->notify(new \App\Notifications\TravelNotification($planning));
-                }
-            }
-        }
 
         $signatureService = new DigitalSignatureService();
 
@@ -752,7 +743,7 @@ class RoutePlanningController extends Controller
                 WorkflowHelper::DEPARTMENT_FINANCES,
             ])
         ) {
-            abort(403, 'No autorizado.');
+            abort(403, 'No authorized.');
         }
 
         $planning->load(['user', 'digitalSignatures.user']);
@@ -762,5 +753,27 @@ class RoutePlanningController extends Controller
         ])->setPaper('letter', 'portrait');
 
         return $pdf->download('Planificacion_REQ-' . str_pad($planning->id, 4, '0', STR_PAD_LEFT) . '.pdf');
+    }
+
+    public function lock(\App\Models\RoutePlanning $planning)
+    {
+        $success = $planning->acquireLock();
+        return response()->json([
+            'success' => $success,
+            'locked' => $planning->isLocked(),
+            'owner' => $planning->lockOwner() ? $planning->lockOwner()->name . ' ' . $planning->lockOwner()->last_name : null,
+        ]);
+    }
+
+    public function unlock(\App\Models\RoutePlanning $planning)
+    {
+        $planning->releaseLock();
+        return response()->json(['success' => true]);
+    }
+
+    public function unlockAll()
+    {
+        \App\Models\AuditLock::where('user_id', auth()->id())->delete();
+        return response()->json(['success' => true]);
     }
 }

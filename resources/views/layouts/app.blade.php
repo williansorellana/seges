@@ -116,6 +116,40 @@
                 btn.innerText = 'Procesando...';
             }
         });
+
+        // ─── Task Locking Helper ──────────────────────────────────────────────
+        window.segesLock = {
+            lock(type, id) {
+                return fetch(`/` + type + `/` + id + `/lock`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                }).then(res => res.json());
+            },
+            unlock(type, id) {
+                return fetch(`/` + type + `/` + id + `/unlock`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                }).then(res => res.json());
+            },
+            unlockAll() {
+                const fd = new FormData();
+                fd.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+                navigator.sendBeacon('/unlock-all', fd);
+            }
+        };
+
+        // Release all locks held by the current user when leaving the app or tab
+        window.addEventListener('pagehide', function() {
+            window.segesLock.unlockAll();
+        });
     </script>
 </body>
 

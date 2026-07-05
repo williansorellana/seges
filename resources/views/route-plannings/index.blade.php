@@ -332,6 +332,35 @@
                                                 
                                                 <!-- Columna Izquierda: Detalles Adicionales (7 cols) -->
                                                 <div class="md:col-span-7 space-y-6">
+                                                    @if($plan->status === 'rejected' && $plan->observations->count() > 0)
+                                                        <div class="bg-rose-500/10 border border-rose-500/30 rounded-3xl p-5 shadow-2xl relative overflow-hidden flex items-start gap-4">
+                                                            <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+                                                            <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20 shadow-inner flex-shrink-0">
+                                                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                                </svg>
+                                                            </div>
+                                                            <div class="space-y-3 w-full">
+                                                                <div>
+                                                                    <h3 class="text-sm font-black text-rose-400 uppercase tracking-widest">Motivo de Rechazo</h3>
+                                                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Observaciones registradas por el revisor</p>
+                                                                </div>
+                                                                <div class="space-y-3">
+                                                                    @foreach($plan->observations as $obs)
+                                                                        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col gap-2">
+                                                                            <div class="flex items-center gap-2">
+                                                                                <span class="font-black text-[11px] text-white uppercase tracking-tight">{{ $obs->user->name ?? 'Revisor' }}</span>
+                                                                                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                                                                                <span class="text-[10px] text-slate-500 font-bold uppercase">{{ $obs->created_at->format('d/m, H:i') }}</span>
+                                                                            </div>
+                                                                            <p class="text-xs text-slate-300 font-medium leading-relaxed">{{ $obs->observation }}</p>
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
                                                     <!-- Destinos Adicionales -->
                                                     <div>
                                                         <h5 class="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1.5">

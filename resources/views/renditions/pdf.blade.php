@@ -332,6 +332,21 @@
             <th>Total Gastos Rendidos</th>
             <td style="text-align: right;">${{ number_format($rendition->total_declared, 0, ',', '.') }}</td>
         </tr>
+
+        <tr>
+            <th>&nbsp;&nbsp;&nbsp;&nbsp; - Subtotal Boletas</th>
+            <td style="text-align: right;">${{ number_format($rendition->expenses->where('document_type', 'boleta')->sum('amount'), 0, ',', '.') }}</td>
+        </tr>
+
+        <tr>
+            <th>&nbsp;&nbsp;&nbsp;&nbsp; - Subtotal Facturas</th>
+            <td style="text-align: right;">${{ number_format($rendition->expenses->where('document_type', 'factura')->sum('amount'), 0, ',', '.') }}</td>
+        </tr>
+
+        <tr>
+            <th>&nbsp;&nbsp;&nbsp;&nbsp; - Subtotal Vales / Otros</th>
+            <td style="text-align: right;">${{ number_format($rendition->expenses->whereNotIn('document_type', ['boleta', 'factura'])->sum('amount'), 0, ',', '.') }}</td>
+        </tr>
         @php
             $diff = $rendition->status === 'approved'
                 ? $rendition->difference

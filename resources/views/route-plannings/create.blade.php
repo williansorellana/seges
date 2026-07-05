@@ -137,17 +137,6 @@
                                     </template>
                                 </select>
                             </div>
-
-                            <div class="col-span-1 md:col-span-2 mt-6" x-data="{ emails: [''] }">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Correos para Notificación de Anexo</label>
-                                <template x-for="(email, index) in emails" :key="index">
-                                    <div class="flex gap-2 mb-2">
-                                        <input type="email" name="notification_emails[]" x-model="emails[index]" placeholder="ejemplo@dimak.cl" class="flex-1 bg-[#1e293b] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-                                        <button type="button" @click="emails.splice(index, 1)" class="px-3 bg-red-600/20 text-red-500 rounded-lg">x</button>
-                                    </div>
-                                </template>
-                                <button type="button" @click="emails.push('')" class="text-xs text-blue-500 font-bold hover:underline">+ Agregar otro correo</button>
-                            </div>
                         </div>
 
                         <!-- Motivo -->
@@ -164,34 +153,13 @@
                             <textarea name="companions" id="companions" rows="2" class="w-full bg-[#1e293b] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="Nombres de las personas que viajan con usted (Opcional)"></textarea>
                         </div>
 
+                        <!-- Correos para Notificación de Anexo -->
                         <div class="col-span-1 md:col-span-2 mt-6" x-data="{ emails: [''] }">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Correos para Notificación de Anexo</label>
                             <template x-for="(email, index) in emails" :key="index">
                                 <div class="flex gap-2 mb-2">
                                     <input type="email" name="notification_emails[]" x-model="emails[index]" placeholder="ejemplo@dimak.cl" class="flex-1 bg-[#1e293b] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
                                     <button type="button" @click="emails.splice(index, 1)" class="px-3 bg-red-600/20 text-red-500 rounded-lg font-bold">X</button>
-                                </div>
-                            </template>
-                            <button type="button" @click="emails.push('')" class="text-xs text-blue-500 font-bold hover:underline">+ Agregar otro correo</button>
-                        </div>
-
-                        <div class="col-span-1 md:col-span-2 mt-6" x-data="{ emails: [''] }">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Correos para Notificación de Anexo</label>
-                            <template x-for="(email, index) in emails" :key="index">
-                                <div class="flex gap-2 mb-2">
-                                    <input type="email" name="notification_emails[]" x-model="emails[index]" placeholder="ejemplo@dimak.cl" class="flex-1 bg-[#1e293b] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-                                    <button type="button" @click="emails.splice(index, 1)" class="px-3 bg-red-600/20 text-red-500 rounded-lg font-bold">X</button>
-                                </div>
-                            </template>
-                            <button type="button" @click="emails.push('')" class="text-xs text-blue-500 font-bold hover:underline">+ Agregar otro correo</button>
-                        </div>
-
-                        <div class="col-span-1 md:col-span-2 mt-6" x-data="{ emails: [''] }">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Correos para Notificación de Anexo</label>
-                            <template x-for="(email, index) in emails" :key="index">
-                                <div class="flex gap-2 mb-2">
-                                    <input type="email" name="notification_emails[]" x-model="emails[index]" placeholder="ejemplo@dimak.cl" class="flex-1 bg-[#1e293b] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-                                    <button type="button" @click="emails.splice(index, 1)" class="px-3 bg-red-600/20 text-red-500 rounded-lg">x</button>
                                 </div>
                             </template>
                             <button type="button" @click="emails.push('')" class="text-xs text-blue-500 font-bold hover:underline">+ Agregar otro correo</button>

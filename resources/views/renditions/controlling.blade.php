@@ -132,15 +132,40 @@
                             >
                                 @foreach ($plannings as $plan)
                                     <tr class="border-b border-slate-700/40 hover:bg-slate-800/60 transition-colors duration-200 group cursor-pointer"
-                                        x-data="{ showReject: false }"
-                                        @click="if(!$event.target.closest('form') && !$event.target.closest('button') && !$event.target.closest('textarea')) activePlanning = activePlanning === {{ $plan->id }} ? null : {{ $plan->id }}"
+                                        x-data="{ 
+                                            showReject: false,
+                                            isLockedByOther: {{ $plan->isLocked() ? 'true' : 'false' }},
+                                            lockOwner: '{{ $plan->isLocked() ? ($plan->lockOwner()->name . ' ' . $plan->lockOwner()->last_name) : '' }}',
+                                            toggleActive(id) {
+                                                if (this.isLockedByOther) {
+                                                    activePlanning = activePlanning === id ? null : id;
+                                                    return;
+                                                }
+                                                if (activePlanning === id) {
+                                                    activePlanning = null;
+                                                    window.segesLock.unlock('planificaciones', id);
+                                                } else {
+                                                    window.segesLock.lock('planificaciones', id).then(data => {
+                                                        if (data.locked) {
+                                                            this.isLockedByOther = true;
+                                                            this.lockOwner = data.owner;
+                                                        } else {
+                                                            this.isLockedByOther = false;
+                                                            this.lockOwner = '';
+                                                        }
+                                                        activePlanning = id;
+                                                    });
+                                                }
+                                            }
+                                        }"
+                                        @click="if(!$event.target.closest('form') && !$event.target.closest('button') && !$event.target.closest('textarea')) toggleActive({{ $plan->id }})"
                                     >  
                                         {{-- ID y Usuario --}}
                                         <td class="px-6 py-5">
                                             <div class="flex flex-col gap-2">
                                                 <span class="font-mono text-[12px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-md ring-1 ring-blue-500/20 self-start">REQ-{{ str_pad($plan->id, 4, '0', STR_PAD_LEFT) }}</span>
                                                 <div class="flex items-center gap-3">
-                                                    <img class="h-8 w-8 rounded-lg ring-1 ring-slate-600 object-cover" src="{{ $plan->user->profile_photo_path ? asset('storage/' . $plan->user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($plan->user->name . ' ' . $plan->user->last_name) . '&color=93C5FD&background=1e293b&bold=true&size=64' }}" alt="{{ $plan->user->name }} {{ $plan->user->last_name }}">
+                                                    <img class="h-8 w-8 rounded-lg ring-1 ring-slate-600 object-cover" src="{{ $plan->user->profile_photo_path ? asset('storage/' . $plan->user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($plan->user->name . ' ' . $plan->user->last_name) . '&color=93C5FD&background=1e293b&bold=true&size=64' }}" alt="{{ $plan->user->name }}">
                                                     <div>
                                                         <div class="text-sm font-semibold text-white">{{ $plan->user->name }} {{ $plan->user->last_name }}</div>
                                                         <div class="text-[11px] text-slate-500">{{ $plan->user->departamento ?? 'Sin departamento' }}</div>
@@ -223,46 +248,58 @@
                                                 </div>
                                             @else
                                                 <div class="flex items-center justify-center gap-3 relative">
-
-                                                    <div
-                                                        x-show="!showReject"
-                                                        class="flex gap-3 transition-all"
-                                                    >
-                                                        <form action="{{ route('route-plannings.approve-controlling', $plan->id) }}" method="POST">
-                                                            @csrf
-                                                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5" title="Validar y Escalar a Finanzas">
-                                                                <span class="flex items-center gap-1.5">
-                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                                                    Validar
-                                                                </span>
-                                                            </button>
-                                                        </form>
-
-                                                        <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer" title="Rechazar Documento">
-                                                            <span class="flex items-center gap-1.5">
-                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                                Rechazar
+                                                    <template x-if="isLockedByOther">
+                                                        <div class="flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 max-w-[200px]">
+                                                            <span class="text-[9px] text-amber-400 font-black uppercase tracking-widest flex items-center gap-1">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                                Bloqueado
                                                             </span>
-                                                        </button>
-                                                    </div>
+                                                            <span class="text-[9px] text-slate-400 font-medium leading-tight text-center" x-text="'En auditoría por ' + lockOwner"></span>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="!isLockedByOther">
+                                                        <div class="flex items-center justify-center gap-3">
+                                                            <div
+                                                                x-show="!showReject"
+                                                                class="flex gap-3 transition-all"
+                                                            >
+                                                                <form action="{{ route('route-plannings.approve-controlling', $plan->id) }}" method="POST">
+                                                                    @csrf
+                                                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5" title="Validar y Escalar a Finanzas">
+                                                                        <span class="flex items-center gap-1.5">
+                                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                                            Validar
+                                                                        </span>
+                                                                    </button>
+                                                                </form>
 
-                                                    {{-- Reject Form --}}
-                                                    <div
-                                                        x-show="showReject"
-                                                        x-cloak
-                                                        x-transition
-                                                        class="absolute right-0 top-0 w-72 bg-slate-900 p-5 rounded-[1.5rem] border border-rose-500/30 shadow-2xl z-20"
-                                                    >
-                                                        <form action="{{ route('route-plannings.reject-controlling', $plan->id) }}" method="POST">
-                                                            @csrf
-                                                            <label class="block text-xs font-semibold text-rose-400 mb-1.5">Motivo del rechazo:</label>
-                                                            <textarea name="observation" rows="2" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-rose-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
-                                                            <div class="mt-3 flex justify-end gap-2">
-                                                                <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
-                                                                <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                                <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer" title="Rechazar Documento">
+                                                                    <span class="flex items-center gap-1.5">
+                                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                                        Rechazar
+                                                                    </span>
+                                                                </button>
                                                             </div>
-                                                        </form>
-                                                    </div>
+
+                                                            {{-- Reject Form --}}
+                                                            <div
+                                                                x-show="showReject"
+                                                                x-cloak
+                                                                x-transition
+                                                                class="absolute right-0 top-0 w-72 bg-slate-900 p-5 rounded-[1.5rem] border border-rose-500/30 shadow-2xl z-20"
+                                                            >
+                                                                <form action="{{ route('route-plannings.reject-controlling', $plan->id) }}" method="POST">
+                                                                    @csrf
+                                                                    <label class="block text-xs font-semibold text-rose-400 mb-1.5">Motivo del rechazo:</label>
+                                                                    <textarea name="observation" rows="2" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-rose-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
+                                                                    <div class="mt-3 flex justify-end gap-2">
+                                                                        <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
+                                                                        <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </template>
                                                 </div>    
                                             @endif
                                         </td>
@@ -274,6 +311,12 @@
                                         class="bg-slate-900/40"
                                     >
                                         <td colspan="4" class="px-8 py-6 border-b border-slate-700/40">
+                                            <div x-show="isLockedByOther" x-cloak class="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center gap-3">
+                                                <svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                </svg>
+                                                <span class="text-xs text-amber-300 font-semibold" x-text="'Esta solicitud se encuentra bloqueada por ' + lockOwner + '. Solo lectura.'"></span>
+                                            </div>
 
                                             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
 
@@ -461,43 +504,58 @@
                                         $isOwnRendition = $ren->user_id === auth()->id() && auth()->user()->email !== 'test@example.com';
                                     @endphp
                                     <td class="px-6 py-5 text-center">
-                                        <div x-show="!showReject" class="flex justify-center gap-2">
-                                            <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-4 py-2 border border-slate-600 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-colors">
-                                                <span class="flex items-center gap-1.5">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                    Auditar
+                                        @if($ren->isLocked())
+                                            <div class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 max-w-[200px] mx-auto">
+                                                <span class="text-[9px] text-amber-400 font-black uppercase tracking-widest flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                    Bloqueado
                                                 </span>
-                                            </a>
+                                                <span class="text-[9px] text-slate-400 font-medium leading-tight text-center">
+                                                    Por {{ $ren->lockOwner()->name }} {{ $ren->lockOwner()->last_name }}
+                                                </span>
+                                                <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="text-[9px] text-blue-400 hover:underline mt-1 font-bold">
+                                                    Ver Solo Lectura
+                                                </a>
+                                            </div>
+                                        @else
+                                            <div x-show="!showReject" class="flex justify-center gap-2">
+                                                <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="px-4 py-2 border border-slate-600 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-700 hover:text-white transition-colors">
+                                                    <span class="flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                        Auditar
+                                                    </span>
+                                                </a>
 
-                                            @if($isOwnRendition)
-                                                <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[190px]">
-                                                    <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
-                                                        Gestión bloqueada
+                                                @if($isOwnRendition)
+                                                    <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[190px]">
+                                                        <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
+                                                            Gestión bloqueada
+                                                        </div>
+                                                        <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
+                                                            No puedes validar, rechazar u observar documentos de tu propia rendición.
+                                                        </div>
                                                     </div>
-                                                    <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
-                                                        No puedes validar, rechazar u observar documentos de tu propia rendición.
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
-                                                    @csrf
-                                                    <button
-                                                        type="submit"
-                                                        @disabled($ren->observed_expenses_count > 0)
-                                                        title="{{ $ren->observed_expenses_count > 0 ? 'No se puede validar mientras existan documentos observados.' : 'Validar rendición y enviar a Finanzas.' }}"
-                                                        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all hover:-translate-y-0.5 cursor-pointer
-                                                            {{ $ren->observed_expenses_count > 0
-                                                                ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-60'
-                                                                : 'bg-blue-600 text-white hover:bg-blue-500'
-                                                            }}"
-                                                    >
-                                                        Validar
-                                                    </button>
-                                                </form>
+                                                @else
+                                                    <form action="{{ route('renditions.approve-controlling-rendition', $ren->id) }}" method="POST">
+                                                        @csrf
+                                                        <button
+                                                            type="submit"
+                                                            @disabled($ren->observed_expenses_count > 0)
+                                                            title="{{ $ren->observed_expenses_count > 0 ? 'No se puede validar mientras existan documentos observados.' : 'Validar rendición y enviar a Finanzas.' }}"
+                                                            class="px-4 py-2 text-xs font-semibold rounded-lg transition-all hover:-translate-y-0.5 cursor-pointer
+                                                                {{ $ren->observed_expenses_count > 0
+                                                                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-60'
+                                                                    : 'bg-blue-600 text-white hover:bg-blue-500'
+                                                                }}"
+                                                        >
+                                                            Validar
+                                                        </button>
+                                                    </form>
 
-                                                <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">Rechazar</button>
-                                            @endif
-                                        </div>
+                                                    <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">Rechazar</button>
+                                                @endif
+                                            </div>
+                                        @endif
 
                                         @if(!$isOwnRendition)
                                             <div x-show="showReject" x-cloak x-transition class="text-left bg-slate-800 p-4 rounded-xl border border-slate-700 mt-2">

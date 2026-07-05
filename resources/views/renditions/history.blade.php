@@ -171,9 +171,17 @@
                                                     Rechazado
                                                 </span>
                                             @endif
+
+                                            @if($auditor = $plan->finalAuditor())
+                                                <div class="text-[10px] text-slate-500 font-bold leading-normal mt-0.5 max-w-[150px] text-center">
+                                                    Auditado por:<br>
+                                                    <span class="text-slate-300">{{ $auditor->name }} {{ $auditor->last_name }}</span>
+                                                </div>
+                                            @endif
+
                                             <a href="{{ route('route-plannings.pdf', $plan->id) }}"
                                             target="_blank"
-                                            class="px-3 py-1.5 bg-rose-600 text-white text-[11px] font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5">
+                                            class="px-3 py-1.5 bg-rose-600 text-white text-[11px] font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 mt-1">
                                                 <svg class="w-3.5 h-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                 </svg>
@@ -368,6 +376,13 @@
 
                                                 {{ $renditionStatusLabel }}
                                             </span>
+
+                                            @if($auditor = $ren->finalAuditor())
+                                                <div class="text-[10px] text-slate-500 font-bold leading-normal mt-0.5 max-w-[150px] text-center">
+                                                    Auditado por:<br>
+                                                    <span class="text-slate-300">{{ $auditor->name }} {{ $auditor->last_name }}</span>
+                                                </div>
+                                            @endif
 
                                             <div class="flex gap-2">
                                                 <a href="{{ route('renditions.show', $ren->id) }}"

@@ -9,8 +9,8 @@
         vehicleMenu: {{ request()->routeIs('vehicles.*', 'conductores.*', 'requests.*', 'admin.returns.*') ? 'true' : 'false' }},
         roomMenu: {{ request()->routeIs('rooms.*', 'reservations.*') ? 'true' : 'false' }},
         assetMenu: {{ request()->routeIs('assets.*', 'workers.*') ? 'true' : 'false' }},
-        renditionMenu: {{ request()->routeIs('route-plannings.*', 'renditions.index', 'renditions.create', 'renditions.show', 'renditions.history') && !request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances') ? 'true' : 'false' }},
-        financesMenu: {{ request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances', 'renditions.history') ? 'true' : 'false' }}
+        renditionMenu: {{ request()->routeIs('route-plannings.*', 'renditions.index', 'renditions.create', 'renditions.show', 'renditions.history') && !request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances', 'renditions.reports') ? 'true' : 'false' }},
+        financesMenu: {{ request()->routeIs('renditions.approvals', 'renditions.controlling', 'renditions.finances', 'renditions.history', 'renditions.reports') ? 'true' : 'false' }}
     }" :class="{
         'w-64': open, 
         'w-20': !open,
@@ -332,6 +332,11 @@
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                         :class="{{ request()->routeIs('renditions.history') ? "'text-white bg-gray-800'" : "''" }}">
                         Historial
+                    </a>
+                    <a href="{{ route('renditions.reports') }}" wire:navigate
+                        class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                        :class="{{ request()->routeIs('renditions.reports') ? "'text-white bg-gray-800'" : "''" }}">
+                        Reportes Rendiciones
                     </a>
                 </div>
             </div>

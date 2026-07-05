@@ -104,7 +104,8 @@
 
                 $canAuditExpenses = $isControlling
                     && $rendition->status === 'pending_controlling'
-                    && !$isOwner;
+                    && !$isOwner
+                    && !($isLocked ?? false);
             @endphp
 
             @if($rendition->status === 'rejected' && $rendition->observations->count() > 0)
@@ -127,6 +128,21 @@
                                 <span class="text-sm text-slate-300 font-medium leading-relaxed">{{ $obs->observation }}</span>
                             </div>
                         @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if($isLocked ?? false)
+                <div class="mb-8 bg-amber-500/10 border border-amber-500/30 rounded-[2rem] p-6 shadow-2xl relative overflow-hidden flex items-center gap-4">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20 shadow-inner flex-shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-amber-400 uppercase tracking-widest">Tarea Bloqueada / En Auditoría</h3>
+                        <p class="text-xs text-slate-300 font-medium mt-1">El auditor <span class="text-white font-bold">{{ $lockOwnerName }}</span> se encuentra trabajando en esta rendición. Las acciones de auditoría están temporalmente deshabilitadas para evitar conflictos de concurrencia.</p>
                     </div>
                 </div>
             @endif
@@ -177,7 +193,15 @@
                                                     @endif
                                                 </div>
                                                 <div>
-                                                    <p class="text-base font-black text-white group-hover:text-blue-400 transition-colors uppercase tracking-tight">{{ $expense->provider }}</p>
+                                                    <p class="text-base font-black text-white group-hover:text-blue-400 transition-colors uppercase tracking-tight">
+                                                        {{ $expense->provider }}
+                                                        @if($expense->document_type === 'factura' && $expense->provider_rut)
+                                                            <span class="text-xs text-slate-400 font-bold lowercase"> (RUT: {{ $expense->provider_rut }})</span>
+                                                        @endif
+                                                    </p>
+                                                    @if($expense->document_type === 'boleta' && $expense->justification)
+                                                        <p class="text-xs text-slate-300 font-medium mt-0.5 italic">{{ $expense->justification }}</p>
+                                                    @endif
                                                     <div class="flex items-center gap-2 mt-1">
                                                         <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded-md">{{ $expense->document_type }}</span>
                                                         @php
@@ -340,7 +364,7 @@
                                                         </div>
                                                         Editar Documento
                                                     </h3>
-                                                    <form action="{{ route('renditions.expenses.update', [$rendition->id, $expense->id]) }}" method="POST" enctype="multipart/form-data" class="text-left space-y-6">
+                                                    <form action="{{ route('renditions.expenses.update', [$rendition->id, $expense->id]) }}" method="POST" enctype="multipart/form-data" class="text-left space-y-6" x-data="{ docType: '{{ $expense->document_type }}' }">
                                                         @csrf @method('PUT')
                                                         <div class="group">
                                                             <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">Proveedor / Local</label>
@@ -366,12 +390,26 @@
                                                             <div class="group">
                                                                 <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Tipo</label>
                                                                 <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 overflow-hidden focus-within:border-blue-500 transition-all">
-                                                                    <select name="document_type" class="w-full bg-transparent border-none text-white text-sm font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" required>
-                                                                        <option value="boleta" {{ $expense->document_type == 'boleta' ? 'selected' : '' }}>Boleta</option>
-                                                                        <option value="factura" {{ $expense->document_type == 'factura' ? 'selected' : '' }}>Factura</option>
-                                                                        <option value="vale" {{ $expense->document_type == 'vale' ? 'selected' : '' }}>Vale</option>
-                                                                        <option value="otro" {{ $expense->document_type == 'otro' ? 'selected' : '' }}>Otro</option>
+                                                                    <select name="document_type" x-model="docType" class="w-full bg-transparent border-none text-white text-sm font-bold py-3.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-900" required>
+                                                                        <option value="boleta">Boleta</option>
+                                                                        <option value="factura">Factura</option>
+                                                                        <option value="vale">Vale</option>
+                                                                        <option value="otro">Otro</option>
                                                                     </select>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="group" x-show="docType === 'factura'" x-transition>
+                                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">RUT del Proveedor</label>
+                                                                <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 transition-all">
+                                                                    <input type="text" name="provider_rut" :required="docType === 'factura'" value="{{ $expense->provider_rut }}" class="w-full bg-transparent border-none outline-none text-white text-sm font-bold" placeholder="Ej: 76.123.456-7">
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="group" x-show="docType === 'boleta'" x-transition>
+                                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Justificación del Gasto</label>
+                                                                <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 transition-all">
+                                                                    <input type="text" name="justification" :required="docType === 'boleta'" value="{{ $expense->justification }}" class="w-full bg-transparent border-none outline-none text-white text-sm font-bold" placeholder="¿En qué se gastó? Ej: Almuerzo">
                                                                 </div>
                                                             </div>
 
@@ -461,7 +499,7 @@
                                 method="POST"
                                 enctype="multipart/form-data"
                                 class="space-y-8"
-                                x-data="{ loading: false }"
+                                x-data="{ loading: false, docType: 'boleta' }"
                                 @submit="loading = true"
                             >
                                 @csrf
@@ -484,12 +522,26 @@
                                     <div class="group">
                                         <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Tipo de Documento</label>
                                         <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 overflow-hidden focus-within:border-blue-500 transition-all">
-                                            <select name="document_type" class="w-full bg-transparent border-none text-white text-sm font-bold py-2.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-800" required>
+                                            <select name="document_type" x-model="docType" class="w-full bg-transparent border-none text-white text-sm font-bold py-2.5 px-4 focus:ring-0 cursor-pointer [&>option]:bg-slate-800" required>
                                                 <option value="boleta">Boleta</option>
                                                 <option value="factura">Factura</option>
                                                 <option value="vale">Vale de Peaje/Estacionamiento</option>
                                                 <option value="otro">Otro</option>
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="group" x-show="docType === 'factura'" x-transition>
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">RUT del Proveedor</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all">
+                                            <input type="text" name="provider_rut" :required="docType === 'factura'" placeholder="Ej: 76.123.456-7" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold">
+                                        </div>
+                                    </div>
+
+                                    <div class="group" x-show="docType === 'boleta'" x-transition>
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Justificación del Gasto</label>
+                                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all">
+                                            <input type="text" name="justification" :required="docType === 'boleta'" placeholder="¿En qué se gastó? Ej: Almuerzo en ruta" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold">
                                         </div>
                                     </div>
 
@@ -1101,6 +1153,20 @@
                     theme: "dark"
                 });
             }
+
+            @if(!$isOwner && !($isLocked ?? false))
+                // Heartbeat to keep lock active every 2 minutes
+                setInterval(function() {
+                    window.segesLock.lock('rendiciones', {{ $rendition->id }});
+                }, 120000);
+
+                // Release lock on page unload
+                window.addEventListener('pagehide', function() {
+                    const fd = new FormData();
+                    fd.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+                    navigator.sendBeacon('/rendiciones/{{ $rendition->id }}/unlock', fd);
+                });
+            @endif
         });
     </script>
 </x-app-layout>

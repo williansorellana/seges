@@ -54,7 +54,20 @@ class RenditionController extends Controller
 
         $rendition->load('routePlanning','expenses','observations.user','workflowHistories.user', 'digitalSignatures.user');
 
-        return view('renditions.show', compact('rendition'));
+        $isLocked = false;
+        $lockOwnerName = null;
+
+        if (!$isOwner && in_array($rendition->status, ['pending_jefatura', 'pending_controlling', 'pending_finances', 'approved'])) {
+            if ($rendition->isLocked()) {
+                $isLocked = true;
+                $owner = $rendition->lockOwner();
+                $lockOwnerName = $owner ? $owner->name . ' ' . $owner->last_name : 'Otro auditor';
+            } else {
+                $rendition->acquireLock();
+            }
+        }
+
+        return view('renditions.show', compact('rendition', 'isLocked', 'lockOwnerName'));
     }
 
     public function storeExpense(Request $request, \App\Models\Rendition $rendition)
@@ -63,23 +76,35 @@ class RenditionController extends Controller
             abort(403, 'No puedes agregar gastos a esta rendición en su estado actual.');
         }
 
-        $request->validate([
+        $rules = [
             'date' => 'required|date',
             'provider' => 'required|string|max:255',
             'document_type' => 'required|in:boleta,factura,vale,otro',
             'expense_category' => 'required|in:bencina,peaje,estacionamiento_transbordador,alojamiento,comida,otros',
             'document_number' => 'nullable|string',
             'amount' => 'required|numeric|min:1',
-            'attachment' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120'
-        ]);
+            'attachment' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'provider_rut' => 'required_if:document_type,factura|nullable|string',
+            'justification' => 'required_if:document_type,boleta|nullable|string|max:1000'
+        ];
+
+        $request->validate($rules);
+
+        if ($request->document_type === 'factura') {
+            if (!$this->validateRut($request->provider_rut)) {
+                return redirect()->back()->withErrors(['provider_rut' => 'El RUT del proveedor ingresado no es válido matemáticamente.'])->withInput();
+            }
+        }
 
         $path = $request->file('attachment')->store('receipts', 'local');
 
         $rendition->expenses()->create([
             'date' => $request->date,
             'provider' => $request->provider,
+            'provider_rut' => $request->document_type === 'factura' ? $request->provider_rut : null,
             'document_type' => $request->document_type,
             'expense_category' => $request->expense_category,
+            'justification' => $request->document_type === 'boleta' ? $request->justification : null,
             'document_number' => $request->document_number,
             'amount' => $request->amount,
             'attachment_path' => $path
@@ -101,15 +126,25 @@ class RenditionController extends Controller
             abort(403, 'No puedes editar gastos de esta rendición en su estado actual.');
         }
 
-        $request->validate([
+        $rules = [
             'date' => 'required|date',
             'provider' => 'required|string|max:255',
             'document_type' => 'required|in:boleta,factura,vale,otro',
             'expense_category' => 'required|in:bencina,peaje,estacionamiento_transbordador,alojamiento,comida,otros',
             'document_number' => 'nullable|string',
             'amount' => 'required|numeric|min:1',
-            'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
-        ]);
+            'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'provider_rut' => 'required_if:document_type,factura|nullable|string',
+            'justification' => 'required_if:document_type,boleta|nullable|string|max:1000'
+        ];
+
+        $request->validate($rules);
+
+        if ($request->document_type === 'factura') {
+            if (!$this->validateRut($request->provider_rut)) {
+                return redirect()->back()->withErrors(['provider_rut' => 'El RUT del proveedor ingresado no es válido matemáticamente.'])->withInput();
+            }
+        }
 
         $data = $request->only([
             'date',
@@ -119,6 +154,9 @@ class RenditionController extends Controller
             'document_number',
             'amount'
         ]);
+
+        $data['provider_rut'] = $request->document_type === 'factura' ? $request->provider_rut : null;
+        $data['justification'] = $request->document_type === 'boleta' ? $request->justification : null;
 
         if ($request->hasFile('attachment')) {
             if (Storage::disk('local')->exists($expense->attachment_path)) {
@@ -1158,6 +1196,257 @@ class RenditionController extends Controller
     {
         $rendition = \App\Models\Rendition::findOrFail($id);
         $rendition->update(['transfer_proof_path' => null]);
-        return back()->with('success', 'Comprobante rechazado correctamente.');
+
+        // Log the action to workflow history
+        \App\Models\WorkflowHistory::create([
+            'workflowable_type' => \App\Models\Rendition::class,
+            'workflowable_id' => $rendition->id,
+            'user_id' => auth()->id(),
+            'action' => 'transfer_proof_rejected',
+            'from_status' => $rendition->status,
+            'to_status' => $rendition->status,
+            'observation' => 'Finanzas rechazó el comprobante de transferencia y solicitó uno nuevo.',
+            'ip_address' => $request->ip(),
+        ]);
+
+        // Notify the worker
+        if ($rendition->user) {
+            $rendition->user->notify(new \App\Notifications\WorkflowNotification(
+                'Comprobante de Transferencia Rechazado',
+                'Su comprobante de transferencia para la rendición de la planificación #' . ($rendition->route_planning_id ?? '') . ' fue rechazado por finanzas. Por favor, suba un nuevo comprobante válido.',
+                route('renditions.show', $rendition->id)
+            ));
+        }
+
+        return back()->with('success', 'Comprobante rechazado correctamente y notificado al trabajador.');
+    }
+
+    public function lock(\App\Models\Rendition $rendition)
+    {
+        $success = $rendition->acquireLock();
+        return response()->json([
+            'success' => $success,
+            'locked' => $rendition->isLocked(),
+            'owner' => $rendition->lockOwner() ? $rendition->lockOwner()->name . ' ' . $rendition->lockOwner()->last_name : null,
+        ]);
+    }
+
+    public function unlock(\App\Models\Rendition $rendition)
+    {
+        $rendition->releaseLock();
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Valida matemáticamente un RUT chileno.
+     */
+    private function validateRut($rut)
+    {
+        $rut = preg_replace('/[^0-9kK]/', '', $rut);
+        if (strlen($rut) < 2) {
+            return false;
+        }
+        
+        $number = substr($rut, 0, -1);
+        $dv = strtoupper(substr($rut, -1));
+        
+        if (!ctype_digit($number)) {
+            return false;
+        }
+        
+        $factor = 2;
+        $sum = 0;
+        for ($i = strlen($number) - 1; $i >= 0; $i--) {
+            $sum += $number[$i] * $factor;
+            $factor = $factor == 7 ? 2 : $factor + 1;
+        }
+        
+        $expectedDv = 11 - ($sum % 11);
+        if ($expectedDv == 11) {
+            $expectedDv = '0';
+        } elseif ($expectedDv == 10) {
+            $expectedDv = 'K';
+        } else {
+            $expectedDv = (string)$expectedDv;
+        }
+        
+        return $dv === $expectedDv;
+    }
+
+    public function reports(Request $request)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'admin' && !in_array($user->departamento, ['Finanzas', 'Controlling'])) {
+            abort(403);
+        }
+
+        $users = \App\Models\User::orderBy('name')->get();
+
+        $query = \App\Models\RoutePlanning::with(['user', 'rendition', 'workflowHistories.user']);
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('month')) {
+            $query->whereMonth('start_date', $request->month);
+        }
+
+        if ($request->filled('year')) {
+            $query->whereYear('start_date', $request->year);
+        }
+
+        if ($request->filled('trip_type')) {
+            $query->where('trip_type', $request->trip_type);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $plannings = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        return view('renditions.reports', compact('plannings', 'users'));
+    }
+
+    public function exportReports(Request $request)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'admin' && !in_array($user->departamento, ['Finanzas', 'Controlling'])) {
+            abort(403);
+        }
+
+        $query = \App\Models\RoutePlanning::with(['user', 'rendition', 'workflowHistories.user']);
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('month')) {
+            $query->whereMonth('start_date', $request->month);
+        }
+
+        if ($request->filled('year')) {
+            $query->whereYear('start_date', $request->year);
+        }
+
+        if ($request->filled('trip_type')) {
+            $query->where('trip_type', $request->trip_type);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $plannings = $query->orderBy('created_at', 'desc')->get();
+
+        $fileName = 'Reporte_Rendiciones_' . now()->format('Ymd_His') . '.csv';
+
+        $headers = array(
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+
+        $columns = [
+            'ID Planificacion',
+            'Colaborador',
+            'RUT Colaborador',
+            'Departamento',
+            'Destino Principal',
+            'Destinos Adicionales',
+            'Motivo',
+            'Tipo Viaje',
+            'Fecha Inicio',
+            'Fecha Fin',
+            'Fondos Solicitados',
+            'Monto Amipass',
+            'Total Asignado',
+            'Total Gastos Rendidos',
+            'Subtotal Boletas',
+            'Subtotal Facturas',
+            'Subtotal Vales/Otros',
+            'Diferencia',
+            'Estado Planificacion',
+            'Estado Rendicion',
+            'Auditado Por'
+        ];
+
+        $callback = function() use($plannings, $columns) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, $columns, ';');
+
+            foreach ($plannings as $plan) {
+                $rendition = $plan->rendition;
+                
+                $destinationsText = '';
+                if (!empty($plan->destinations)) {
+                    $dests = [];
+                    foreach ($plan->destinations as $d) {
+                        if (!empty($d['destination'])) {
+                            $dests[] = $d['destination'] . (!empty($d['region']) ? ' (' . $d['region'] . ')' : '');
+                        }
+                    }
+                    $destinationsText = implode(' | ', $dests);
+                }
+
+                $subtotalBoletas = 0;
+                $subtotalFacturas = 0;
+                $subtotalOtros = 0;
+                $diffText = 'N/A';
+
+                if ($rendition) {
+                    $subtotalBoletas = $rendition->expenses->where('document_type', 'boleta')->sum('amount');
+                    $subtotalFacturas = $rendition->expenses->where('document_type', 'factura')->sum('amount');
+                    $subtotalOtros = $rendition->expenses->whereNotIn('document_type', ['boleta', 'factura'])->sum('amount');
+                    
+                    $diff = $rendition->funds_received - $rendition->total_declared;
+                    if ($diff > 0) {
+                        $diffText = 'Devolver a Empresa: $' . number_format($diff, 0, ',', '.');
+                    } elseif ($diff < 0) {
+                        $diffText = 'Reembolso a Colaborador: $' . number_format(abs($diff), 0, ',', '.');
+                    } else {
+                        $diffText = 'Rendicion Exacta';
+                    }
+                }
+
+                $auditor = $plan->finalAuditor();
+                $auditorName = $auditor ? $auditor->name . ' ' . $auditor->last_name : 'No auditado';
+
+                $row = [
+                    'REQ-' . str_pad($plan->id, 4, '0', STR_PAD_LEFT),
+                    $plan->user ? $plan->user->name . ' ' . $plan->user->last_name : 'N/A',
+                    $plan->user ? $plan->user->rut : 'N/A',
+                    $plan->user ? $plan->user->departamento : 'N/A',
+                    $plan->destination,
+                    $destinationsText ?: 'Ninguno',
+                    $plan->motive,
+                    ucfirst($plan->trip_type),
+                    $plan->start_date,
+                    $plan->end_date,
+                    $plan->requested_funds ?: 0,
+                    $plan->amipass_amount ?: 0,
+                    ($plan->requested_funds ?? 0) + ($plan->amipass_amount ?? 0),
+                    $rendition ? $rendition->total_declared : 0,
+                    $subtotalBoletas,
+                    $subtotalFacturas,
+                    $subtotalOtros,
+                    $diffText,
+                    ucfirst(str_replace('_', ' ', $plan->status)),
+                    $rendition ? ucfirst(str_replace('_', ' ', $rendition->status)) : 'No Iniciada',
+                    $auditorName
+                ];
+
+                fputcsv($file, $row, ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

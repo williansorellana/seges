@@ -105,8 +105,33 @@
                                 @foreach ($plannings as $plan)
                                     <tr
                                         class="hover:bg-slate-800/60 transition-colors duration-200 group cursor-pointer"
-                                        x-data="{ showReject: false }"
-                                        @click="if(!$event.target.closest('form') && !$event.target.closest('button') && !$event.target.closest('textarea')) activePlanning = activePlanning === {{ $plan->id }} ? null : {{ $plan->id }}"
+                                        x-data="{ 
+                                            showReject: false,
+                                            isLockedByOther: {{ $plan->isLocked() ? 'true' : 'false' }},
+                                            lockOwner: '{{ $plan->isLocked() ? ($plan->lockOwner()->name . ' ' . $plan->lockOwner()->last_name) : '' }}',
+                                            toggleActive(id) {
+                                                if (this.isLockedByOther) {
+                                                    activePlanning = activePlanning === id ? null : id;
+                                                    return;
+                                                }
+                                                if (activePlanning === id) {
+                                                    activePlanning = null;
+                                                    window.segesLock.unlock('planificaciones', id);
+                                                } else {
+                                                    window.segesLock.lock('planificaciones', id).then(data => {
+                                                        if (data.locked) {
+                                                            this.isLockedByOther = true;
+                                                            this.lockOwner = data.owner;
+                                                        } else {
+                                                            this.isLockedByOther = false;
+                                                            this.lockOwner = '';
+                                                        }
+                                                        activePlanning = id;
+                                                    });
+                                                }
+                                            }
+                                        }"
+                                        @click="if(!$event.target.closest('form') && !$event.target.closest('button') && !$event.target.closest('textarea')) toggleActive({{ $plan->id }})"
                                     >    
                                         <td class="px-6 py-5">
                                             <div class="flex flex-col gap-1.5">
@@ -208,30 +233,43 @@
                                                 </div>
                                             @else
                                                 <div class="flex items-center justify-center gap-3 relative">
-                                                    <div x-show="!showReject" class="flex gap-3 transition-all">
-                                                        <form action="{{ route('route-plannings.approve-finances', $plan->id) }}" method="POST">
-                                                            @csrf
-                                                            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-emerald-500/20 hover:bg-emerald-500 hover:-translate-y-0.5 transition-all cursor-pointer">
-                                                                Liberar Fondos
-                                                            </button>
-                                                        </form>
-                                                        
-                                                        <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">
-                                                            Rechazar
-                                                        </button>
-                                                    </div>
-
-                                                    <div x-show="showReject" x-cloak class="absolute right-0 top-0 w-72 bg-slate-900 p-5 rounded-[1.5rem] border border-rose-500/30 shadow-2xl z-20" x-transition>
-                                                        <form action="{{ route('route-plannings.reject-finances', $plan->id) }}" method="POST">
-                                                            @csrf
-                                                            <label class="block text-[10px] font-black text-rose-500 mb-3 uppercase tracking-[0.2em] text-left">Motivo de Rechazo</label>
-                                                            <textarea name="observation" rows="3" class="w-full text-xs bg-slate-950 border-slate-800 text-white rounded-xl focus:ring-rose-500 focus:border-rose-500 placeholder-slate-700 font-bold" required placeholder="Especifique el motivo..."></textarea>
-                                                            <div class="mt-4 flex justify-end gap-3">
-                                                                <button type="button" @click="showReject = false" class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors cursor-pointer">Cerrar</button>
-                                                                <button type="submit" class="px-5 py-2 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">Confirmar</button>
+                                                    <template x-if="isLockedByOther">
+                                                        <div class="flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 max-w-[200px]">
+                                                            <span class="text-[9px] text-amber-400 font-black uppercase tracking-widest flex items-center gap-1">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                                Bloqueado
+                                                            </span>
+                                                            <span class="text-[9px] text-slate-400 font-medium leading-tight text-center" x-text="'En auditoría por ' + lockOwner"></span>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="!isLockedByOther">
+                                                        <div class="flex items-center justify-center gap-3">
+                                                            <div x-show="!showReject" class="flex gap-3 transition-all">
+                                                                <form action="{{ route('route-plannings.approve-finances', $plan->id) }}" method="POST">
+                                                                    @csrf
+                                                                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-emerald-500/20 hover:bg-emerald-500 hover:-translate-y-0.5 transition-all cursor-pointer">
+                                                                        Liberar Fondos
+                                                                    </button>
+                                                                </form>
+                                                                
+                                                                <button @click="showReject = true" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-rose-500/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">
+                                                                    Rechazar
+                                                                </button>
                                                             </div>
-                                                        </form>
-                                                    </div>
+
+                                                            <div x-show="showReject" x-cloak class="absolute right-0 top-0 w-72 bg-slate-900 p-5 rounded-[1.5rem] border border-rose-500/30 shadow-2xl z-20" x-transition>
+                                                                <form action="{{ route('route-plannings.reject-finances', $plan->id) }}" method="POST">
+                                                                    @csrf
+                                                                    <label class="block text-[10px] font-black text-rose-500 mb-3 uppercase tracking-[0.2em] text-left">Motivo de Rechazo</label>
+                                                                    <textarea name="observation" rows="3" class="w-full text-xs bg-slate-950 border-slate-800 text-white rounded-xl focus:ring-rose-500 focus:border-rose-500 placeholder-slate-700 font-bold" required placeholder="Especifique el motivo..."></textarea>
+                                                                    <div class="mt-4 flex justify-end gap-3">
+                                                                        <button type="button" @click="showReject = false" class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors cursor-pointer">Cerrar</button>
+                                                                        <button type="submit" class="px-5 py-2 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-rose-600/20 hover:bg-rose-500 hover:-translate-y-0.5 transition-all cursor-pointer">Confirmar</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             @endif
                                         </td>
@@ -243,6 +281,12 @@
                                         class="bg-slate-900/40"
                                     >
                                         <td colspan="4" class="px-8 pt-6 pb-10 border-b border-slate-700/40">
+                                            <div x-show="isLockedByOther" x-cloak class="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center gap-3">
+                                                <svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                </svg>
+                                                <span class="text-xs text-amber-300 font-semibold" x-text="'Esta solicitud se encuentra bloqueada por ' + lockOwner + '. Solo lectura.'"></span>
+                                            </div>
 
                                             <!-- Aplicamos el grid de 2 columnas -->
                                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -527,153 +571,152 @@
                                     @endphp
 
                                     <td class="px-6 py-5 text-center">
-                                        <div class="flex items-center justify-center gap-3 relative" x-data="{ showReject: false, showPayment: false }">
-                                            <span class="px-3 py-1 rounded-xl border text-[9px] font-black uppercase tracking-widest {{ $financeStatusClass }}">
-                                                {{ $financeStatusLabel }}
-                                            </span>
-
-                                            <div x-show="!showReject && !showPayment" class="flex flex-wrap justify-center gap-2 transition-all">
-                                                <a href="{{ route('renditions.show', $ren->id) }}" target="_blank"
-                                                    class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 cursor-pointer">
-                                                    <svg class="w-3.5 h-3.5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    Ver detalle
+                                        @if($ren->isLocked())
+                                            <div class="flex flex-col items-center gap-1 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 max-w-[200px] mx-auto">
+                                                <span class="text-[9px] text-amber-400 font-black uppercase tracking-widest flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                    Bloqueado
+                                                </span>
+                                                <span class="text-[9px] text-slate-400 font-medium leading-tight text-center">
+                                                    Por {{ $ren->lockOwner()->name }} {{ $ren->lockOwner()->last_name }}
+                                                </span>
+                                                <a href="{{ route('renditions.show', $ren->id) }}" target="_blank" class="text-[9px] text-blue-400 hover:underline mt-1 font-bold">
+                                                    Ver Solo Lectura
                                                 </a>
+                                            </div>
+                                        @else
+                                            <div class="flex items-center justify-center gap-3 relative" x-data="{ showReject: false, showPayment: false }">
+                                                <span class="px-3 py-1 rounded-xl border text-[9px] font-black uppercase tracking-widest {{ $financeStatusClass }}">
+                                                    {{ $financeStatusLabel }}
+                                                </span>
 
-                                                @if($ren->transfer_proof_path)
-                                                    <a href="{{ route('renditions.download-transfer-proof', $ren->id) }}" target="_blank"
-                                                        class="px-4 py-2 bg-slate-800 text-emerald-400 border border-emerald-500/30 text-xs font-semibold rounded-lg hover:bg-slate-700 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                        Ver Transferencia
+                                                <div x-show="!showReject && !showPayment" class="flex flex-wrap justify-center gap-2 transition-all">
+                                                    <a href="{{ route('renditions.show', $ren->id) }}" target="_blank"
+                                                        class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                        Ver detalle
                                                     </a>
-                                                @endif
 
-                                                @if($isOwnRendition)
-                                                    <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[210px]">
-                                                        <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
-                                                            Gestión bloqueada
-                                                        </div>
-                                                        <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
-                                                            No puedes aprobar, rechazar o cerrar tu propia rendición.
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    @if($ren->status === 'pending_finances')
-                                                        <form action="{{ route('renditions.approve-finances-rendition', $ren->id) }}" method="POST">
-                                                            @csrf
-                                                            <button type="submit"
-                                                                class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
-                                                                Aprobar rendición
-                                                            </button>
-                                                        </form>
-
-                                                        <button @click="showReject = true"
-                                                            class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
-                                                            Devolver
-                                                        </button>
+                                                    @if($ren->transfer_proof_path)
+                                                        <a href="{{ route('renditions.download-transfer-proof', $ren->id) }}" target="_blank"
+                                                            class="px-4 py-2 bg-slate-800 text-emerald-400 border border-emerald-500/30 text-xs font-semibold rounded-lg hover:bg-slate-700 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 cursor-pointer">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                            Ver Transferencia
+                                                        </a>
                                                     @endif
 
-                                                    @if($ren->status === 'approved' && !$ren->payment_completed)
-                                                        <button @click="showPayment = true"
-                                                            class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-500 transition-all hover:-translate-y-0.5 cursor-pointer">
-                                                            @if($ren->refund_to_worker)
-                                                                Confirmar reembolso
-                                                            @elseif($ren->refund_to_company)
-                                                                Confirmar devolución
-                                                            @else
-                                                                Confirmar cierre
-                                                            @endif
-                                                        </button>
-                                                    @endif
-
-                                                    @if($ren->status === 'approved' && $ren->payment_completed)
-                                                        <div class="px-4 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-left max-w-[220px]">
-                                                            <div class="text-[9px] text-emerald-400 font-black uppercase tracking-widest">
-                                                                Cierre realizado
+                                                    @if($isOwnRendition)
+                                                        <div class="px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left max-w-[210px]">
+                                                            <div class="text-[9px] text-amber-400 font-black uppercase tracking-widest">
+                                                                Gestión bloqueada
                                                             </div>
                                                             <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
-                                                                Esta rendición no requiere acciones pendientes.
+                                                                No puedes aprobar, rechazar o cerrar tu propia rendición.
                                                             </div>
                                                         </div>
-                                                    @endif
-                                                @endif
-                                            </div>
-
-                                            <div x-show="showReject" x-cloak
-                                                class="absolute right-0 top-0 w-72 bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-2xl z-20"
-                                                x-transition>
-                                                <form action="{{ route('renditions.reject-finances-rendition', $ren->id) }}" method="POST">
-                                                    @csrf
-                                                    <label class="block text-xs font-bold text-rose-400 mb-2 uppercase tracking-wider text-left">
-                                                        Motivo de Devolución
-                                                    </label>
-
-                                                    <textarea name="observation" rows="3"
-                                                        class="w-full text-xs bg-slate-900 border-slate-700 text-slate-100 rounded-lg focus:ring-rose-500 focus:border-rose-500 placeholder-slate-500"
-                                                        required
-                                                        placeholder="Error detectado..."></textarea>
-
-                                                    <div class="mt-4 flex justify-end gap-2">
-                                                        <button type="button" @click="showReject = false"
-                                                            class="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">
-                                                            Cancelar
-                                                        </button>
-
-                                                        <button type="submit"
-                                                            class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
-                                                            Confirmar devolución
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-
-                                            <div x-show="showPayment" x-cloak
-                                                class="absolute right-0 top-0 w-80 bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-2xl z-20"
-                                                x-transition>
-                                                <form action="{{ route('renditions.payment-completed', $ren->id) }}" method="POST">
-                                                    @csrf
-
-                                                    <label class="block text-xs font-bold text-emerald-400 mb-2 uppercase tracking-wider text-left">
-                                                        Confirmar cierre financiero
-                                                    </label>
-
-                                                    <p class="text-[11px] text-slate-400 font-bold text-left mb-3 leading-relaxed">
-                                                        @if($ren->refund_to_worker)
-                                                            Confirma que el reembolso al trabajador fue realizado.
-                                                        @elseif($ren->refund_to_company)
-                                                            Confirma que la devolución a la empresa fue recibida.
-                                                        @else
-                                                            Confirma que la rendición quedó sin saldos pendientes.
+                                                    @else
+                                                        @if($ren->status === 'approved' && !$ren->payment_completed)
+                                                            <button @click="showPayment = true"
+                                                                class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                                                                @if($ren->refund_to_worker)
+                                                                    Confirmar reembolso
+                                                                @elseif($ren->refund_to_company)
+                                                                    Confirmar devolución
+                                                                @else
+                                                                    Confirmar cierre
+                                                                @endif
+                                                            </button>
                                                         @endif
-                                                    </p>
 
-                                                    <textarea name="payment_observation" rows="3"
-                                                        class="w-full text-xs bg-slate-900 border-slate-700 text-slate-100 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-500"
-                                                        placeholder="Observación opcional..."></textarea>
+                                                        @if($ren->status === 'approved' && $ren->payment_completed)
+                                                            <div class="px-4 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-left max-w-[220px]">
+                                                                <div class="text-[9px] text-emerald-400 font-black uppercase tracking-widest">
+                                                                    Cierre realizado
+                                                                </div>
+                                                                <div class="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">
+                                                                    Esta rendición no requiere acciones pendientes.
+                                                                </div>
+                                                            </div>
+                                                        @endif
+                                                    @endif
+                                                </div>
 
-                                                    <div class="mt-4 flex justify-end gap-2">
-                                                        <button type="button" @click="showPayment = false"
-                                                            class="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">
-                                                            Cancelar
-                                                        </button>
+                                                <div x-show="showReject" x-cloak
+                                                    class="absolute right-0 top-0 w-72 bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-2xl z-20"
+                                                    x-transition>
+                                                    <form action="{{ route('renditions.reject-finances-rendition', $ren->id) }}" method="POST">
+                                                        @csrf
+                                                        <label class="block text-xs font-bold text-rose-400 mb-2 uppercase tracking-wider text-left">
+                                                            Motivo de Devolución
+                                                        </label>
 
-                                                        <button type="submit"
-                                                            class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-500 transition-all hover:-translate-y-0.5 cursor-pointer">
-                                                            Confirmar
-                                                        </button>
-                                                    </div>
-                                                </form>
+                                                        <textarea name="observation" rows="3"
+                                                            class="w-full text-xs bg-slate-900 border-slate-700 text-slate-100 rounded-lg focus:ring-rose-500 focus:border-rose-500 placeholder-slate-500"
+                                                            required
+                                                            placeholder="Error detectado..."></textarea>
 
-                                                <form action="{{ route('renditions.reject-transfer', $ren->id) }}" method="POST" class="mt-2">
-                                                    @csrf
-                                                    <button type="submit" class="text-xs text-red-500 hover:underline">Rechazar comprobante y solicitar nuevo</button>
-                                                </form>
+                                                        <div class="mt-4 flex justify-end gap-2">
+                                                            <button type="button" @click="showReject = false"
+                                                                class="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">
+                                                                Cancelar
+                                                            </button>
 
+                                                            <button type="submit"
+                                                                class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                                                                Confirmar devolución
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+
+                                                <div x-show="showPayment" x-cloak
+                                                    class="absolute right-0 top-0 w-80 bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-2xl z-20"
+                                                    x-transition>
+                                                    <form action="{{ route('renditions.payment-completed', $ren->id) }}" method="POST">
+                                                        @csrf
+
+                                                        <label class="block text-xs font-bold text-emerald-400 mb-2 uppercase tracking-wider text-left">
+                                                            Confirmar cierre financiero
+                                                        </label>
+
+                                                        <p class="text-[11px] text-slate-400 font-bold text-left mb-3 leading-relaxed">
+                                                            @if($ren->refund_to_worker)
+                                                                Confirma que el reembolso al trabajador fue realizado.
+                                                            @elseif($ren->refund_to_company)
+                                                                Confirma que la devolución a la empresa fue recibida.
+                                                            @else
+                                                                Confirma que la rendición quedó sin saldos pendientes.
+                                                            @endif
+                                                        </p>
+
+                                                        <textarea name="payment_observation" rows="3"
+                                                            class="w-full text-xs bg-slate-900 border-slate-700 text-slate-100 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-500"
+                                                            placeholder="Observación opcional..."></textarea>
+
+                                                        <div class="mt-4 flex justify-end gap-2">
+                                                            <button type="button" @click="showPayment = false"
+                                                                class="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">
+                                                                Cancelar
+                                                            </button>
+
+                                                            <button type="submit"
+                                                                class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                                                                Confirmar
+                                                            </button>
+                                                        </div>
+                                                    </form>
+
+                                                    <form action="{{ route('renditions.reject-transfer', $ren->id) }}" method="POST" class="mt-2">
+                                                        @csrf
+                                                        <button type="submit" class="text-xs text-red-500 hover:underline">Rechazar comprobante y solicitar nuevo</button>
+                                                    </form>
+
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
+                                        @endif
                                 </tr>
                                 @endforeach
                             </tbody>

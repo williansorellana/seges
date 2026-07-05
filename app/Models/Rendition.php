@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\RenditionObservation;
+use App\Traits\Lockable;
 
 class Rendition extends Model
 {
-    use HasFactory;
+    use HasFactory, Lockable;
 
     protected $guarded = [];
 
@@ -54,5 +55,26 @@ class Rendition extends Model
     public function digitalSignatures()
     {
         return $this->morphMany(\App\Models\DigitalSignature::class, 'signable');
+    }
+
+    /**
+     * Obtiene el auditor final de la rendición.
+     */
+    public function finalAuditor()
+    {
+        $history = $this->workflowHistories()
+            ->whereIn('action', [
+                'approved_by_finances',
+                'rejected_by_finances',
+                'approved_by_controlling',
+                'rejected_by_controlling',
+                'approved_by_jefatura',
+                'rejected_by_jefatura',
+                'payment_completed_by_finances'
+            ])
+            ->orderBy('id', 'desc')
+            ->first();
+
+        return $history ? $history->user : null;
     }
 }

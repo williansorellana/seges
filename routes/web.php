@@ -38,11 +38,15 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/{planning}/approve-finances', [RoutePlanningController::class, 'approveByFinances'])->name('approve-finances');
         Route::post('/{planning}/reject-finances', [RoutePlanningController::class, 'rejectByFinances'])->name('reject-finances');
         Route::post('/{planning}/send-notification', [RoutePlanningController::class, 'sendTravelNotification'])->name('send-notification');
+        Route::post('/{planning}/lock', [RoutePlanningController::class, 'lock'])->name('lock');
+        Route::post('/{planning}/unlock', [RoutePlanningController::class, 'unlock'])->name('unlock');
     });
 
     // Rutas de Rendiciones
     Route::prefix('rendiciones')->name('renditions.')->middleware('module:renditions')->group(function () {
         Route::get('/', [RenditionController::class, 'index'])->name('index');
+        Route::post('/{rendition}/lock', [RenditionController::class, 'lock'])->name('lock');
+        Route::post('/{rendition}/unlock', [RenditionController::class, 'unlock'])->name('unlock');
         Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
         Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
         Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
@@ -58,6 +62,8 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/finanzas', [RenditionController::class, 'finances'])->name('finances');
         Route::get('/controlling', [RenditionController::class, 'controlling'])->name('controlling');
         Route::get('/historial', [RenditionController::class, 'history'])->name('history');
+        Route::get('/reportes', [RenditionController::class, 'reports'])->name('reports');
+        Route::get('/reportes/exportar', [RenditionController::class, 'exportReports'])->name('reports.export');
         
         // Acciones sobre Rendiciones
         Route::post('/{rendition}/approve-jefatura', [RenditionController::class, 'approveByJefatura'])->name('approve-jefatura-rendition');
@@ -70,6 +76,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/{rendition}/upload-transfer-proof', [RenditionController::class, 'uploadTransferProof'])->name('upload-transfer-proof');
         Route::get('/{rendition}/download-transfer-proof', [RenditionController::class, 'downloadTransferProof'])->name('download-transfer-proof');
         Route::post('/{id}/reject-transfer', [RenditionController::class, 'rejectTransferProof'])->name('reject-transfer');
+        Route::post('/unlock-all', [RoutePlanningController::class, 'unlockAll'])->name('unlock-all');
     });
 });
 
