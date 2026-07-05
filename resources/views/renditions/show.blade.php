@@ -933,8 +933,12 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
+                </div>
+            </div>
+
+            <!-- Seccion Historial y Firmas sin scroll -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-[#1e293b] overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 p-6 relative">
                         <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-wider flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             Historial de Aprobaciones
@@ -1136,7 +1140,6 @@
                         @endif
                     </div>
                 </div>
-            </div>
 
         </div>
     </div>
