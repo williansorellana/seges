@@ -16,7 +16,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
             <!-- Filters Card -->
-            <div class="bg-slate-900 border border-slate-800 rounded-[2rem] shadow-2xl p-8 relative overflow-hidden">
+            <div class="bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 rounded-[2rem] shadow-2xl p-8 relative overflow-hidden">
                 <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/5 rounded-full blur-[60px] pointer-events-none"></div>
                 
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
@@ -132,8 +132,8 @@
             </div>
 
             <!-- Table Card -->
-            <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
-                <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+            <div class="bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+                <div class="p-6 border-b border-slate-700/40 flex justify-between items-center bg-slate-800/30">
                     <h3 class="text-sm font-black text-white tracking-tight uppercase">Resultados de Búsqueda</h3>
                     <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-black uppercase tracking-widest rounded-lg">
                         {{ $plannings->total() }} Solicitudes Encontradas
@@ -152,20 +152,20 @@
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-800">
-                            <thead class="bg-slate-950/30">
+                        <table class="min-w-full divide-y divide-slate-700/40">
+                            <thead class="bg-slate-800/50">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">ID</th>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Colaborador</th>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Destinos</th>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Viaje</th>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Presupuesto</th>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Rendido</th>
-                                    <th class="px-6 py-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado RP</th>
-                                    <th class="px-6 py-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado RND</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">ID</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Colaborador</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Destinos</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Fecha Viaje</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Presupuesto</th>
+                                    <th class="px-6 py-4 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Rendido</th>
+                                    <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado RP</th>
+                                    <th class="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado RND</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800/60">
+                            <tbody class="divide-y divide-slate-700/40">
                                 @php
                                     $statusTranslations = [
                                         'draft' => 'Borrador',
@@ -180,54 +180,57 @@
                                     ];
                                 @endphp
                                 @foreach($plannings as $plan)
-                                    <tr class="hover:bg-slate-800/20 transition-all duration-200">
+                                    <tr class="hover:bg-slate-800/60 transition-colors duration-200">
                                         <!-- ID -->
                                         <td class="px-6 py-5 whitespace-nowrap">
-                                            <span class="font-mono text-xs font-bold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/20">
+                                            <span class="font-mono text-[12px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-md ring-1 ring-blue-500/20 self-start mt-1">
                                                 REQ-{{ str_pad($plan->id, 4, '0', STR_PAD_LEFT) }}
                                             </span>
                                         </td>
-
+ 
                                         <!-- Colaborador -->
-                                        <td class="px-6 py-5 whitespace-nowrap">
+                                        <td class="px-6 py-5">
                                             <div class="flex items-center gap-3">
-                                                <img class="h-8 w-8 rounded-lg ring-1 ring-slate-800 object-cover" src="{{ $plan->user->profile_photo_path ? asset('storage/' . $plan->user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($plan->user->name . ' ' . $plan->user->last_name) . '&color=93C5FD&background=1e293b&bold=true&size=64' }}" alt="{{ $plan->user->name }}">
+                                                <img class="h-8 w-8 rounded-lg ring-1 ring-slate-600 object-cover" src="{{ $plan->user->profile_photo_path ? asset('storage/' . $plan->user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($plan->user->name . ' ' . $plan->user->last_name) . '&color=93C5FD&background=1e293b&bold=true&size=64' }}" alt="{{ $plan->user->name }}">
                                                 <div>
                                                     <div class="text-sm font-semibold text-white">{{ $plan->user->name }} {{ $plan->user->last_name }}</div>
-                                                    <div class="text-[10px] text-slate-500 font-bold uppercase">{{ $plan->user->departamento }}</div>
+                                                    <div class="text-[11px] text-slate-500">{{ $plan->user->departamento ?? 'Sin departamento' }}</div>
                                                 </div>
                                             </div>
                                         </td>
-
+ 
                                         <!-- Destinos -->
                                         <td class="px-6 py-5">
-                                            <div class="text-xs font-bold text-white max-w-[200px] truncate" title="{{ $plan->destination }}">{{ $plan->destination }}</div>
+                                            <div class="text-sm font-semibold text-white">{{ $plan->motive ?? $plan->destination }}</div>
+                                            <div class="text-xs text-slate-400 mt-0.5 line-clamp-1" title="{{ $plan->destination }}">{{ $plan->destination }}</div>
                                             @if(!empty($plan->destinations))
-                                                <div class="text-[9px] text-indigo-400 font-bold mt-1 uppercase tracking-tighter">
+                                                <div class="text-[10px] text-indigo-400 font-bold mt-0.5">
                                                     + {{ count($plan->destinations) }} destinos adicionales
                                                 </div>
                                             @endif
                                         </td>
-
+ 
                                         <!-- Fecha Viaje -->
                                         <td class="px-6 py-5 whitespace-nowrap">
                                             @if($plan->start_date)
-                                                <div class="text-xs font-black text-blue-300">
-                                                    {{ \Carbon\Carbon::parse($plan->start_date)->format('d/m/Y') }}
+                                                <div class="flex items-center gap-1.5 text-[11px] text-blue-400">
+                                                    <svg class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                    </svg>
+                                                    <span class="font-semibold">{{ \Carbon\Carbon::parse($plan->start_date)->format('d/m/Y') }}</span>
+                                                    @if($plan->end_date && $plan->end_date !== $plan->start_date)
+                                                        <span class="text-slate-500 font-medium">al</span>
+                                                        <span class="font-semibold">{{ \Carbon\Carbon::parse($plan->end_date)->format('d/m/Y') }}</span>
+                                                    @endif
                                                 </div>
-                                                @if($plan->end_date && $plan->end_date !== $plan->start_date)
-                                                    <div class="text-[9px] text-slate-400 font-bold mt-0.5">
-                                                        al {{ \Carbon\Carbon::parse($plan->end_date)->format('d/m/Y') }}
-                                                    </div>
-                                                @endif
-                                                <div class="text-[9px] text-indigo-400/70 font-bold mt-0.5 uppercase">
+                                                <div class="text-[9px] text-indigo-400/70 font-bold mt-0.5 uppercase ml-5">
                                                     {{ \Carbon\Carbon::parse($plan->start_date)->translatedFormat('M Y') }}
                                                 </div>
                                             @else
                                                 <span class="text-[10px] text-slate-600 font-bold italic">Sin fecha</span>
                                             @endif
                                         </td>
-
+ 
                                         <!-- Presupuesto -->
                                         <td class="px-6 py-5 whitespace-nowrap">
                                             @php
@@ -240,7 +243,7 @@
                                                 Fondos: ${{ number_format($plan->requested_funds ?? 0, 0, ',', '.') }} / Ami: ${{ number_format($plan->amipass_amount ?? 0, 0, ',', '.') }}
                                             </div>
                                         </td>
-
+ 
                                         <!-- Rendido -->
                                         <td class="px-6 py-5 whitespace-nowrap">
                                             @if($plan->rendition)
@@ -257,7 +260,7 @@
                                                 <span class="text-xs text-slate-600 font-bold italic">Sin rendición</span>
                                             @endif
                                         </td>
-
+ 
                                         <!-- Estado RP -->
                                         <td class="px-6 py-5 text-center whitespace-nowrap">
                                             <span class="px-2.5 py-1 text-[10px] font-black rounded-lg
@@ -272,7 +275,7 @@
                                                 {{ $statusTranslations[$plan->status] ?? ucfirst(str_replace('_', ' ', $plan->status)) }}
                                             </span>
                                         </td>
-
+ 
                                         <!-- Estado RND -->
                                         <td class="px-6 py-5 text-center whitespace-nowrap">
                                             @if($plan->rendition)
@@ -296,13 +299,12 @@
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="px-6 py-4 border-t border-slate-800 bg-slate-950/20">
+ 
+                    <div class="px-6 py-4 border-t border-slate-700/40 bg-slate-800/30">
                         {{ $plannings->appends(request()->all())->links() }}
                     </div>
                 @endif
             </div>
-
         </div>
     </div>
 </x-app-layout>
