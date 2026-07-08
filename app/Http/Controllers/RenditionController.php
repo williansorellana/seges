@@ -445,7 +445,7 @@ class RenditionController extends Controller
             })
             ->where('status', 'pending_jefatura')
             ->orderBy('created_at', 'asc')
-            ->paginate(5, ['*'], 'plannings_page');
+            ->paginate(10, ['*'], 'plannings_page');
 
         $renditions = \App\Models\Rendition::with(['user', 'routePlanning', 'observations.user'])
             ->when($user->role !== 'admin', function ($query) use ($user) {
@@ -455,7 +455,7 @@ class RenditionController extends Controller
             })
             ->where('status', 'pending_jefatura')
             ->orderBy('updated_at', 'asc')
-            ->paginate(5, ['*'], 'renditions_page');
+            ->paginate(10, ['*'], 'renditions_page');
 
         return view('renditions.approvals', compact('plannings', 'renditions'));
     }
@@ -464,7 +464,7 @@ class RenditionController extends Controller
     {
         if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES) abort(403);
 
-        $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_finances')->orderBy('created_at', 'asc')->paginate(5, ['*'], 'plannings_page');
+        $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_finances')->orderBy('created_at', 'asc')->paginate(10, ['*'], 'plannings_page');
         $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])
             ->where(function ($query) {
                 $query->where('status', 'pending_finances')
@@ -474,7 +474,7 @@ class RenditionController extends Controller
                     });
             })
             ->orderBy('updated_at', 'desc')
-            ->paginate(5, ['*'], 'renditions_page');
+            ->paginate(10, ['*'], 'renditions_page');
             
         return view('renditions.finances', compact('plannings', 'renditions'));
     }
@@ -483,7 +483,7 @@ class RenditionController extends Controller
     {
         if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING) abort(403);
 
-        $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_controlling')->orderBy('created_at', 'asc')->paginate(5, ['*'], 'plannings_page');
+        $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_controlling')->orderBy('created_at', 'asc')->paginate(10, ['*'], 'plannings_page');
         $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user','expenses'])
     ->withCount([
         'expenses as observed_expenses_count' => function ($query) {
@@ -496,7 +496,7 @@ class RenditionController extends Controller
     ])
     ->where('status', 'pending_controlling')
     ->orderBy('updated_at', 'asc')
-    ->paginate(5, ['*'], 'renditions_page');
+    ->paginate(10, ['*'], 'renditions_page');
 
         return view('renditions.controlling', compact('plannings', 'renditions'));
     }
@@ -1341,7 +1341,7 @@ class RenditionController extends Controller
             $query->where('status', $request->status);
         }
 
-        $plannings = $query->orderBy('created_at', 'desc')->paginate(15);
+        $plannings = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return view('renditions.reports', compact('plannings', 'users'));
     }
