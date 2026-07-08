@@ -635,11 +635,15 @@ class RenditionController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $rendition->user->notify(new WorkflowNotification(
+        $notification = new WorkflowNotification(
             'Rendición observada',
-            'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
+            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue devuelta con observaciones. Revisa y corrige la información.',
             route('renditions.show', $rendition->id)
-        ));
+        );
+        $rendition->user->notify($notification);
+        if ($rendition->user->jefatura) {
+            $rendition->user->jefatura->notify($notification);
+        }
 
         return redirect()->back()->with(
             'success',
@@ -762,11 +766,15 @@ class RenditionController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $rendition->user->notify(new WorkflowNotification(
+        $notification = new WorkflowNotification(
             'Rendición observada',
-            'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
+            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue devuelta con observaciones. Revisa y corrige la información.',
             route('renditions.show', $rendition->id)
-        ));
+        );
+        $rendition->user->notify($notification);
+        if ($rendition->user->jefatura) {
+            $rendition->user->jefatura->notify($notification);
+        }
 
         return redirect()->back()->with(
             'success',
@@ -943,11 +951,15 @@ class RenditionController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $rendition->user->notify(new WorkflowNotification(
+        $notification = new WorkflowNotification(
             'Rendición observada',
-            'Tu rendición fue devuelta con observaciones. Revisa y corrige la información.',
+            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue devuelta con observaciones. Revisa y corrige la información.',
             route('renditions.show', $rendition->id)
-        ));
+        );
+        $rendition->user->notify($notification);
+        if ($rendition->user->jefatura) {
+            $rendition->user->jefatura->notify($notification);
+        }
 
         return redirect()->back()->with(
             'success',
@@ -1248,11 +1260,15 @@ class RenditionController extends Controller
 
         // Notify the worker
         if ($rendition->user) {
-            $rendition->user->notify(new \App\Notifications\WorkflowNotification(
+            $notification = new \App\Notifications\WorkflowNotification(
                 'Comprobante de Transferencia Rechazado',
-                'Su comprobante de transferencia para la rendición de la planificación #' . ($rendition->route_planning_id ?? '') . ' fue rechazado por finanzas. Por favor, suba un nuevo comprobante válido.',
+                'El comprobante de transferencia para la rendición de la planificación #' . ($rendition->route_planning_id ?? '') . ' de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue rechazado por finanzas. Por favor, suba un nuevo comprobante válido.',
                 route('renditions.show', $rendition->id)
-            ));
+            );
+            $rendition->user->notify($notification);
+            if ($rendition->user->jefatura) {
+                $rendition->user->jefatura->notify($notification);
+            }
         }
 
         return back()->with('success', 'Comprobante rechazado correctamente y notificado al trabajador.');

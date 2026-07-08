@@ -450,11 +450,15 @@ class RoutePlanningController extends Controller
 
         // Notificar al trabajador
 
-        $planning->user->notify(new WorkflowNotification(
+        $notification = new WorkflowNotification(
             'Planificación rechazada',
-            'Tu planificación fue rechazada por Jefatura. Revisa las observaciones.',
+            'La planificación de ' . $planning->user->name . ' ' . $planning->user->last_name . ' fue rechazada por Jefatura. Revisa las observaciones.',
             route('route-plannings.index')
-        ));
+        );
+        $planning->user->notify($notification);
+        if ($planning->user->jefatura) {
+            $planning->user->jefatura->notify($notification);
+        }
 
         return redirect()
             ->back()
@@ -549,11 +553,15 @@ class RoutePlanningController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $planning->user->notify(new WorkflowNotification(
+        $notification = new WorkflowNotification(
             'Planificación rechazada',
-            'Tu planificación fue rechazada por Controlling. Revisa las observaciones.',
+            'La planificación de ' . $planning->user->name . ' ' . $planning->user->last_name . ' fue rechazada por Controlling. Revisa las observaciones.',
             route('route-plannings.index')
-        ));
+        );
+        $planning->user->notify($notification);
+        if ($planning->user->jefatura) {
+            $planning->user->jefatura->notify($notification);
+        }
 
         return redirect()
             ->back()
@@ -690,11 +698,15 @@ class RoutePlanningController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $planning->user->notify(new WorkflowNotification(
+        $notification = new WorkflowNotification(
             'Planificación rechazada',
-            'Tu planificación fue rechazada por Finanzas. Revisa las observaciones.',
+            'La planificación de ' . $planning->user->name . ' ' . $planning->user->last_name . ' fue rechazada por Finanzas. Revisa las observaciones.',
             route('route-plannings.index')
-        ));
+        );
+        $planning->user->notify($notification);
+        if ($planning->user->jefatura) {
+            $planning->user->jefatura->notify($notification);
+        }
 
         return redirect()
             ->back()
