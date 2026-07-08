@@ -755,7 +755,7 @@ class RoutePlanningController extends Controller
             abort(403, 'No authorized.');
         }
 
-        $planning->load(['user', 'digitalSignatures.user']);
+        $planning->load(['user', 'digitalSignatures.user', 'observations.user']);
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('route-plannings.pdf', [
             'planning' => $planning,

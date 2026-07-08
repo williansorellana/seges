@@ -287,6 +287,18 @@
                     Solicitud rechazada. Este documento se genera solo como respaldo histórico y no constituye autorización de fondos, viáticos o Amipass.
                 </td>
             </tr>
+            @if($planning->observations->count() > 0)
+                <tr>
+                    <td style="padding: 6px; border: 1px solid #fca5a5; background-color: #fef2f2; color: #b91c1c; font-size: 8px;">
+                        <strong>Motivo de rechazo:</strong>
+                        <ul style="margin: 3px 0 0 12px; padding: 0;">
+                            @foreach($planning->observations as $obs)
+                                <li>{{ $obs->observation }} (por {{ $obs->user->name ?? 'Revisor' }} el {{ $obs->created_at->format('d/m/Y H:i') }})</li>
+                            @endforeach
+                        </ul>
+                    </td>
+                </tr>
+            @endif
         </table>
     @elseif($planning->status === 'approved')
         <table>

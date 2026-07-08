@@ -179,6 +179,17 @@
                                                 </div>
                                             @endif
 
+                                            @if($plan->status === 'rejected' && $plan->observations->count() > 0)
+                                                @php
+                                                    $latestRejection = $plan->observations->sortByDesc('created_at')->first();
+                                                @endphp
+                                                @if($latestRejection)
+                                                    <div class="mt-1.5 text-[10px] text-rose-300 bg-rose-500/10 px-2 py-1 rounded-md border border-rose-500/20 max-w-[160px] text-center break-words">
+                                                        <span class="font-bold text-rose-400">Motivo:</span> {{ $latestRejection->observation }}
+                                                    </div>
+                                                @endif
+                                            @endif
+
                                             <a href="{{ route('route-plannings.pdf', $plan->id) }}"
                                             target="_blank"
                                             class="px-3 py-1.5 bg-rose-600 text-white text-[11px] font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 mt-1">

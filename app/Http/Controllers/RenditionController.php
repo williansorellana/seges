@@ -1186,6 +1186,7 @@ class RenditionController extends Controller
         $planningQuery = \App\Models\RoutePlanning::with([
             'user',
             'workflowHistories.user',
+            'observations.user',
         ])
             ->whereIn('status', ['approved', 'rejected']);
 
