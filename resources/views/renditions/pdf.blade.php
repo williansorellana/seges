@@ -215,88 +215,203 @@
 
     <div class="title" style="margin-bottom: 10px; font-size: 14px;">Detalle de Gastos Declarados</div>
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 8%;">Día</th>
-                <th style="width: 15%;">Detalle</th>
-                <th style="width: 8%;">Doc.</th>
-                <th style="width: 8%;">Nº</th>
-                <th style="width: 8%; text-align: right;">Bencina</th>
-                <th style="width: 7%; text-align: right;">Peaje</th>
-                <th style="width: 10%; text-align: right;">Estac./Transb.</th>
-                <th style="width: 9%; text-align: right;">Aloj.</th>
-                <th style="width: 8%; text-align: right;">Comida</th>
-                <th style="width: 7%; text-align: right;">Otros</th>
-                <th style="width: 8%; text-align: right;">Total</th>
-            </tr>
-        </thead>
+    @php
+        $boletas = $rendition->expenses->where('document_type', 'boleta');
+        $facturas = $rendition->expenses->where('document_type', 'factura');
+        $otrosGastos = $rendition->expenses->whereNotIn('document_type', ['boleta', 'factura']);
+    @endphp
 
-        <tbody>
-            @foreach($rendition->expenses as $expense)
-                @php
-                    $category = $expense->expense_category ?? 'otros';
-
-                    $bencina = $category === 'bencina' ? $expense->amount : 0;
-                    $peaje = $category === 'peaje' ? $expense->amount : 0;
-                    $estacionamiento = $category === 'estacionamiento_transbordador' ? $expense->amount : 0;
-                    $alojamiento = $category === 'alojamiento' ? $expense->amount : 0;
-                    $comida = $category === 'comida' ? $expense->amount : 0;
-                    $otros = $category === 'otros' ? $expense->amount : 0;
-                @endphp
-
+    @if($rendition->expenses->count() == 0)
+        <table>
+            <tbody>
                 <tr>
-                    <td>{{ \Carbon\Carbon::parse($expense->date)->format('d/m/Y') }}</td>
-                    <td>{{ $expense->provider }}</td>
-                    <td style="text-transform: uppercase;">{{ $expense->document_type }}</td>
-                    <td>{{ $expense->document_number ?? 'S/N' }}</td>
-
-                    <td style="text-align: right;">{{ $bencina > 0 ? '$'.number_format($bencina, 0, ',', '.') : '-' }}</td>
-                    <td style="text-align: right;">{{ $peaje > 0 ? '$'.number_format($peaje, 0, ',', '.') : '-' }}</td>
-                    <td style="text-align: right;">{{ $estacionamiento > 0 ? '$'.number_format($estacionamiento, 0, ',', '.') : '-' }}</td>
-                    <td style="text-align: right;">{{ $alojamiento > 0 ? '$'.number_format($alojamiento, 0, ',', '.') : '-' }}</td>
-                    <td style="text-align: right;">{{ $comida > 0 ? '$'.number_format($comida, 0, ',', '.') : '-' }}</td>
-                    <td style="text-align: right;">{{ $otros > 0 ? '$'.number_format($otros, 0, ',', '.') : '-' }}</td>
-
-                    <td style="text-align: right; font-weight: bold;">
-                        ${{ number_format($expense->amount, 0, ',', '.') }}
+                    <td style="text-align: center; font-style: italic; color: #666; padding: 10px;">
+                        No se registraron gastos declarados.
                     </td>
                 </tr>
-            @endforeach
+            </tbody>
+        </table>
+    @endif
 
-            <tr class="total-row">
-                <td colspan="4" style="text-align: right;">Subtotal:</td>
+    {{-- 1. Tabla de Boletas --}}
+    @if($boletas->count() > 0)
+        <div style="font-size: 10px; font-weight: bold; color: #4f46e5; margin-bottom: 4px; margin-top: 8px;">1. DETALLE DE BOLETAS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Día</th>
+                    <th style="width: 15%;">Detalle</th>
+                    <th style="width: 8%;">Doc.</th>
+                    <th style="width: 8%;">Nº</th>
+                    <th style="width: 8%; text-align: right;">Bencina</th>
+                    <th style="width: 7%; text-align: right;">Peaje</th>
+                    <th style="width: 10%; text-align: right;">Estac./Transb.</th>
+                    <th style="width: 9%; text-align: right;">Aloj.</th>
+                    <th style="width: 8%; text-align: right;">Comida</th>
+                    <th style="width: 7%; text-align: right;">Otros</th>
+                    <th style="width: 8%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($boletas as $expense)
+                    @php
+                        $category = $expense->expense_category ?? 'otros';
+                        $bencina = $category === 'bencina' ? $expense->amount : 0;
+                        $peaje = $category === 'peaje' ? $expense->amount : 0;
+                        $estacionamiento = $category === 'estacionamiento_transbordador' ? $expense->amount : 0;
+                        $alojamiento = $category === 'alojamiento' ? $expense->amount : 0;
+                        $comida = $category === 'comida' ? $expense->amount : 0;
+                        $otros = $category === 'otros' ? $expense->amount : 0;
+                    @endphp
+                    <tr>
+                        <td>{{ \Carbon\Carbon::parse($expense->date)->format('d/m/Y') }}</td>
+                        <td>{{ $expense->provider }}</td>
+                        <td style="text-transform: uppercase;">{{ $expense->document_type }}</td>
+                        <td>{{ $expense->document_number ?? 'S/N' }}</td>
+                        <td style="text-align: right;">{{ $bencina > 0 ? '$'.number_format($bencina, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $peaje > 0 ? '$'.number_format($peaje, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $estacionamiento > 0 ? '$'.number_format($estacionamiento, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $alojamiento > 0 ? '$'.number_format($alojamiento, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $comida > 0 ? '$'.number_format($comida, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $otros > 0 ? '$'.number_format($otros, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right; font-weight: bold;">
+                            ${{ number_format($expense->amount, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                @endforeach
+                <tr class="total-row">
+                    <td colspan="4" style="text-align: right;">Subtotal Boletas:</td>
+                    <td style="text-align: right;">${{ number_format($boletas->where('expense_category', 'bencina')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($boletas->where('expense_category', 'peaje')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($boletas->where('expense_category', 'estacionamiento_transbordador')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($boletas->where('expense_category', 'alojamiento')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($boletas->where('expense_category', 'comida')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($boletas->where('expense_category', 'otros')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($boletas->sum('amount'), 0, ',', '.') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
 
-                <td style="text-align: right;">
-                    ${{ number_format($rendition->expenses->where('expense_category', 'bencina')->sum('amount'), 0, ',', '.') }}
-                </td>
+    {{-- 2. Tabla de Facturas --}}
+    @if($facturas->count() > 0)
+        <div style="font-size: 10px; font-weight: bold; color: #4f46e5; margin-bottom: 4px; margin-top: 8px;">2. DETALLE DE FACTURAS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Día</th>
+                    <th style="width: 15%;">Detalle</th>
+                    <th style="width: 8%;">Doc.</th>
+                    <th style="width: 8%;">Nº</th>
+                    <th style="width: 8%; text-align: right;">Bencina</th>
+                    <th style="width: 7%; text-align: right;">Peaje</th>
+                    <th style="width: 10%; text-align: right;">Estac./Transb.</th>
+                    <th style="width: 9%; text-align: right;">Aloj.</th>
+                    <th style="width: 8%; text-align: right;">Comida</th>
+                    <th style="width: 7%; text-align: right;">Otros</th>
+                    <th style="width: 8%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($facturas as $expense)
+                    @php
+                        $category = $expense->expense_category ?? 'otros';
+                        $bencina = $category === 'bencina' ? $expense->amount : 0;
+                        $peaje = $category === 'peaje' ? $expense->amount : 0;
+                        $estacionamiento = $category === 'estacionamiento_transbordador' ? $expense->amount : 0;
+                        $alojamiento = $category === 'alojamiento' ? $expense->amount : 0;
+                        $comida = $category === 'comida' ? $expense->amount : 0;
+                        $otros = $category === 'otros' ? $expense->amount : 0;
+                    @endphp
+                    <tr>
+                        <td>{{ \Carbon\Carbon::parse($expense->date)->format('d/m/Y') }}</td>
+                        <td>{{ $expense->provider }}</td>
+                        <td style="text-transform: uppercase;">{{ $expense->document_type }}</td>
+                        <td>{{ $expense->document_number ?? 'S/N' }}</td>
+                        <td style="text-align: right;">{{ $bencina > 0 ? '$'.number_format($bencina, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $peaje > 0 ? '$'.number_format($peaje, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $estacionamiento > 0 ? '$'.number_format($estacionamiento, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $alojamiento > 0 ? '$'.number_format($alojamiento, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $comida > 0 ? '$'.number_format($comida, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $otros > 0 ? '$'.number_format($otros, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right; font-weight: bold;">
+                            ${{ number_format($expense->amount, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                @endforeach
+                <tr class="total-row">
+                    <td colspan="4" style="text-align: right;">Subtotal Facturas:</td>
+                    <td style="text-align: right;">${{ number_format($facturas->where('expense_category', 'bencina')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($facturas->where('expense_category', 'peaje')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($facturas->where('expense_category', 'estacionamiento_transbordador')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($facturas->where('expense_category', 'alojamiento')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($facturas->where('expense_category', 'comida')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($facturas->where('expense_category', 'otros')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($facturas->sum('amount'), 0, ',', '.') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
 
-                <td style="text-align: right;">
-                    ${{ number_format($rendition->expenses->where('expense_category', 'peaje')->sum('amount'), 0, ',', '.') }}
-                </td>
-
-                <td style="text-align: right;">
-                    ${{ number_format($rendition->expenses->where('expense_category', 'estacionamiento_transbordador')->sum('amount'), 0, ',', '.') }}
-                </td>
-
-                <td style="text-align: right;">
-                    ${{ number_format($rendition->expenses->where('expense_category', 'alojamiento')->sum('amount'), 0, ',', '.') }}
-                </td>
-
-                <td style="text-align: right;">
-                    ${{ number_format($rendition->expenses->where('expense_category', 'comida')->sum('amount'), 0, ',', '.') }}
-                </td>
-
-                <td style="text-align: right;">
-                    ${{ number_format($rendition->expenses->where('expense_category', 'otros')->sum('amount'), 0, ',', '.') }}
-                </td>
-
-                <td style="text-align: right;">
-                    ${{ number_format($rendition->total_declared, 0, ',', '.') }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    {{-- 3. Tabla de Vales / Otros --}}
+    @if($otrosGastos->count() > 0)
+        <div style="font-size: 10px; font-weight: bold; color: #4f46e5; margin-bottom: 4px; margin-top: 8px;">3. DETALLE DE VALES / OTROS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Día</th>
+                    <th style="width: 15%;">Detalle</th>
+                    <th style="width: 8%;">Doc.</th>
+                    <th style="width: 8%;">Nº</th>
+                    <th style="width: 8%; text-align: right;">Bencina</th>
+                    <th style="width: 7%; text-align: right;">Peaje</th>
+                    <th style="width: 10%; text-align: right;">Estac./Transb.</th>
+                    <th style="width: 9%; text-align: right;">Aloj.</th>
+                    <th style="width: 8%; text-align: right;">Comida</th>
+                    <th style="width: 7%; text-align: right;">Otros</th>
+                    <th style="width: 8%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($otrosGastos as $expense)
+                    @php
+                        $category = $expense->expense_category ?? 'otros';
+                        $bencina = $category === 'bencina' ? $expense->amount : 0;
+                        $peaje = $category === 'peaje' ? $expense->amount : 0;
+                        $estacionamiento = $category === 'estacionamiento_transbordador' ? $expense->amount : 0;
+                        $alojamiento = $category === 'alojamiento' ? $expense->amount : 0;
+                        $comida = $category === 'comida' ? $expense->amount : 0;
+                        $otros = $category === 'otros' ? $expense->amount : 0;
+                    @endphp
+                    <tr>
+                        <td>{{ \Carbon\Carbon::parse($expense->date)->format('d/m/Y') }}</td>
+                        <td>{{ $expense->provider }}</td>
+                        <td style="text-transform: uppercase;">{{ $expense->document_type }}</td>
+                        <td>{{ $expense->document_number ?? 'S/N' }}</td>
+                        <td style="text-align: right;">{{ $bencina > 0 ? '$'.number_format($bencina, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $peaje > 0 ? '$'.number_format($peaje, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $estacionamiento > 0 ? '$'.number_format($estacionamiento, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $alojamiento > 0 ? '$'.number_format($alojamiento, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $comida > 0 ? '$'.number_format($comida, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right;">{{ $otros > 0 ? '$'.number_format($otros, 0, ',', '.') : '-' }}</td>
+                        <td style="text-align: right; font-weight: bold;">
+                            ${{ number_format($expense->amount, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                @endforeach
+                <tr class="total-row">
+                    <td colspan="4" style="text-align: right;">Subtotal Vales/Otros:</td>
+                    <td style="text-align: right;">${{ number_format($otrosGastos->where('expense_category', 'bencina')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($otrosGastos->where('expense_category', 'peaje')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($otrosGastos->where('expense_category', 'estacionamiento_transbordador')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($otrosGastos->where('expense_category', 'alojamiento')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($otrosGastos->where('expense_category', 'comida')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($otrosGastos->where('expense_category', 'otros')->sum('amount'), 0, ',', '.') }}</td>
+                    <td style="text-align: right;">${{ number_format($otrosGastos->sum('amount'), 0, ',', '.') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
 
     <div class="title" style="margin-bottom: 10px; font-size: 14px;">Resumen Financiero</div>
     <table>
