@@ -88,7 +88,7 @@
                         <p class="mt-1 text-sm text-slate-400">No hay requerimientos financieros por autorizar.</p>
                     </div>
                 @else
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto min-h-[350px]">
                         <table class="min-w-full divide-y divide-slate-700/40">
                             <thead class="bg-slate-800/50">
                                 <tr>
@@ -473,7 +473,7 @@
                         <p class="mt-1 text-sm text-slate-400">No hay rendiciones pendientes de conciliación final.</p>
                     </div>
                 @elseif(isset($renditions))
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto min-h-[350px]">
                         <table class="min-w-full divide-y divide-slate-700/40">
                             <thead class="bg-slate-800/50">
                                 <tr>
