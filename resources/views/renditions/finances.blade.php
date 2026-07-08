@@ -628,6 +628,21 @@
                                                             </div>
                                                         </div>
                                                     @else
+                                                        @if($ren->status === 'pending_finances')
+                                                            <form action="{{ route('renditions.approve-finances-rendition', $ren->id) }}" method="POST">
+                                                                @csrf
+                                                                <button type="submit"
+                                                                    class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                                                                    Aprobar
+                                                                </button>
+                                                            </form>
+
+                                                            <button @click="showReject = true"
+                                                                class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                                                                Rechazar
+                                                            </button>
+                                                        @endif
+
                                                         @if($ren->status === 'approved' && !$ren->payment_completed)
                                                             <button @click="showPayment = true"
                                                                 class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-500 transition-all hover:-translate-y-0.5 cursor-pointer">
