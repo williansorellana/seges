@@ -310,7 +310,7 @@
                                         x-transition
                                         class="bg-slate-900/40"
                                     >
-                                        <td colspan="4" class="px-8 py-6 border-b border-slate-700/40">
+<td colspan="4" class="px-8 py-6 border-b border-slate-700/40">
                                             <div x-show="isLockedByOther" x-cloak class="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center gap-3">
                                                 <svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -320,45 +320,80 @@
 
                                             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-                                                <!-- Columna Izquierda: Destinos (Ocupa 7 de 12) -->
-                                                <div class="md:col-span-7 bg-slate-900/60 p-5 rounded-2xl border border-slate-800 h-full">
+                                                <!-- Columna Izquierda: Destinos y Amipass -->
+                                                <div class="md:col-span-7 flex flex-col gap-6">
                                                     
-                                                    <h5 class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-4">
-                                                        Destinos del Viaje
-                                                    </h5>
+                                                    <!-- Tarjeta Destinos -->
+                                                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                                                        <h5 class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-4">
+                                                            Destinos del Viaje
+                                                        </h5>
 
-                                                    <div class="font-bold text-white text-sm mb-2">
-                                                        Destino Principal: {{ $plan->destination }}
-                                                        @if($plan->region)
-                                                            <span class="text-slate-400 font-normal">({{ $plan->region }})</span>
+                                                        <div class="font-bold text-white text-sm mb-2">
+                                                            Destino Principal: {{ $plan->destination }}
+                                                            @if($plan->region)
+                                                                <span class="text-slate-400 font-normal">({{ $plan->region }})</span>
+                                                            @endif
+                                                        </div>
+
+                                                        @if(!empty($plan->destinations))
+                                                            <div class="mt-4 pt-4 border-t border-slate-800/80">
+                                                                <div class="text-[10px] uppercase font-bold text-slate-500 mb-3 tracking-widest">
+                                                                    Destinos adicionales
+                                                                </div>
+                                                                <ul class="space-y-2">
+                                                                    @foreach($plan->destinations as $dest)
+                                                                        @if(!empty($dest['destination']))
+                                                                            <li class="text-xs text-slate-300 flex items-center gap-2">
+                                                                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                                                {{ $dest['destination'] }}
+                                                                                @if(!empty($dest['region']))
+                                                                                    <span class="text-slate-500">({{ $dest['region'] }})</span>
+                                                                                @endif
+                                                                            </li>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </ul>
+                                                            </div>
+                                                        @else
+                                                            <div class="mt-3 text-xs text-slate-500 italic">
+                                                                Sin destinos adicionales.
+                                                            </div>
                                                         @endif
                                                     </div>
 
-                                                    @if(!empty($plan->destinations))
-                                                        <div class="mt-4 pt-4 border-t border-slate-800/80">
-                                                            <div class="text-[10px] uppercase font-bold text-slate-500 mb-3 tracking-widest">
-                                                                Destinos adicionales
+                                                    <!-- Tarjeta Amipass -->
+                                                    @if($plan->requires_amipass)
+                                                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                                                        <h5 class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-4">
+                                                            Amipass
+                                                        </h5>
+                                                        <div class="space-y-2 text-sm">
+                                                            <div class="flex justify-between">
+                                                                <span class="text-slate-400">Monto</span>
+                                                                <span class="font-bold text-emerald-400">
+                                                                    ${{ number_format($plan->amipass_amount,0,',','.') }}
+                                                                </span>
                                                             </div>
-                                                            <ul class="space-y-2">
-                                                                @foreach($plan->destinations as $dest)
-                                                                    @if(!empty($dest['destination']))
-                                                                        <li class="text-xs text-slate-300 flex items-center gap-2">
-                                                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                                                            {{ $dest['destination'] }}
-                                                                            @if(!empty($dest['region']))
-                                                                                <span class="text-slate-500">({{ $dest['region'] }})</span>
-                                                                            @endif
-                                                                        </li>
-                                                                    @endif
-                                                                @endforeach
-                                                            </ul>
+                                                            <div class="flex justify-between">
+                                                                <span class="text-slate-400">Días</span>
+                                                                <span class="font-bold text-white">
+                                                                    {{ $plan->amipass_business_days ?? $plan->amipass_days }}
+                                                                </span>
+                                                            </div>
+                                                            @if(!empty($plan->amipass_ruts))
+                                                                <div class="pt-2 border-t border-slate-800/80 mt-2">
+                                                                    <span class="text-slate-400 text-xs block mb-1 font-bold">RUTs Integrantes:</span>
+                                                                    <div class="flex flex-wrap gap-1.5 mt-1">
+                                                                        @foreach($plan->amipass_ruts as $rut)
+                                                                            <span class="px-2 py-0.5 bg-slate-950 text-slate-300 rounded text-[10px] font-mono border border-slate-800">{{ $rut }}</span>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
+                                                            @endif
                                                         </div>
-                                                    @else
-                                                        <div class="mt-3 text-xs text-slate-500 italic">
-                                                            Sin destinos adicionales.
-                                                        </div>
+                                                    </div>
                                                     @endif
-
                                                 </div>
 
                                                 <!-- Columna Derecha: Desglose (Ocupa 5 de 12) -->

@@ -267,6 +267,14 @@
                     Regreso: {{ $planning->amipass_end_time ?? 'No registrado' }}
                 </td>
             </tr>
+            @if(!empty($planning->amipass_ruts))
+                <tr>
+                    <th>RUTs Integrantes para Amipass</th>
+                    <td>
+                        {{ implode(', ', $planning->amipass_ruts) }}
+                    </td>
+                </tr>
+            @endif
         @else
             <tr>
                 <th>Amipass</th>

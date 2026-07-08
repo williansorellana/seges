@@ -164,6 +164,20 @@
                             </template>
                             <button type="button" @click="emails.push('')" class="text-xs text-blue-500 font-bold hover:underline">+ Agregar otro correo</button>
                         </div>
+
+                        <!-- RUT de Integrantes para Amipass -->
+                        <div class="col-span-1 md:col-span-2 mt-6" x-show="requiresAmipass" x-data="{ ruts: [''] }" x-transition x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                RUT de Integrantes / Acompañantes para Amipass <span class="text-red-500">*</span>
+                            </label>
+                            <template x-for="(rut, index) in ruts" :key="index">
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" name="amipass_ruts[]" x-model="ruts[index]" placeholder="12.345.678-9" class="flex-1 bg-[#1e293b] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100" x-bind:required="requiresAmipass">
+                                    <button type="button" @click="ruts.splice(index, 1)" class="px-3 bg-red-600/20 text-red-500 rounded-lg font-bold">X</button>
+                                </div>
+                            </template>
+                            <button type="button" @click="ruts.push('')" class="text-xs text-blue-500 font-bold hover:underline">+ Agregar otro integrante</button>
+                        </div>
                     </div>
 
                     <!-- 2. Solicitudes Financieras -->

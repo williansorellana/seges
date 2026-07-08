@@ -358,6 +358,16 @@
                                                                         {{ $plan->amipass_business_days ?? $plan->amipass_days }}
                                                                     </span>
                                                                 </div>
+                                                                @if(!empty($plan->amipass_ruts))
+                                                                    <div class="pt-2.5 border-t border-slate-800/80 mt-2.5">
+                                                                        <span class="text-slate-500 text-xs block mb-1.5 font-bold">RUTs Integrantes:</span>
+                                                                        <div class="flex flex-wrap gap-1.5">
+                                                                            @foreach($plan->amipass_ruts as $rut)
+                                                                                <span class="px-2 py-0.5 bg-slate-950 text-slate-300 rounded text-[10px] font-mono border border-slate-800">{{ $rut }}</span>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>

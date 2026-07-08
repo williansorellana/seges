@@ -97,6 +97,8 @@ class RoutePlanningController extends Controller
             'requires_amipass' => 'nullable|boolean',
             'amipass_start_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',
             'amipass_end_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',
+            'amipass_ruts' => 'nullable|required_if:requires_amipass,1|array',
+            'amipass_ruts.*' => 'nullable|required_if:requires_amipass,1|string|max:20',
         ]);
 
         $planning = new \App\Models\RoutePlanning();
@@ -154,6 +156,7 @@ class RoutePlanningController extends Controller
             $planning->amipass_end_time = $validated['amipass_end_time'];
             $planning->usual_zone = null;
             $planning->extraordinary_zone = $validated['destination'];
+            $planning->amipass_ruts = array_values(array_filter($request->input('amipass_ruts', [])));
         } else {
             $planning->amipass_days = null;
             $planning->amipass_business_days = 0;
@@ -162,6 +165,7 @@ class RoutePlanningController extends Controller
             $planning->amipass_end_time = null;
             $planning->usual_zone = null;
             $planning->extraordinary_zone = null;
+            $planning->amipass_ruts = null;
         }
 
         if (auth()->user()->jefatura_id) {
@@ -203,6 +207,7 @@ class RoutePlanningController extends Controller
                 'amipass_amount' => $planning->amipass_amount,
                 'amipass_start_time' => $planning->amipass_start_time,
                 'amipass_end_time' => $planning->amipass_end_time,
+                'amipass_ruts' => $planning->amipass_ruts,
                 'usual_zone' => $planning->usual_zone,
                 'extraordinary_zone' => $planning->extraordinary_zone,
                 'signed_at' => now()->toDateTimeString(),

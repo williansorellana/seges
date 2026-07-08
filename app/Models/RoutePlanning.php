@@ -25,6 +25,7 @@ class RoutePlanning extends Model
         'funds_otros' => 'decimal:2',
 
         'destinations' => 'array',
+        'amipass_ruts' => 'array',
 
         'requires_amipass' => 'boolean',
         'amipass_days' => 'integer',

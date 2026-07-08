@@ -657,6 +657,24 @@
                                 </button>
                             </div>
 
+                            <!-- RUT de Integrantes para Amipass -->
+                            <div class="col-span-1 md:col-span-2 mt-4" x-show="requiresAmipass" x-data="{ ruts: [''] }" x-transition x-cloak>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">
+                                    RUT de Integrantes / Acompañantes para Amipass <span class="text-red-500">*</span>
+                                </label>
+                                <template x-for="(rut, index) in ruts" :key="index">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <input type="text" name="amipass_ruts[]" x-model="ruts[index]" placeholder="12.345.678-9" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" x-bind:required="requiresAmipass">
+                                        <button type="button" @click="ruts.splice(index, 1)" class="px-3 py-2 bg-rose-600/10 text-rose-500 hover:bg-rose-600 hover:text-white rounded-lg transition-all border border-rose-500/20" title="Eliminar RUT">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                </template>
+                                <button type="button" @click="ruts.push('')" class="text-xs text-blue-400 font-bold hover:text-blue-300 transition-colors inline-flex items-center gap-1 mt-1">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Agregar otro integrante
+                                </button>
+                            </div>
+
                         </div>
 
                         <!-- 2. Solicitudes Financieras -->
