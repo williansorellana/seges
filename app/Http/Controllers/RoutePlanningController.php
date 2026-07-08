@@ -223,14 +223,23 @@ class RoutePlanningController extends Controller
 
             $users = User::where('departamento', $targetDepartment)->get();
 
-            Notification::send($users, new WorkflowNotification(
-                'Nueva planificación pendiente',
-                'El trabajador ' . $planning->user->name . ' creó una planificación sin jefatura asignada.',
-                $planning->trip_type === 'reunion'
-                    ? route('renditions.finances')
-                    : route('renditions.controlling')
-            ));
+            // Evitamos duplicar notificación a Controlling si ya se le enviará la de Auditoría y Validación
+            if ($targetDepartment !== WorkflowHelper::DEPARTMENT_CONTROLLING) {
+                Notification::send($users, new WorkflowNotification(
+                    'Nueva planificación pendiente',
+                    'El trabajador ' . $planning->user->name . ' creó una planificación sin jefatura asignada.',
+                    route('renditions.finances')
+                ));
+            }
         }
+
+        // Siempre notificar a Controlling de que hay una Auditoría y Validación pendiente
+        $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+        Notification::send($controllingUsers, new WorkflowNotification(
+            'Auditoría y Validación pendiente',
+            'El trabajador ' . $planning->user->name . ' creó una planificación de ruta. Hay una Auditoría y Validación pendiente por aprobar.',
+            route('renditions.controlling')
+        ));
 
         if ($request->has('notification_emails')) {
             $emails = array_filter($request->notification_emails, function($email) {
