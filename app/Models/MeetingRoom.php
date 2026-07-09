@@ -17,7 +17,9 @@ class MeetingRoom extends Model
         'status',
     ];
 
-    
+    /**
+ * Obtiene las reservas asociadas a la sala.
+ */
     public function reservations()
     {
         return $this->hasMany(RoomReservation::class);

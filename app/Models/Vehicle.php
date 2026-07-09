@@ -59,12 +59,9 @@ class Vehicle extends Model
         return !$this->reservations()
             ->whereIn('status', ['approved', 'in_trip'])
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate])
-                    ->orWhere(function ($q) use ($startDate, $endDate) {
-                        $q->where('start_date', '<', $startDate)
-                            ->where('end_date', '>', $endDate);
-                    });
+
+                $query->where('start_date', '<', $endDate)
+                      ->where('end_date', '>', $startDate);
             })
             ->exists();
     }
@@ -113,9 +110,9 @@ class Vehicle extends Model
             ->exists();
     }
 
-    /**
-     * Obtiene la reserva activa actual (si existe).
-     */
+/**
+ * Obtiene la reserva activa del vehículo.
+ */
     public function getActiveReservationAttribute()
     {
         return $this->reservations()

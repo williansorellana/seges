@@ -20,11 +20,15 @@
     class="fixed inset-y-0 left-0 z-50 flex-shrink-0 h-screen bg-gray-900 border-r border-gray-800 transition-all duration-300 ease-in-out flex flex-col pt-0 md:sticky md:top-0 md:translate-x-0">
 
     <div class="h-16 flex items-center justify-between px-4 bg-gray-900 border-b border-gray-800">
-        <div class="flex items-center space-x-2" :class="{'justify-center w-full': !open}">
+        <div class="flex flex-col items-start overflow-hidden" :class="{'items-center': !open}">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center justify-center overflow-hidden">
-                <img src="{{ asset('images/dimak-logo.png') }}" alt="Dimak Logo"
+                <img src="{{ asset('images/Dimak-logo.png') }}" alt="Dimak Logo"
                     class="object-contain transition-all duration-300" :class="open ? 'h-10' : 'h-8'" />
             </a>
+            <!-- Version Info, LUEGO MAS ADELANTE COMBIENE CAMBIARLO A CONFIG/APP, PERO AHORA ES SEGURO DEJARLO ACA. -->
+            <span x-show="open" class="mt-0.5 text-[11px] text-gray-500 tracking-wide">
+                Sistema V{{ env('APP_VERSION', '1.8') }}
+            </span>
         </div>
         <button @click="open = !open" x-show="open" class="text-gray-400 hover:text-white focus:outline-none">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +83,7 @@
                 <div x-show="open && vehicleMenu" x-collapse
                     class="space-y-1 bg-gray-800/50 mt-1 rounded-md overflow-hidden">
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']))
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer', 'worker', 'driver']))
                         <a href="{{ route('vehicles.dashboard') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('vehicles.dashboard') ? "'text-white bg-gray-800'" : "''" }}">
@@ -87,12 +91,18 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+                    @if(Auth::user()->role === 'supervisor')
                         <a href="{{ route('vehicles.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('vehicles.index') ? "'text-white bg-gray-800'" : "''" }}">
                             Gestión de Vehículos
                         </a>
+                        <a href="{{ route('requests.manage') }}" wire:navigate
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
+                            :class="{{ request()->routeIs('requests.manage') ? "'text-white bg-gray-800'" : "''" }}">
+                            Gestión de Solicitudes
+                        </a>
+
                         <a href="{{ route('conductores.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('conductores.*') ? "'text-white bg-gray-800'" : "''" }}">
@@ -100,7 +110,7 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker']))
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker', 'driver']))
                         <a href="{{ route('requests.create') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('requests.create') ? "'text-white bg-gray-800'" : "''" }}">
@@ -113,7 +123,7 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'secretaria', 'supervisor']))
+                    @if(Auth::user()->role === 'supervisor')
                         <a href="{{ route('external-people.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('external-people.*') ? "'text-white bg-gray-800'" : "''" }}">
@@ -153,7 +163,7 @@
                         Ver Salas
                     </a>
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker']))
+                    @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'worker', 'driver']))
                         <a href="{{ route('reservations.my_reservations') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('reservations.my_reservations') ? "'text-white bg-gray-800'" : "''" }}">
@@ -161,7 +171,7 @@
                         </a>
                     @endif
 
-                    @if(in_array(Auth::user()->role, ['admin', 'supervisor']))
+                    @if(Auth::user()->role === 'supervisor')
 
                         <a href="{{ route('reservations.create_external') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm rounded-md transition-colors duration-200 group"
@@ -191,7 +201,8 @@
                 </div>
             </div>
         @endif
-
+        
+        
         <!-- Módulo Activos -->
         @if(in_array(Auth::user()->role, ['admin', 'supervisor', 'viewer']) && Auth::user()->hasModuleAccess('assets'))
             <div>
@@ -232,6 +243,10 @@
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ (request()->routeIs('assets.*') && !request()->routeIs('assets.dashboard') && !request()->routeIs('assets.reports.*')) ? "'text-white bg-gray-800'" : "''" }}">
                             Gestión de Activos
+                        </a>
+                        <a href="{{ route('asset-categories.index') }}"
+                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800">
+                            Categorías
                         </a>
                         <a href="{{ route('workers.index') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"

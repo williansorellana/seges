@@ -29,8 +29,14 @@ class ConductorController extends Controller
             'rut' => 'nullable|string|max:12|unique:conductores,rut',
             'cargo' => 'required|string|max:255',
             'departamento' => 'required|string|max:255',
-            'fecha_licencia' => 'required|date',
-            'fotografia' => 'nullable|image|mimes:jpg,png,jpeg|max:10240', // Máximo 10MB
+            'fecha_licencia' => 'required|date|after_or_equal:today',
+            'fotografia' => 'required|image|mimes:jpg,png,jpeg|max:10240', // Máximo 10MB
+        ], [
+            'fotografia.required' => 'Debe subir una foto de la licencia o carnet de conducir.',
+            'fotografia.image' => 'El archivo debe ser una imagen válida.',
+            'fotografia.mimes' => 'La licencia debe estar en formato JPG, JPEG o PNG.',
+            'fecha_licencia.required' => 'Debe ingresar la fecha de vencimiento de la licencia.',
+            'fecha_licencia.after_or_equal' => 'La fecha de vencimiento de la licencia no puede estar vencida.',
         ]);
         $conductor = new Conductor($request->except('fotografia'));
 
@@ -59,8 +65,16 @@ class ConductorController extends Controller
             'rut' => 'nullable|string|max:12|unique:conductores,rut,' . $conductor->id,
             'cargo' => 'required|string|max:255',
             'departamento' => 'required|string|max:255',
-            'fecha_licencia' => 'required|date',
-            'fotografia' => 'nullable|image|mimes:jpg,png,jpeg|max:10240',
+            'fecha_licencia' => 'required|date|after_or_equal:today',
+            'fotografia' => $conductor->fotografia
+            ? 'nullable|image|mimes:jpg,png,jpeg|max:10240'
+            : 'required|image|mimes:jpg,png,jpeg|max:10240',
+        ], [
+            'fotografia.required' => 'Debe subir una foto de la licencia o carnet de conducir.',
+            'fotografia.image' => 'El archivo debe ser una imagen válida.',
+            'fotografia.mimes' => 'La licencia debe estar en formato JPG, JPEG o PNG.',
+            'fecha_licencia.required' => 'Debe ingresar la fecha de vencimiento de la licencia.',
+            'fecha_licencia.after_or_equal' => 'La fecha de vencimiento de la licencia no puede estar vencida.',
         ]);
 
         $data = $request->all();

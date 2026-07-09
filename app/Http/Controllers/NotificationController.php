@@ -16,6 +16,15 @@ class NotificationController extends Controller
 
         // Primero verificar action_url explícita
         if (isset($notification->data['action_url'])) {
+            $isVehicleHistoryNotification =
+                str_contains($notification->data['action_url'], 'historial-mantenimiento') ||
+                str_contains($notification->data['action_url'], 'vehiculos/');
+
+            if ($isVehicleHistoryNotification && Auth::user()->role !== 'supervisor') {
+                return redirect()
+                    ->route('requests.index')
+                    ->with('error', 'Solo el supervisor a cargo puede ver el historial del vehículo.');
+            }
             return redirect($notification->data['action_url']);
         }
 
@@ -23,7 +32,14 @@ class NotificationController extends Controller
         $vehicleId = $notification->data['vehicle_id'] ?? null;
 
         if ($vehicleId) {
-            return redirect()->route('vehicles.index')->with('success', 'Redirigiendo a vehículo...');
+            if (Auth::user()->role !== 'supervisor'){
+                return redirect()->route('vehicles.index')->with('success', 'Redirigiendo a vehículo...');
+            }
+
+            return redirect()
+            ->route('requests.index')
+            ->with('error', 'Solo el supervisor puede acceder a la gestión del vehículo.');
+
         }
 
         if (isset($notification->data['asset_code'])) {

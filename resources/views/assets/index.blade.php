@@ -1,32 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        <!-- Import Flatpickr -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-
-        <style>
-            /* Custom Flatpickr Overrides */
-            .flatpickr-calendar.dark {
-                background: #0f172a !important;
-                border: 1px solid #1e293b !important;
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-                border-radius: 1.5rem !important;
-            }
-            .flatpickr-day.selected {
-                background: #3b82f6 !important;
-                border-color: #3b82f6 !important;
-            }
-        </style>
-
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Gestión de Activos') }}
             </h2>
             <div class="flex flex-wrap gap-2 items-center">
                 <a href="{{ route('assets.trash') }}"
-                    class="inline-flex items-center px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 shadow-md shadow-rose-500/20 cursor-pointer">
+                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -35,7 +15,7 @@
                     {{ __('Papelera') }}
                 </a>
                 <a href="{{ route('assets.users-history-index') }}" 
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-500 transition-all hover:-translate-y-0.5 shadow-md shadow-gray-500/20 cursor-pointer mr-2">                    <svg class  ="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-500 active:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9 mr-2">                    <svg class  ="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     {{ __('Historial Usuarios') }}
@@ -43,7 +23,7 @@
                 <!-- Dropdown Exportar PDF -->
                 <div x-data="{ exportOpen: false }" class="relative">
                     <button @click="exportOpen = !exportOpen" @click.away="exportOpen = false"
-                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-500 transition-all hover:-translate-y-0.5 shadow-md shadow-green-500/20 cursor-pointer">
+                        class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -158,7 +138,7 @@
                     </div>
                 </div>
                 <button x-data="" @click="$dispatch('open-modal', 'create-asset-modal')"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5 shadow-md shadow-blue-500/20 cursor-pointer">
+                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 h-9">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -272,7 +252,7 @@
                         </svg>
                         {{ __('Filtros') }}
                         @php
-                            $activeFiltersCount = collect([request('estado'), request('categoria')])->filter()->count();
+                            $activeFiltersCount = collect([request('estado'), request('categoria'), request('tipo')])->filter()->count();
                         @endphp
                         @if($activeFiltersCount > 0)
                             <span
@@ -845,7 +825,38 @@
                             </label>
                         </div>
                     </div>
+                    <!-- Filter: Type -->
+                    <div class="mb-4 border-b border-gray-700 pb-4" x-data="{ open: true }">
+                        <button type="button" @click="open = !open"
+                            class="flex items-center justify-between w-full text-left text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 focus:outline-none">
+                            <span>Tipo</span>
+                            <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
 
+                        <div x-show="open" class="space-y-2 mt-2">
+                            <label
+                                class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('tipo') === null ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
+                                <input type="radio" name="tipo" value="" class="hidden" {{ request('tipo') === null ? 'checked' : '' }} onchange="this.form.submit()">
+                                <span class="text-gray-200 font-medium">Todos</span>
+                            </label>
+
+                            <label
+                                class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('tipo') === 'hardware' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
+                                <input type="radio" name="tipo" value="hardware" class="hidden" {{ request('tipo') === 'hardware' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <span class="text-gray-200">Hardware</span>
+                            </label>
+
+                            <label
+                                class="flex items-center space-x-3 p-3 rounded-lg border border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors {{ request('tipo') === 'software' ? 'bg-indigo-900/30 border-indigo-500' : '' }}">
+                                <input type="radio" name="tipo" value="software" class="hidden" {{ request('tipo') === 'software' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <span class="text-gray-200">Software</span>
+                            </label>
+                        </div>
+                    </div>                  
                     <!-- Filter: Category -->
                     <div class="mb-4 border-b border-gray-700 pb-4 border-none" x-data="{ open: true }">
                         <button type="button" @click="open = !open"
@@ -880,7 +891,7 @@
                             class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-500/30">
                             Aplicar Filtros
                         </button>
-                        @if(request('estado') || request('categoria'))
+                        @if(request('estado') || request('categoria') || request('tipo'))
                             <a href="{{ route('assets.index', ['search' => request('search')]) }}"
                                 class="w-full py-3 text-center text-gray-400 hover:text-white font-medium hover:bg-gray-700 rounded-lg transition-colors">
                                 Limpiar Filtros
@@ -893,7 +904,7 @@
 
         <!-- Modal Crear Activo -->
         <x-modal name="create-asset-modal" :show="$errors->any()" focusable>
-            <form method="POST" action="{{ route('assets.store') }}" class="p-6"
+            <form method="POST" action="{{ route('assets.store') }}" class="p-6 bg-gray-800 text-gray-100"
                 enctype="multipart/form-data" x-data="{
                     photoPreview: null,
                     isCompressing: false,
@@ -935,13 +946,13 @@
                 }">
                 @csrf
 
-                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                <h2 class="text-lg font-medium text-gray-100 mb-4">
                     {{ __('Nuevo Activo') }}
                 </h2>
 
                 <!-- Foto -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">{{ __('Foto del Activo') }}</label>
+                    <x-input-label for="foto" :value="__('Foto del Activo')" class="text-gray-300" />
 
                     <!-- Preview -->
                     <div class="mb-3" x-show="photoPreview" style="display: none;">
@@ -981,119 +992,138 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Nombre -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Nombre del Activo</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="nombre" id="nombre" value="{{ old('nombre') }}" required autofocus class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Laptop Dell Latitude 5420">
-                        </div>
+                        <x-input-label for="nombre" :value="__('Nombre del Activo')" class="text-gray-300" />
+                        <x-text-input id="nombre"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="nombre" :value="old('nombre')" required autofocus
+                            placeholder="Ej: Laptop Dell Latitude 5420" />
                         <x-input-error :messages="$errors->get('nombre')" class="mt-2" />
                     </div>
 
                     <!-- Categoría -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Categoría</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
-                            <select id="categoria_id" name="categoria_id" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;" required>
-                                <option value="" class="bg-[#1e293b]">Seleccione una categoría</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" class="bg-[#1e293b]">{{ $category->nombre }}</option>
+                        <x-input-label for="categoria_id" :value="__('Categoría')" class="text-gray-300" />
+                        <select id="categoria_id" name="categoria_id"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm"
+                            required>
+                            <option value="">Seleccione una categoría</option>
+
+                            <optgroup label="Hardware">
+                                @foreach($categories->where('tipo', 'hardware') as $category)
+                                    <option value="{{ $category->id }}" {{ old('categoria_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->nombre }}
+                                    </option>
                                 @endforeach
-                            </select>
-                        </div>
+                            </optgroup>
+
+                            <optgroup label="Software">
+                                @foreach($categories->where('tipo', 'software') as $category)
+                                    <option value="{{ $category->id }}" {{ old('categoria_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->nombre }}
+                                    </option>
+                                @endforeach
+                            </optgroup>                     
+                        </select>
                         <x-input-error :messages="$errors->get('categoria_id')" class="mt-2" />
                     </div>
 
                     <!-- Estado -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Estado</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
-                            <select id="estado" name="estado" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
-                                <option value="available" class="bg-[#1e293b]">Disponible</option>
-                                <option value="assigned" class="bg-[#1e293b]">Asignado</option>
-                                <option value="maintenance" class="bg-[#1e293b]">En Mantenimiento</option>
-                                <option value="written_off" class="bg-[#1e293b]">Dado de Baja</option>
-                            </select>
-                        </div>
+                        <x-input-label for="estado" :value="__('Estado')" class="text-gray-300" />
+                        <select id="estado" name="estado"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm">
+                            <option value="available">Disponible</option>
+                            <option value="assigned">Asignado</option>
+                            <option value="maintenance">En Mantenimiento</option>
+                            <option value="written_off">Dado de Baja</option>
+                        </select>
                         <x-input-error :messages="$errors->get('estado')" class="mt-2" />
                     </div>
 
                     <!-- Marca -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Marca</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="marca" id="marca" value="{{ old('marca') }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Dell">
-                        </div>
+                        <x-input-label for="marca" :value="__('Marca')" class="text-gray-300" />
+                        <x-text-input id="marca"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="marca" :value="old('marca')" placeholder="Ej: Dell" />
                         <x-input-error :messages="$errors->get('marca')" class="mt-2" />
                     </div>
 
                     <!-- Modelo -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Modelo</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="modelo" id="modelo" value="{{ old('modelo') }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Latitude 5420">
-                        </div>
+                        <x-input-label for="modelo" :value="__('Modelo')" class="text-gray-300" />
+                        <x-text-input id="modelo"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="modelo" :value="old('modelo')" placeholder="Ej: Latitude 5420" />
                         <x-input-error :messages="$errors->get('modelo')" class="mt-2" />
                     </div>
 
                     <!-- Número de Serie -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Número de Serie</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="numero_serie" id="numero_serie" value="{{ old('numero_serie') }}" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Número de serie del fabricante">
-                        </div>
+                        <x-input-label for="numero_serie" :value="__('Número de Serie')" class="text-gray-300" />
+                        <x-text-input id="numero_serie"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="numero_serie" :value="old('numero_serie')"
+                            placeholder="Número de serie del fabricante" required />
                         <x-input-error :messages="$errors->get('numero_serie')" class="mt-2" />
                     </div>
 
                     <!-- Ubicación -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Ubicación</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="ubicacion" id="ubicacion" value="{{ old('ubicacion') }}" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Oficina Central">
-                        </div>
+                        <x-input-label for="ubicacion" :value="__('Ubicación')" class="text-gray-300" />
+                        <x-text-input id="ubicacion"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="ubicacion" :value="old('ubicacion')" placeholder="Ej: Oficina Central" />
                         <x-input-error :messages="$errors->get('ubicacion')" class="mt-2" />
                     </div>
 
                     <!-- Fecha de Adquisición -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Fecha de Adquisición</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="fecha_adquisicion" id="fecha_adquisicion" value="{{ old('fecha_adquisicion') }}" class="flatpickr-date w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
-                        </div>
+                        <x-input-label for="fecha_adquisicion" :value="__('Fecha de Adquisición')"
+                            class="text-gray-300" />
+                        <x-text-input id="fecha_adquisicion"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="date" name="fecha_adquisicion" :value="old('fecha_adquisicion')" />
                         <x-input-error :messages="$errors->get('fecha_adquisicion')" class="mt-2" />
                     </div>
 
                     <!-- Valor Referencial -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Valor Referencial (CLP)</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="valor_referencial" id="valor_referencial" value="{{ old('valor_referencial') }}" placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
-                        </div>
+                        <x-input-label for="valor_referencial" :value="__('Valor Referencial (CLP)')"
+                            class="text-gray-300" />
+                        <x-text-input id="valor_referencial"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="valor_referencial" :value="old('valor_referencial')" placeholder="0"
+                            x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" />
                         <x-input-error :messages="$errors->get('valor_referencial')" class="mt-2" />
                     </div>
 
                     <!-- Observaciones -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Observaciones</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <textarea id="observaciones" name="observaciones" rows="3" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" placeholder="Observaciones adicionales...">{{ old('observaciones') }}</textarea>
-                        </div>
+                        <x-input-label for="observaciones" :value="__('Observaciones')" class="text-gray-300" />
+                        <textarea id="observaciones" name="observaciones" rows="3"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm"
+                            placeholder="Observaciones adicionales...">{{ old('observaciones') }}</textarea>
                         <x-input-error :messages="$errors->get('observaciones')" class="mt-2" />
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" x-on:click="$dispatch('close')" class="px-5 py-2.5 bg-rose-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-500/30 hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                <div class="mt-6 flex justify-end space-x-3">
+                    <x-secondary-button x-on:click="$dispatch('close')"
+                        class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
                         {{ __('Cancelar') }}
-                    </button>
-                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                    </x-secondary-button>
+
+                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent">
                         {{ __('Guardar Activo') }}
-                    </button>
+                    </x-primary-button>
                 </div>
             </form>
         </x-modal>
 
         <!-- Modal Editar Activo -->
         <x-modal name="edit-asset-modal" :show="false" focusable>
-            <form method="POST" :action="editAction" enctype="multipart/form-data" class="p-6"
+            <form method="POST" :action="editAction" enctype="multipart/form-data" class="p-6 bg-gray-800 text-gray-100"
                 x-data="{
                     photoPreview: null,
                     isCompressing: false,
@@ -1136,13 +1166,13 @@
                 @csrf
                 @method('PUT')
 
-                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                <h2 class="text-lg font-medium text-gray-100 mb-4">
                     {{ __('Editar Activo') }}
                 </h2>
 
                 <!-- Foto -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">{{ __('Cambiar Foto (Opcional)') }}</label>
+                    <x-input-label for="edit_foto" :value="__('Cambiar Foto (Opcional)')" class="text-gray-300" />
 
                     <!-- Preview Box -->
                     <div class="mb-3" x-show="photoPreview || editingAsset.foto_url" style="display: none;">
@@ -1186,117 +1216,129 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Código Interno (Solo lectura) -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Código Interno</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-800/50 px-3 py-2.5 cursor-not-allowed">
-                            <input type="text" id="edit_codigo_interno" x-model="editingAsset.codigo_interno" disabled class="w-full bg-transparent border-none outline-none text-slate-400 text-sm cursor-not-allowed">
-                        </div>
+                        <x-input-label for="edit_codigo_interno" :value="__('Código Interno')" class="text-gray-300" />
+                        <x-text-input id="edit_codigo_interno"
+                            class="block mt-1 w-full bg-gray-700 border-gray-600 text-gray-400 cursor-not-allowed"
+                            type="text" x-model="editingAsset.codigo_interno" disabled />
                     </div>
 
                     <!-- Código de Barras (Solo lectura) -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Código de Barras</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-slate-800/50 px-3 py-2.5 cursor-not-allowed">
-                            <input type="text" id="edit_codigo_barra" x-model="editingAsset.codigo_barra" disabled class="w-full bg-transparent border-none outline-none text-slate-400 text-sm cursor-not-allowed">
-                        </div>
+                        <x-input-label for="edit_codigo_barra" :value="__('Código de Barras')" class="text-gray-300" />
+                        <x-text-input id="edit_codigo_barra"
+                            class="block mt-1 w-full bg-gray-700 border-gray-600 text-gray-400 cursor-not-allowed"
+                            type="text" x-model="editingAsset.codigo_barra" disabled />
                     </div>
 
                     <!-- Nombre -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Nombre del Activo</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="nombre" id="edit_nombre" x-model="editingAsset.nombre" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
-                        </div>
+                        <x-input-label for="edit_nombre" :value="__('Nombre del Activo')" class="text-gray-300" />
+                        <x-text-input id="edit_nombre"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="nombre" x-model="editingAsset.nombre" required />
                     </div>
 
                     <!-- Categoría -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Categoría</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
-                            <select id="edit_categoria_id" name="categoria_id" x-model="editingAsset.categoria_id" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;" required>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" class="bg-[#1e293b]">{{ $category->nombre }}</option>
+                        <x-input-label for="edit_categoria_id" :value="__('Categoría')" class="text-gray-300" />
+                        <select id="edit_categoria_id" name="categoria_id" x-model="editingAsset.categoria_id"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm"
+                            required>
+                            <optgroup label="Hardware">
+                                @foreach($categories->where('tipo', 'hardware') as $category)
+                                    <option value="{{ $category->id }}">{{ $category->nombre }}</option>
                                 @endforeach
-                            </select>
-                        </div>
+                            </optgroup>
+
+                            <optgroup label="Software">
+                                @foreach($categories->where('tipo', 'software') as $category)
+                                    <option value="{{ $category->id }}">{{ $category->nombre }}</option>
+                                @endforeach
+                            </optgroup>
+                        </select>
                     </div>
 
                     <!-- Estado -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Estado</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] focus-within:border-blue-500 hover:border-slate-600 transition-colors">
-                            <select id="edit_estado" name="estado" x-model="editingAsset.estado" class="w-full bg-transparent border-none text-slate-100 text-sm py-2.5 px-3 focus:ring-0 focus:outline-none cursor-pointer" style="background-color: transparent;">
-                                <option value="available" class="bg-[#1e293b]">Disponible</option>
-                                <option value="assigned" class="bg-[#1e293b]">Asignado</option>
-                                <option value="maintenance" class="bg-[#1e293b]">En Mantenimiento</option>
-                                <option value="written_off" class="bg-[#1e293b]">Dado de Baja</option>
-                            </select>
-                        </div>
+                        <x-input-label for="edit_estado" :value="__('Estado')" class="text-gray-300" />
+                        <select id="edit_estado" name="estado" x-model="editingAsset.estado"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm">
+                            <option value="available">Disponible</option>
+                            <option value="assigned">Asignado</option>
+                            <option value="maintenance">En Mantenimiento</option>
+                            <option value="written_off">Dado de Baja</option>
+                        </select>
                     </div>
 
                     <!-- Marca -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Marca</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="marca" id="edit_marca" x-model="editingAsset.marca" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Dell">
-                        </div>
+                        <x-input-label for="edit_marca" :value="__('Marca')" class="text-gray-300" />
+                        <x-text-input id="edit_marca"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="marca" x-model="editingAsset.marca" />
                     </div>
 
                     <!-- Modelo -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Modelo</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="modelo" id="edit_modelo" x-model="editingAsset.modelo" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Latitude 5420">
-                        </div>
+                        <x-input-label for="edit_modelo" :value="__('Modelo')" class="text-gray-300" />
+                        <x-text-input id="edit_modelo"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="modelo" x-model="editingAsset.modelo" />
                     </div>
 
                     <!-- Número de Serie -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Número de Serie</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="numero_serie" id="edit_numero_serie" x-model="editingAsset.numero_serie" required class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
-                        </div>
+                        <x-input-label for="edit_numero_serie" :value="__('Número de Serie')" class="text-gray-300" />
+                        <x-text-input id="edit_numero_serie"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="numero_serie" x-model="editingAsset.numero_serie" required />
                     </div>
 
                     <!-- Ubicación -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Ubicación</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="ubicacion" id="edit_ubicacion" x-model="editingAsset.ubicacion" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm" placeholder="Ej: Oficina Central">
-                        </div>
+                        <x-input-label for="edit_ubicacion" :value="__('Ubicación')" class="text-gray-300" />
+                        <x-text-input id="edit_ubicacion"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="ubicacion" x-model="editingAsset.ubicacion" />
                     </div>
 
                     <!-- Fecha de Adquisición -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Fecha de Adquisición</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="fecha_adquisicion" id="edit_fecha_adquisicion" x-model="editingAsset.fecha_adquisicion" class="flatpickr-date w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" placeholder="Seleccionar fecha">
-                        </div>
+                        <x-input-label for="edit_fecha_adquisicion" :value="__('Fecha de Adquisición')"
+                            class="text-gray-300" />
+                        <x-text-input id="edit_fecha_adquisicion"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="date" name="fecha_adquisicion" x-model="editingAsset.fecha_adquisicion" />
                     </div>
 
                     <!-- Valor Referencial -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Valor Referencial (CLP)</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <input type="text" name="valor_referencial" id="edit_valor_referencial" x-model="editingAsset.valor_referencial" placeholder="0" x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm">
-                        </div>
+                        <x-input-label for="edit_valor_referencial" :value="__('Valor Referencial (CLP)')"
+                            class="text-gray-300" />
+                        <x-text-input id="edit_valor_referencial"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
+                            type="text" name="valor_referencial" x-model="editingAsset.valor_referencial"
+                            x-on:input="$el.value = $el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')" />
                     </div>
 
                     <!-- Observaciones -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Observaciones</label>
-                        <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
-                            <textarea id="edit_observaciones" name="observaciones" rows="3" x-model="editingAsset.observaciones" class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none"></textarea>
-                        </div>
+                        <x-input-label for="edit_observaciones" :value="__('Observaciones')" class="text-gray-300" />
+                        <textarea id="edit_observaciones" name="observaciones" rows="3"
+                            x-model="editingAsset.observaciones"
+                            class="block mt-1 w-full bg-gray-900 border-gray-700 text-gray-100 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm"></textarea>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" @click="$dispatch('close')" class="px-5 py-2.5 bg-rose-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-500/30 hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                <div class="mt-6 flex justify-end space-x-3">
+                    <x-secondary-button @click="$dispatch('close')"
+                        class="bg-gray-700 text-gray-300 hover:bg-gray-600 border-gray-600">
                         {{ __('Cancelar') }}
-                    </button>
-                    <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-all hover:-translate-y-0.5 cursor-pointer">
+                    </x-secondary-button>
+
+                    <x-primary-button class="bg-blue-600 hover:bg-blue-700 border-transparent">
                         {{ __('Actualizar Activo') }}
-                    </button>
+                    </x-primary-button>
                 </div>
             </form>
         </x-modal>
@@ -2649,27 +2691,7 @@
                         // alert('Conductor encontrado. Datos cargados automáticamente.');
                     }
                 }).catch(error => console.error('Error validando RUT:', error));
+
         }
-    });
-
-    // Flatpickr initialization for Assets
-    document.addEventListener('DOMContentLoaded', function() {
-        const initFlatpickr = () => {
-            flatpickr(".flatpickr-date", {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d/m/Y",
-                locale: "es",
-                theme: "dark",
-                disableMobile: "true"
-            });
-        };
-
-        initFlatpickr();
-
-        // Re-initialize on modal open
-        window.addEventListener('open-modal', () => {
-            setTimeout(initFlatpickr, 100);
-        });
     });
 </script>

@@ -18,11 +18,17 @@ class ForceChangePasswordController extends Controller
 
     public function update(Request $request)
     {
+        $request->merge([
+            'phone' => preg_replace('/\D/', '', $request->phone),
+        ]);
         $request->validate([
             'password' => ['required', 'confirmed', Password::defaults()],
             'rut' => ['required', 'string', 'max:12', 'unique:users,rut,' . $request->user()->id],
-            'phone' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'digits:9', 'starts_with:9'],
             'address' => ['required', 'string', 'max:255'],
+        ], [
+            'phone.digits' => 'El número de teléfono debe tener exactamente 9 dígitos.',
+            'phone.starts_with' => 'El número de teléfono debe comenzar con 9.',
         ]);
 
         $request->user()->update([

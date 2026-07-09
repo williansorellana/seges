@@ -11,7 +11,7 @@
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl p-6 mb-12 border border-gray-700">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 divide-x-0 md:divide-x divide-gray-700">
                     <div class="text-center px-4">
-                        @if(Auth::user()->role === 'viewer')
+                        @if(Auth::user()->role !== 'supervisor')
                             <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
                                 <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Disponibles</span>
                                 <span class="block text-4xl font-black text-emerald-500 transition-transform duration-200">{{ $countDisponible }}</span>
@@ -24,7 +24,7 @@
                         @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        @if(Auth::user()->role === 'viewer')
+                        @if(Auth::user()->role !== 'supervisor')
                              <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
                                 <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Reservados</span>
                                 <span class="block text-4xl font-black text-blue-500 transition-transform duration-200">{{ $countAsignado }}</span>
@@ -37,7 +37,7 @@
                         @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        @if(Auth::user()->role === 'viewer')
+                        @if(Auth::user()->role !== 'supervisor')
                              <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
                                 <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Fuera de Servicio</span>
                                 <span class="block text-4xl font-black text-red-500 transition-transform duration-200">{{ $countFueraDeServicio }}</span>
@@ -50,7 +50,7 @@
                         @endif
                     </div>
                     <div class="text-center px-4 border-l border-gray-700">
-                        @if(Auth::user()->role === 'viewer')
+                        @if(Auth::user()->role !== 'supervisor')
                             <div class="block group rounded-lg p-2 transition duration-200 cursor-default">
                                 <span class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300">Mantenimiento</span>
                                 <span class="block text-4xl font-black text-amber-500 transition-transform duration-200">{{ $countMantenimiento }}</span>
@@ -145,7 +145,7 @@
                                         <span class="text-[10px] text-gray-600 italic">No Data</span>
                                     @endif
                                 </div>
-                                @if(Auth::user()->role !== 'viewer')
+                                @if(Auth::user()->role === 'supervisor')
                                 <button @click="viewingVehicle = { 
                                     plate: '{{ $vehicle->plate }}', 
                                     brand: '{{ $vehicle->brand }}', 

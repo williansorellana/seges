@@ -139,37 +139,32 @@
                         <div class="px-6 py-6 bg-white dark:bg-gray-800">
                             
                             <form action="{{ route('rooms.report') }}" method="GET" target="_blank" @submit="setTimeout(() => openReportModal = false, 500)">
-                                
-                                <input type="hidden" name="month" x-model="selectedMonth">
-                                <input type="hidden" name="year" x-model="selectedYear">
+                                <div class="space-y-4 mb-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Desde:
+                                        </label>
+                                        <input type="text"
+                                                name="start_date"
+                                                required
+                                                placeholder="Seleccione fecha"
+                                                class="flatpickr-date w-full cursor-pointer rounded-lg border-gray-300 dark:border-gray-700 bg-white text-black dark:bg-gray-900 dark:text-white">
+                                        
+                                            
+                                    </div>
 
-                                <div class="flex justify-between items-center mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg p-2">
-                                    <button type="button" @click="selectedYear--" class="p-2 hover:bg-white dark:hover:bg-gray-600 rounded-md text-gray-600 dark:text-gray-300 transition">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                    </button>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Hasta:
+                                        </label>
+                                        <input type="text"
+                                            name="end_date"
+                                            required
+                                            placeholder="Seleccione fecha"
+                                            class="flatpickr-date w-full cursor-pointer rounded-lg border-gray-300 dark:border-gray-700 bg-white text-black dark:bg-gray-900 dark:text-white">
+                                            
+                                    </div>
                                     
-                                    <span class="text-lg font-bold text-gray-800 dark:text-white" x-text="selectedYear"></span>
-                                    
-                                    <button type="button" @click="selectedYear++" class="p-2 hover:bg-white dark:hover:bg-gray-600 rounded-md text-gray-600 dark:text-gray-300 transition">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                    </button>
-                                </div>
-
-                                <div class="grid grid-cols-3 gap-2 mb-6">
-                                    @foreach(range(1, 12) as $m)
-                                        @php
-                                            $monthName = ucfirst(\Carbon\Carbon::create(null, $m, 1)->locale('es')->monthName);
-                                            $shortName = substr($monthName, 0, 3);
-                                        @endphp
-                                        <button type="button" 
-                                                @click="selectedMonth = {{ $m }}"
-                                                class="py-2 text-sm font-medium rounded-lg border transition duration-150 ease-in-out focus:outline-none"
-                                                :class="selectedMonth == {{ $m }} 
-                                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' 
-                                                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'">
-                                            {{ $monthName }}
-                                        </button>
-                                    @endforeach
                                 </div>
 
                                 <button type="submit" class="w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-lg px-4 py-3 bg-indigo-600 text-base font-bold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition transform hover:scale-[1.02]">
@@ -185,4 +180,18 @@
         </template>
         
     </div>
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            flatpickr('.flatpickr-date', {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd-m-Y',
+                locale: 'es',
+                allowInput: false,
+                disableMobile: true
+            });
+        });
+    </script>
+    @endpush
 </x-app-layout>

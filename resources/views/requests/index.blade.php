@@ -10,9 +10,33 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100"
                     x-data="{ returnUrl: '', fuelRequestId: '', fuelVehicleId: '', fuelType: '', deliveryRequestId: '', startTripUrl: '' }">
+                    {{-- MENSAJE DE EXITOO --}}
 
+                    @if(session('success'))
+                        <div class="mb-4 p-4 rounded-lg bg-green-900/40 border border-green-700 text-green-200" role="alert">
+                            <strong class="font-bold">¡Éxito! </strong>
+                            <span class="block sm:inline">{{ session('success') }}</span>
+                        </div>
+                    @endif
 
+                    @if (session('error'))
+                        <div class="mb-4 p-4 rounded-lg bg-red-900/40 border border-red-700 text-red-200">
+                            {{ session('error') }}
+                        </div> 
+                        
+                    @endif
 
+                    @if ($errors->any())
+                        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                            <strong> Revisa los siguientes campos </strong>
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        
+                    @endif
 
                     <div x-init="
                         const highlightId = '{{ request('highlight_id') }}';
@@ -166,6 +190,7 @@
                                         'rejected' => 'bg-red-900/50 text-red-300 border border-red-700',
                                         'in_trip' => 'bg-blue-900/50 text-blue-300 border border-blue-700',
                                         'completed' => 'bg-gray-900/50 text-gray-300 border border-gray-700',
+                                        'cancelled' => 'bg-gray-900/50 text-gray-300 border border-gray-700',
                                     ];
                                     $statusLabel = [
                                         'pending' => 'Pendiente',
@@ -173,6 +198,7 @@
                                         'rejected' => 'Rechazado',
                                         'in_trip' => 'En Viaje',
                                         'completed' => 'Finalizado',
+                                        'cancelled' => 'Cancelado',
                                     ];
                                     
                                     // Calcular progreso para reservas activas
@@ -355,50 +381,64 @@
                                     </div>
 
                                     {{-- Footer con Acciones --}}
-                                    @if($request->status === 'approved' || $request->status === 'in_trip')
+                                    @if(in_array($request->status, ['pending', 'approved', 'in_trip']))
                                         <div class="px-4 py-3 bg-gray-900/50 border-t border-gray-700">
                                             @if($request->vehicle)
                                                 <div class="flex flex-col gap-2">
-                                                    @if($request->status === 'approved')
-                                                            <button
-                                                                @click="$dispatch('set-delivery-photos', { requestId: '{{ $request->id }}', photos: {{ json_encode($request->delivery_photos ?? []) }}, comment: '{{ $request->delivery_comment ?? '' }}' }); $dispatch('open-modal', 'upload-delivery-photos-modal')"
-                                                                class="w-full inline-flex items-center justify-center px-3 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 disabled:opacity-25 transition mb-2">
-                                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                                                {{ !empty($request->delivery_photos) ? 'Ver/Editar Fotos Recepción' : 'Subir Fotos Recepción' }}
-                                                            </button>
 
-                                                            <button 
-                                                                @click="startTripUrl = '{{ route('requests.start-trip', $request->id) }}'; $dispatch('open-modal', 'start-trip-modal')"
-                                                                class="w-full inline-flex items-center justify-center px-3 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 disabled:opacity-25 transition">
-                                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                                                🚀 Comenzar Viaje
+                                                    {{-- Botón cancelar solicitud --}}
+                                                    @if(in_array($request->status, ['pending', 'approved']))
+                                                        <form method="POST" action="{{ route('requests.cancel', $request->id) }}"
+                                                            onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta solicitud?');">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="w-full inline-flex items-center justify-center px-3 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:border-red-700 focus:ring focus:ring-red-200 transition">
+                                                                Cancelar Solicitud
                                                             </button>
-                                                        @else
-                                                            <button
-                                                                @click="fuelRequestId = '{{ $request->id }}'; fuelVehicleId = '{{ $request->vehicle_id }}'; fuelType = '{{ $request->vehicle->fuel_type }}'; $dispatch('open-modal', 'fuel-load-modal')"
-                                                                class="w-full inline-flex items-center justify-center px-3 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 disabled:opacity-25 transition mb-2">
-                                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                                                </svg>
-                                                                Cargar Combustible
-                                                            </button>
-                                                            <button
-                                                                @click="returnUrl = '{{ route('requests.complete', $request->id) }}'; $dispatch('open-modal', 'confirm-return-modal')"
-                                                                class="w-full inline-flex items-center justify-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring focus:ring-indigo-200 disabled:opacity-25 transition">
-                                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                                                                Devolver / Finalizar
-                                                            </button>
-                                                        @endif
+                                                        </form>
+                                                    @endif
+
+                                                    {{-- Acciones para solicitud aprobada --}}
+                                                    @if($request->status === 'approved')
+                                                        <button
+                                                            @click="$dispatch('set-delivery-photos', { requestId: '{{ $request->id }}', photos: {{ json_encode($request->delivery_photos ?? []) }}, comment: '{{ $request->delivery_comment ?? '' }}' }); $dispatch('open-modal', 'upload-delivery-photos-modal')"
+                                                            class="w-full inline-flex items-center justify-center px-3 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 transition">
+                                                            Subir Fotos Recepción
+                                                        </button>
+
+                                                        <button 
+                                                            @click="startTripUrl = '{{ route('requests.start-trip', $request->id) }}'; $dispatch('open-modal', 'start-trip-modal')"
+                                                            class="w-full inline-flex items-center justify-center px-3 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 transition">
+                                                            🚀 Comenzar Viaje
+                                                        </button>
+                                                    @endif
+
+                                                    {{-- Acciones para viaje iniciado --}}
+                                                    @if($request->status === 'in_trip')
+                                                        <button
+                                                            @click="fuelRequestId = '{{ $request->id }}'; fuelVehicleId = '{{ $request->vehicle_id }}'; fuelType = '{{ $request->vehicle->fuel_type }}'; $dispatch('open-modal', 'fuel-load-modal')"
+                                                            class="w-full inline-flex items-center justify-center px-3 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 transition">
+                                                            Cargar Combustible
+                                                        </button>
+
+                                                     <button
+                                                            @click="returnUrl = '{{ route('requests.complete', $request->id) }}'; $dispatch('open-modal', 'confirm-return-modal')"
+                                                            class="w-full inline-flex items-center justify-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring focus:ring-indigo-200 transition">
+                                                            Devolver / Finalizar
+                                                        </button>
+                                                    @endif
+
                                                 </div>
                                             @else
-                                                <span class="text-xs text-red-500 font-bold uppercase text-center block">Vehículo No Disponible</span>
+                                                <span class="text-xs text-red-500 font-bold uppercase text-center block">
+                                                    Vehículo No Disponible
+                                                </span>
                                             @endif
                                         </div>
                                     @else
-                                        {{-- Espacio vacío para mantener altura uniforme --}}
                                         <div class="h-3"></div>
                                     @endif
-                                </div>
+                                </div> {{-- cierre card --}}
                             @endforeach
                         </div>
                     @else
@@ -445,7 +485,7 @@
                                         <x-input-label for="fuel_level" :value="__('Nivel de Combustible')" />
                                         <select id="fuel_level" name="fuel_level" required
                                             class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                            <option value="" disabled selected>Seleccione...</option>
+                                            <option value="">Seleccione...</option>
                                             <option value="1/4">1/4 de Estanque</option>
                                             <option value="1/2">1/2 Estanque</option>
                                             <option value="3/4">3/4 Estanque</option>

@@ -36,13 +36,15 @@ class VehicleRequestStatusNotification extends Notification
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Get the mail representation of the notification. 
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $subject = $this->status === 'approved'
-            ? '✅ Solicitud Aprobada: ' . $this->vehicleRequest->vehicle->brand
-            : '❌ Solicitud Rechazada: ' . $this->vehicleRequest->vehicle->brand;
+        $subject = match ($this->status) {
+            'approved' => '✅ Solicitud Aprobada: ' . $this->vehicleRequest->vehicle->brand,
+            'cancelled' => '⚠️ Solicitud Cancelada: ' . $this->vehicleRequest->vehicle->brand,
+            default => '❌ Solicitud Rechazada: ' . $this->vehicleRequest->vehicle->brand,
+        };
 
         $mail = (new MailMessage)
             ->subject($subject)
@@ -51,6 +53,9 @@ class VehicleRequestStatusNotification extends Notification
         if ($this->status === 'approved') {
             $mail->line('Tu solicitud para el vehículo ' . $this->vehicleRequest->vehicle->brand . ' ' . $this->vehicleRequest->vehicle->model . ' ha sido APROBADA.')
                 ->line('Periodo: ' . $this->vehicleRequest->start_date->format('d/m/Y H:i') . ' hasta ' . $this->vehicleRequest->end_date->format('d/m/Y H:i'));
+        } elseif ($this->status === 'cancelled') {
+            $mail->line('Tu solicitud para el vehículo ' . $this->vehicleRequest->vehicle->brand . ' ' . $this->vehicleRequest->vehicle->model . ' ha sido CANCELADA.')
+                ->line('Motivo: ' . $this->reason);
         } else {
             $mail->line('Tu solicitud para el vehículo ' . $this->vehicleRequest->vehicle->brand . ' ' . $this->vehicleRequest->vehicle->model . ' ha sido RECHAZADA.')
                 ->line('Motivo: ' . $this->reason);

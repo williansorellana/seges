@@ -14,7 +14,7 @@ use App\Models\AssetAssignment;
 class UserController extends Controller
 {
     /**
-     * Muestra un listado del recurso.
+     * Muestra un listado del recurso(usuario).
      */
     public function index(Request $request)
     {
@@ -28,7 +28,7 @@ class UserController extends Controller
     }
 
     /**
-     * Almacena un recurso recién creado en el almacenamiento.
+     * Almacena un recurso(usuario) recién creado en el almacenamiento.
      */
     public function store(Request $request)
     {
@@ -64,7 +64,7 @@ class UserController extends Controller
     }
 
     /**
-     * Actualiza el recurso especificado en el almacenamiento.
+     * Actualiza el recurso(usuario) especificado en el almacenamiento.
      */
     public function update(Request $request, User $user)
     {
@@ -93,7 +93,7 @@ class UserController extends Controller
     }
 
     /**
-     * Elimina el recurso especificado del almacenamiento.
+     * Elimina el recurso(usuario) especificado del almacenamiento.
      */
     public function destroy(User $user)
     {
@@ -106,7 +106,7 @@ class UserController extends Controller
     }
 
     /**
-     * Restaura el recurso especificado del almacenamiento.
+     * Restaura el recurso(usuario) especificado del almacenamiento.
      */
     public function restore($id)
     {
@@ -116,7 +116,7 @@ class UserController extends Controller
     }
 
     /**
-     * Elimina permanentemente el recurso especificado del almacenamiento.
+     * Elimina permanentemente el recurso(usuario) especificado del almacenamiento.
      */
     public function forceDelete($id)
     {
@@ -125,6 +125,9 @@ class UserController extends Controller
         return redirect()->route('users.index', ['view' => 'trash'])->with('success', 'Usuario eliminado permanentemente.');
     }
 
+    /**
+ * Muestra el historial de activos asignados a un usuario.
+ */
     public function assetHistory(Request $request, $id)
     {
 
@@ -134,7 +137,7 @@ class UserController extends Controller
         $query = AssetAssignment::with(['asset', 'photos', 'creator'])
             ->where('user_id', $recipient->id);
 
-
+    // Filtrar historial por fecha de inicio.
         if ($request->has('start_date') && $request->start_date) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
@@ -148,6 +151,9 @@ class UserController extends Controller
         return view('assets.user-history', compact('recipient', 'assignments'));
     }
 
+    /**
+ * Muestra usuarios y trabajadores con historial de activos.
+ */
     public function usersHistoryIndex()
     {
         $users = \App\Models\User::all();
