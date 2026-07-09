@@ -30,10 +30,10 @@ class ProfileUpdateRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'digits:9', 'starts_with:9'],
             'cargo' => ['nullable', 'string', 'max:255'],
-            'departamento' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'max:1024'], // Máx 1MB
             'license_photo' => ['nullable', 'image', 'max:5120'], // Máx 5MB (Higher for OCR)
             'license_expires_at' => ['nullable', 'date'],
+            'delete_license_photo' => ['nullable', 'in:0,1'],
         ];
     }
 }

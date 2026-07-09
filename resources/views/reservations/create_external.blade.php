@@ -25,37 +25,75 @@
                 </div>
 
                 <div class="p-6 md:p-8 bg-white dark:bg-gray-800">
-                    <form action="{{ route('reservations.store_external') }}" method="POST" id="reservationForm">
+                    <form action="{{ route('reservations.store_external') }}" method="POST" id="reservationForm"
+                        x-data="{
+                            selectedRoom: '',
+                            roomLabel: '-- Selecciona una sala --',
+                            openRoom: false,
+                            rooms: {{ $rooms->map(fn($r) => ['id' => $r->id, 'label' => $r->name . ' (Cap: ' . $r->capacity . ')'])->toJson() }}
+                        }">
                         @csrf
 
+                        {{-- ¿Para quién? --}}
                         <div class="mb-6">
                             <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 text-sm">
                                 ¿Para quién es la reserva? <span class="text-gray-500 dark:text-gray-400 font-normal text-xs ml-2">(Opcional)</span>
                             </label>
-                            <input type="text" name="external_name" 
-                                class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-900 placeholder-gray-400 dark:placeholder-gray-500" 
-                                placeholder="Ej: Cliente, Visita...">
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" name="external_name"
+                                    class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none"
+                                    placeholder="Ej: Cliente, Visita...">
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            {{-- Sala (styled dropdown) --}}
                             <div>
                                 <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 text-sm">Sala</label>
-                                <select name="meeting_room_id" class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200">
-                                    @foreach($rooms as $room)
-                                        <option value="{{ $room->id }}">
-                                            {{ $room->name }} (Cap: {{ $room->capacity }})
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="relative">
+                                    <input type="hidden" name="meeting_room_id" x-model="selectedRoom">
+                                    <button type="button"
+                                        @click="openRoom = !openRoom"
+                                        @click.away="openRoom = false"
+                                        class="w-full flex items-center justify-between border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 hover:border-slate-600 transition-colors text-left focus:outline-none focus:border-blue-500">
+                                        <span x-text="roomLabel" class="text-slate-100 text-sm"></span>
+                                        <svg class="w-4 h-4 text-slate-500 transition-transform duration-200"
+                                            :class="openRoom ? 'rotate-180' : ''"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </button>
+                                    <ul x-show="openRoom"
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="opacity-0 scale-95"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-75"
+                                        x-transition:leave-start="opacity-100 scale-100"
+                                        x-transition:leave-end="opacity-0 scale-95"
+                                        class="absolute z-50 w-full mt-1 bg-[#1e293b] shadow-lg max-h-60 rounded-lg py-1 text-sm ring-1 ring-slate-700 overflow-auto"
+                                        style="display:none;">
+                                        <template x-for="room in rooms" :key="room.id">
+                                            <li @click="selectedRoom = room.id; roomLabel = room.label; openRoom = false"
+                                                class="text-gray-200 cursor-pointer select-none py-2.5 px-4 hover:bg-blue-600 hover:text-white transition-colors"
+                                                :class="selectedRoom == room.id ? 'bg-blue-600/20 text-blue-400' : ''">
+                                                <span x-text="room.label"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
                             </div>
 
+                            {{-- N° Personas --}}
                             <div>
                                 <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 text-sm">N° Personas</label>
-                                <input type="number" name="attendees" min="1" value="1"
-                                    class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200">
+                                <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                    <input type="number" name="attendees" min="1" value="1"
+                                        class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none">
+                                </div>
                             </div>
                         </div>
 
+                        {{-- Horario --}}
                         <div class="bg-gray-50 dark:bg-gray-900 p-5 rounded-lg border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
                             <h4 class="text-gray-800 dark:text-gray-200 font-bold mb-3 text-sm flex items-center">
                                 <svg class="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -64,36 +102,49 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase font-bold mb-1">Inicio</label>
-                                    <input type="datetime-local" name="start_time"
-                                        class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200" required>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                        <input type="datetime-local" name="start_time"
+                                            class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" required>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-gray-600 dark:text-gray-400 text-xs uppercase font-bold mb-1">Término</label>
-                                    <input type="datetime-local" name="end_time"
-                                        class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200" required>
+                                    <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                        <input type="datetime-local" name="end_time"
+                                            class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none" required>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        {{-- Propósito --}}
                         <div class="mb-6">
                             <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 text-sm">Motivo / Propósito</label>
-                            <input type="text" name="purpose" 
-                                class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500" 
-                                placeholder="Ej: Reunión trimestral de ventas" required>
+                            <div class="flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <input type="text" name="purpose"
+                                    class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none"
+                                    placeholder="Ej: Reunión trimestral de ventas" required>
+                            </div>
                         </div>
 
+                        {{-- Recursos --}}
                         <div class="mb-8">
                             <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 text-sm">Recursos Adicionales <span class="text-gray-500 dark:text-gray-400 font-normal">(Opcional)</span></label>
-                            <textarea name="resources" rows="2" 
-                                class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500" 
-                                placeholder="Ej: Proyector, Servicio de café..."></textarea>
+                            <div class="flex items-start border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full">
+                                <textarea name="resources" rows="2"
+                                    class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm focus:ring-0 focus:outline-none resize-none"
+                                    placeholder="Ej: Proyector, Servicio de café..."></textarea>
+                            </div>
                         </div>
 
+                        {{-- Botones --}}
                         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <a href="{{ route('reservations.catalog') }}" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md font-bold text-xs text-gray-700 dark:text-gray-200 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition ease-in-out duration-150">
+                            <a href="{{ route('reservations.catalog') }}"
+                                class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 shadow-md shadow-rose-500/20 transition-all hover:-translate-y-0.5 cursor-pointer">
                                 Cancelar
                             </a>
-                            <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <button type="submit"
+                                class="inline-flex items-center justify-center px-5 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white shadow-md shadow-blue-500/20 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1e293b] transition-all hover:-translate-y-0.5 cursor-pointer">
                                 Confirmar Reserva
                             </button>
                         </div>
@@ -110,7 +161,7 @@
                     icon: 'error',
                     title: 'Atención',
                     text: "{{ session('error_modal') }}",
-                    confirmButtonColor: '#4f46e5',
+                    confirmButtonColor: '#2563eb',
                     background: '#1f2937',
                     color: '#fff',
                     confirmButtonText: 'Entendido'
@@ -149,7 +200,7 @@
                     text: msgs,
                     background: '#1f2937',
                     color: '#fff',
-                    confirmButtonColor: '#4f46e5'
+                    confirmButtonColor: '#2563eb'
                 });
             });
         </script>

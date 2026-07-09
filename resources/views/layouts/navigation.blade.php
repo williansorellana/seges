@@ -23,7 +23,7 @@
                         @endif
                     </button>
 
-                    <div x-show="notifyOpen" @click.away="notifyOpen = false"
+                    <div x-cloak x-show="notifyOpen" @click.away="notifyOpen = false"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="transform opacity-0 scale-95"
                         x-transition:enter-end="transform opacity-100 scale-100"
@@ -38,15 +38,30 @@
                             <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Notificaciones
                             </span>
-                            @if(Auth::user()->unreadNotifications->count() > 0)
-                                <form action="{{ route('notifications.markAll') }}" method="POST">
-                                    @csrf
-                                    <button type="submit"
-                                        class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition">
-                                        Marcar leídas
-                                    </button>
-                                </form>
-                            @endif
+                            <div class="flex items-center gap-3">
+                                @if(Auth::user()->unreadNotifications->count() > 0)
+                                    <form action="{{ route('notifications.markAll') }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition">
+                                            Marcar leídas
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if(Auth::user()->notifications->count() > 0)
+                                    <form action="{{ route('notifications.destroyAll') }}" method="POST"
+                                        onsubmit="return confirm('¿Eliminar todas las notificaciones?');">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit"
+                                            class="text-xs font-bold text-red-600 dark:text-red-400 hover:text-red-800 hover:underline transition">
+                                            Vaciar
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </div>
 
                         <div class="max-h-[28rem] overflow-y-auto">

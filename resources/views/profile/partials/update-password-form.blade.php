@@ -1,13 +1,29 @@
 <section>
-    <form method="post" action="{{ route('password.update') }}" class="mt-6 space-y-6">
+    <header class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-8">
+        <div>
+            <h2 class="text-xl font-black text-white flex items-center gap-3 tracking-tight uppercase">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shadow-inner">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                </div>
+                {{ __('Seguridad de la Cuenta') }}
+            </h2>
+            <p class="mt-2 text-[11px] text-slate-500 font-black uppercase tracking-widest">
+                {{ __("Protección y gestión de credenciales") }}
+            </p>
+        </div>
+    </header>
+
+    <form method="post" action="{{ route('password.update') }}" class="mt-6 space-y-8">
         @csrf
         @method('put')
 
-        <div x-data="{ show: false }">
-            <x-input-label for="current_password" :value="__('Contraseña Actual')" />
-            <div class="relative mt-1">
-                <x-text-input id="current_password" name="current_password" x-bind:type="show ? 'text' : 'password'" class="block w-full pr-10" autocomplete="current-password" />
-                <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+        <div x-data="{ show: false }" class="group">
+            <label for="current_password" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Contraseña Actual') }}</label>
+            <div class="relative flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                <input id="current_password" name="current_password" x-bind:type="show ? 'text' : 'password'" 
+                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10 focus:ring-0 focus:outline-none" 
+                    autocomplete="current-password" />
+                <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -20,11 +36,13 @@
             <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
         </div>
 
-        <div x-data="{ show: false }">
-            <x-input-label for="password" :value="__('Nueva Contraseña')" />
-            <div class="relative mt-1">
-                <x-text-input id="password" name="password" x-bind:type="show ? 'text' : 'password'" class="block w-full pr-10" autocomplete="new-password" />
-                <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+        <div x-data="{ show: false }" class="group">
+            <label for="password" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Nueva Contraseña') }}</label>
+            <div class="relative flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                <input id="password" name="password" x-bind:type="show ? 'text' : 'password'" 
+                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10 focus:ring-0 focus:outline-none" 
+                    autocomplete="new-password" />
+                <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -37,11 +55,13 @@
             <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
         </div>
 
-        <div x-data="{ show: false }">
-            <x-input-label for="password_confirmation" :value="__('Confirmar Contraseña')" />
-            <div class="relative mt-1">
-                <x-text-input id="password_confirmation" name="password_confirmation" x-bind:type="show ? 'text' : 'password'" class="block w-full pr-10" autocomplete="new-password" />
-                <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+        <div x-data="{ show: false }" class="group">
+            <label for="password_confirmation" class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest group-focus-within:text-blue-400 transition-colors">{{ __('Confirmar Contraseña') }}</label>
+            <div class="relative flex items-center border border-slate-700 rounded-lg bg-[#1e293b] px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors">
+                <input id="password_confirmation" name="password_confirmation" x-bind:type="show ? 'text' : 'password'" 
+                    class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold pr-10 focus:ring-0 focus:outline-none" 
+                    autocomplete="new-password" />
+                <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
                     <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -54,5 +74,18 @@
             <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
         </div>
 
-        </form>
+        <div class="flex items-center gap-6 pt-6 border-t border-slate-800">
+            <button type="submit" class="inline-flex items-center justify-center gap-3 px-5 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-md shadow-blue-500/20 hover:bg-blue-500 hover:-translate-y-0.5 transition-all cursor-pointer">
+                {{ __('Actualizar Contraseña') }}
+            </button>
+
+            @if (session('status') === 'password-updated')
+                <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 4000)"
+                    class="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                    <span class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">{{ __('Cambiado') }}</span>
+                </div>
+            @endif
+        </div>
+    </form>
 </section>

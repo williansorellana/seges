@@ -13,7 +13,72 @@ use App\Http\Controllers\VehicleReturnController;
 use App\Http\Controllers\MeetingRoomController;
 use App\Http\Controllers\RoomReservationController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\NotificationController;
 
+use App\Http\Controllers\RoutePlanningController;
+use App\Http\Controllers\RenditionController;
+
+Route::middleware(['auth', 'force.password.change'])->group(function () {
+    // Rutas de Planificación de Ruta
+    Route::prefix('planificaciones')->name('route-plannings.')->middleware('module:renditions')->group(function () {
+        Route::get('/', [RoutePlanningController::class, 'index'])->name('index');
+        Route::get('/crear', [RoutePlanningController::class, 'create'])->name('create');
+        Route::post('/', [RoutePlanningController::class, 'store'])->name('store');
+        Route::get('/{planning}/pdf', [RoutePlanningController::class, 'downloadPdf'])->name('pdf');
+
+        // Acciones de Jefatura
+        Route::post('/{planning}/approve-jefatura', [RoutePlanningController::class, 'approveByJefatura'])->name('approve-jefatura');
+        Route::post('/{planning}/reject-jefatura', [RoutePlanningController::class, 'rejectByJefatura'])->name('reject-jefatura');
+        
+        // Acciones de Controlling
+        Route::post('/{planning}/approve-controlling', [RoutePlanningController::class, 'approveByControlling'])->name('approve-controlling');
+        Route::post('/{planning}/reject-controlling', [RoutePlanningController::class, 'rejectByControlling'])->name('reject-controlling');
+        
+        // Acciones de Finanzas
+        Route::post('/{planning}/approve-finances', [RoutePlanningController::class, 'approveByFinances'])->name('approve-finances');
+        Route::post('/{planning}/reject-finances', [RoutePlanningController::class, 'rejectByFinances'])->name('reject-finances');
+        Route::post('/{planning}/send-notification', [RoutePlanningController::class, 'sendTravelNotification'])->name('send-notification');
+        Route::post('/{planning}/lock', [RoutePlanningController::class, 'lock'])->name('lock');
+        Route::post('/{planning}/unlock', [RoutePlanningController::class, 'unlock'])->name('unlock');
+    });
+
+    // Rutas de Rendiciones
+    Route::prefix('rendiciones')->name('renditions.')->middleware('module:renditions')->group(function () {
+        Route::get('/', [RenditionController::class, 'index'])->name('index');
+        Route::post('/{rendition}/lock', [RenditionController::class, 'lock'])->name('lock');
+        Route::post('/{rendition}/unlock', [RenditionController::class, 'unlock'])->name('unlock');
+        Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
+        Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
+        Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
+        Route::put('/{rendition}/gastos/{expense}', [RenditionController::class, 'updateExpense'])->name('expenses.update');
+        Route::delete('/{rendition}/gastos/{expense}', [RenditionController::class, 'destroyExpense'])->name('expenses.destroy');
+        Route::post('/gastos/{expense}/validar', [RenditionController::class, 'validateExpense'])->name('expenses.validate');
+        Route::post('/gastos/{expense}/observar', [RenditionController::class, 'invalidateExpense'])->name('expenses.invalidate');
+        Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');
+        Route::get('/{rendition}/pdf', [RenditionController::class, 'downloadPdf'])->name('pdf');
+        
+        // Paneles específicos por rol/departamento
+        Route::get('/aprobaciones-jefatura', [RenditionController::class, 'approvals'])->name('approvals');
+        Route::get('/finanzas', [RenditionController::class, 'finances'])->name('finances');
+        Route::get('/controlling', [RenditionController::class, 'controlling'])->name('controlling');
+        Route::get('/historial', [RenditionController::class, 'history'])->name('history');
+        Route::get('/reportes', [RenditionController::class, 'reports'])->name('reports');
+        Route::get('/reportes/exportar', [RenditionController::class, 'exportReports'])->name('reports.export');
+        
+        // Acciones sobre Rendiciones
+        Route::post('/{rendition}/approve-jefatura', [RenditionController::class, 'approveByJefatura'])->name('approve-jefatura-rendition');
+        Route::post('/{rendition}/reject-jefatura', [RenditionController::class, 'rejectByJefatura'])->name('reject-jefatura-rendition');
+        Route::post('/{rendition}/approve-controlling', [RenditionController::class, 'approveByControlling'])->name('approve-controlling-rendition');
+        Route::post('/{rendition}/reject-controlling', [RenditionController::class, 'rejectByControlling'])->name('reject-controlling-rendition');
+        Route::post('/{rendition}/payment-completed', [RenditionController::class, 'markPaymentCompleted'])->name('payment-completed');
+        Route::post('/{rendition}/approve-finances', [RenditionController::class, 'approveByFinances'])->name('approve-finances-rendition');
+        Route::post('/{rendition}/reject-finances', [RenditionController::class, 'rejectByFinances'])->name('reject-finances-rendition');
+        Route::post('/{rendition}/upload-transfer-proof', [RenditionController::class, 'uploadTransferProof'])->name('upload-transfer-proof');
+        Route::get('/{rendition}/download-transfer-proof', [RenditionController::class, 'downloadTransferProof'])->name('download-transfer-proof');
+        Route::post('/{id}/reject-transfer', [RenditionController::class, 'rejectTransferProof'])->name('reject-transfer');
+        Route::post('/unlock-all', [RoutePlanningController::class, 'unlockAll'])->name('unlock-all');
+    });
+});
 
 
 
@@ -23,22 +88,22 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura'])
     ->name('dashboard');
 
     // Panel de Vehiculos
 Route::get('/vehicles/dashboard', [VehicleController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura'])
     ->name('vehicles.dashboard');
 
     // Gestión de Activos
 Route::get('/assets/dashboard', [AssetController::class, 'dashboard'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer,jefatura'])
     ->name('assets.dashboard');
 
     // Gestion de Salas
 Route::get('/salas/dashboard', [RoomReservationController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,worker,driver,viewer,jefatura'])
     ->name('salas.dashboard');
 
 Route::get('/reservar-sala', function () {
@@ -51,8 +116,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Rutas de Vehículos (Papelera) - Solo Supervisor
-    Route::middleware(['role:supervisor'])->group(function () {
+    // Rutas de Vehículos (Papelera) - Solo Admin y Supervisor
+    Route::middleware(['role:admin,supervisor'])->group(function () {
         Route::get('papelera/vehiculos', [VehicleController::class, 'trash'])->name('vehicles.trash');
         Route::put('papelera/vehiculos/{id}/restore', [VehicleController::class, 'restore'])->name('vehicles.restore');
         Route::delete('papelera/vehiculos/{id}/force-delete', [VehicleController::class, 'forceDelete'])->name('vehicles.force-delete');
@@ -89,12 +154,9 @@ Route::middleware('auth')->group(function () {
     // Gestión de Salas - Catálogo y Disponibilidad (Accesible para todos, incl. Viewer)
     Route::get('/reservar-sala', [RoomReservationController::class, 'index'])->name('reservations.catalog');
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
-    Route::get('/admin/rooms/agenda', [RoomReservationController::class, 'agenda'])
-        ->middleware(['role:admin,supervisor,worker,driver,viewer'])
-        ->name('rooms.agenda');
 
-    // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver) - NO Viewer
-    Route::middleware(['role:admin,supervisor,worker,driver'])->group(function () {
+    // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver, Jefatura) - NO Viewer
+    Route::middleware(['role:admin,supervisor,worker,driver,jefatura'])->group(function () {
         Route::post('/reservar-sala', [RoomReservationController::class, 'store'])->name('reservations.store');
         Route::get('/mis-reservas-salas', [RoomReservationController::class, 'myReservations'])->name('reservations.my_reservations');
         Route::put('/mis-reservas-salas/{id}/cancel', [RoomReservationController::class, 'cancel'])->name('reservations.cancel');
@@ -111,7 +173,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/room-reservations/{id}/reject', [RoomReservationController::class, 'reject'])->name('room-reservations.reject');
         Route::put('/room-reservations/{id}/cancel-admin', [RoomReservationController::class, 'cancelByAdmin'])->name('room-reservations.cancel_admin');
 
-        
+        Route::get('/admin/rooms/agenda', [RoomReservationController::class, 'agenda'])->name('rooms.agenda');
 
         Route::get('/admin/rooms/history', [RoomReservationController::class, 'history'])->name('rooms.history');
         Route::get('/admin/rooms/report', [RoomReservationController::class, 'downloadMonthlyReport'])->name('rooms.report');
@@ -120,54 +182,33 @@ Route::middleware('auth')->group(function () {
     });
 
     // Rutas de Mantenimiento
-    Route::middleware(['role:supervisor'])->group(function () {
-        Route::post('vehiculos/{vehicle}/maintenance/state', [MaintenanceController::class, 'updateState'])->name('vehicles.maintenance.state');
-        Route::post('vehiculos/{vehicle}/maintenance/request', [MaintenanceController::class, 'storeRequest'])->name('vehicles.maintenance.request');
-        Route::post('vehiculos/{vehicle}/maintenance/complete', [MaintenanceController::class, 'complete'])->name('vehicles.maintenance.complete');
-        Route::post('maintenance/requests/{id}/accept', [MaintenanceController::class, 'acceptRequest'])->name('maintenance.requests.accept');
-        Route::get('vehiculos/{vehicle}/historial-mantenimiento', [MaintenanceController::class, 'history'])->name('vehicles.maintenance.history');
-        Route::get('vehiculos/{vehicle}/historial-mantenimiento/pdf', [MaintenanceController::class, 'downloadHistoryPdf'])->name('vehicles.maintenance.history.pdf');
+    Route::post('vehiculos/{vehicle}/maintenance/state', [MaintenanceController::class, 'updateState'])->name('vehicles.maintenance.state');
+    Route::post('vehiculos/{vehicle}/maintenance/request', [MaintenanceController::class, 'storeRequest'])->name('vehicles.maintenance.request');
+    Route::post('vehiculos/{vehicle}/maintenance/complete', [MaintenanceController::class, 'complete'])->name('vehicles.maintenance.complete');
+    Route::post('maintenance/requests/{id}/accept', [MaintenanceController::class, 'acceptRequest'])->name('maintenance.requests.accept');
+    Route::get('vehiculos/{vehicle}/historial-mantenimiento', [MaintenanceController::class, 'history'])->name('vehicles.maintenance.history');
+    Route::get('vehiculos/{vehicle}/historial-mantenimiento/pdf', [MaintenanceController::class, 'downloadHistoryPdf'])->name('vehicles.maintenance.history.pdf');
 
-        Route::get('/maintenance/check', function (\App\Services\MaintenanceService $service) {
+    // Trigger manual de alertas (Solo para pruebas/demo)
+    // Trigger manual de alertas (Solo para pruebas/demo)
+    Route::get('/maintenance/check', function (\App\Services\MaintenanceService $service) {
         $service->checkAndNotify();
         return redirect()->back()->with('success', 'Chequeo de alertas ejecutado.');
-        })->name('maintenance.check');
-    });
-    // Trigger manual de alertas (Solo para pruebas/demo)
-    // Trigger manual de alertas (Solo para pruebas/demo)
-
+    })->name('maintenance.check');
 
     // Rutas de Solicitudes de Vehículos (Reservas)
     Route::get('/solicitar-vehiculo', [VehicleRequestController::class, 'create'])->name('requests.create');
-    Route::get('/solicitar-vehiculo/disponibilidad', [VehicleRequestController::class, 'availability'])->name('requests.availability');
     Route::post('/solicitar-vehiculo', [VehicleRequestController::class, 'store'])->name('requests.store');
-    Route::post('/requests/{id}/cancel', [VehicleRequestController::class, 'cancel'])
-    ->name('requests.cancel');
-
-    // CONTROL DEL MODULO DE VEHICULOS - Solo Supervisor
-    Route::middleware(['role:supervisor'])->group(function () {
-        Route::post('/requests/{id}/approve', [VehicleRequestController::class, 'approve'])->name('requests.approve');
-        Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');
-
-        Route::get('/gestion-solicitudes-vehiculos', [VehicleRequestController::class, 'manage'])
-            ->name('requests.manage');
-
-        Route::post('/requests/{id}/cancel-supervisor', [VehicleRequestController::class, 'cancelBySupervisor'])
-            ->name('requests.cancel.supervisor');
-        
-        Route::get('/historial-uso-vehiculos', [VehicleRequestController::class, 'history'])->name('requests.history.index');
-        Route::get('/historial-uso-vehiculos/papelera', [VehicleRequestController::class, 'trash'])->name('requests.history.trash');
-        Route::delete('/historial-uso-vehiculos/{id}', [VehicleRequestController::class, 'destroy'])->name('requests.history.destroy');
-        Route::put('/historial-uso-vehiculos/{id}/restore', [VehicleRequestController::class, 'restore'])->name('requests.history.restore');
-        Route::delete('/historial-uso-vehiculos/{id}/force', [VehicleRequestController::class, 'forceDelete'])->name('requests.history.force-delete');
-    });
-
+    Route::post('/requests/{id}/approve', [VehicleRequestController::class, 'approve'])->name('requests.approve');
+    Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');
     Route::get('/mis-reservas', [VehicleRequestController::class, 'index'])->name('requests.index');
-    Route::middleware(['role:admin,supervisor,worker,driver'])->group(function () {
-        Route::post('/requests/{id}/complete', [VehicleRequestController::class, 'complete'])->name('requests.complete');
-        Route::post('/requests/{id}/finish-early', [VehicleRequestController::class, 'finishEarly'])->name('requests.finish-early');
-        Route::post('/requests/{id}/start-trip', [VehicleRequestController::class, 'startTrip'])->name('requests.start-trip');
-    });
+    Route::post('/requests/{id}/complete', [VehicleRequestController::class, 'complete'])->name('requests.complete');
+    Route::post('/requests/{id}/finish-early', [VehicleRequestController::class, 'finishEarly'])->name('requests.finish-early');
+    Route::get('/historial-uso-vehiculos', [VehicleRequestController::class, 'history'])->name('requests.history.index');
+    Route::get('/historial-uso-vehiculos/papelera', [VehicleRequestController::class, 'trash'])->name('requests.history.trash');
+    Route::delete('/historial-uso-vehiculos/{id}', [VehicleRequestController::class, 'destroy'])->name('requests.history.destroy');
+    Route::put('/historial-uso-vehiculos/{id}/restore', [VehicleRequestController::class, 'restore'])->name('requests.history.restore');
+    Route::delete('/historial-uso-vehiculos/{id}/force', [VehicleRequestController::class, 'forceDelete'])->name('requests.history.force-delete');
 
     // AJAX Check for External RUT
     Route::get('/requests/check-external-rut', [VehicleRequestController::class, 'checkExternalRut'])->name('requests.check-external-rut');
@@ -175,7 +216,7 @@ Route::middleware('auth')->group(function () {
     // Delivery Photos (Check-in) y Start Trip
     Route::post('/requests/{id}/delivery-photos', [VehicleRequestController::class, 'uploadDeliveryPhotos'])->name('requests.delivery-photos');
     Route::delete('/requests/{id}/delivery-photos', [VehicleRequestController::class, 'deleteDeliveryPhoto'])->name('requests.delete-delivery-photo');
-    
+    Route::post('/requests/{id}/start-trip', [VehicleRequestController::class, 'startTrip'])->name('requests.start-trip');
 
 
     // Historial de Devoluciones (Admin)
@@ -190,7 +231,10 @@ Route::middleware('auth')->group(function () {
     // Notificaciones
     Route::get('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'read'])->name('notifications.read');
     Route::delete('/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroyAll');
     Route::post('/notifications/mark-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAll');
+    Route::get('/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::get('/notifications/latest', [\App\Http\Controllers\NotificationController::class, 'latest'])->name('notifications.latest');
 
     // Gestión de Activos - Admin y Supervisor
     Route::middleware(['role:admin,supervisor'])->group(function () {
@@ -214,8 +258,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/assets/{id}/maintenance/finish', [\App\Http\Controllers\AssetController::class, 'finishMaintenance'])->name('assets.maintenance.finish');
         Route::post('/assets/{id}/write-off', [\App\Http\Controllers\AssetController::class, 'writeOff'])->name('assets.write-off');
 
-        Route::resource('asset-categories', \App\Http\Controllers\AssetCategoryController::class)
-            ->except(['show', 'create', 'edit']);
         Route::resource('assets', \App\Http\Controllers\AssetController::class)
             ->except(['show']);
 
@@ -234,11 +276,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('external-people', \App\Http\Controllers\FrequentExternalPersonController::class);
     });
 
-    // Dashboard Activos - Accesible por Admin, Supervisor y Visualizador
-    Route::middleware(['role:admin,supervisor,viewer'])->group(function () {
-        Route::get('/assets/dashboard', [\App\Http\Controllers\AssetController::class, 'dashboard'])->name('assets.dashboard');
     });
-});
 
 // Rutas de cambio de contraseña forzado 
 Route::middleware(['auth'])->group(function () {

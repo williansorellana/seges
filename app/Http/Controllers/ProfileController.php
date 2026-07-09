@@ -56,7 +56,12 @@ class ProfileController extends Controller
             $request->user()->profile_photo_path = $path;
         }
 
-        if ($request->hasFile('license_photo')) {
+        if ($request->input('delete_license_photo') === '1') {
+            if ($request->user()->license_photo_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($request->user()->license_photo_path);
+                $request->user()->license_photo_path = null;
+            }
+        } elseif ($request->hasFile('license_photo')) {
             // Eliminar foto antigua de licencia si existe
             if ($request->user()->license_photo_path) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($request->user()->license_photo_path);

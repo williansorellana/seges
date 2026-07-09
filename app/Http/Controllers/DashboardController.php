@@ -15,7 +15,9 @@ class DashboardController extends Controller
 
             'vehicles' => [
                 'name' => 'Módulo Vehículos',
-                'icon' => '🚗',
+                'description' => 'Administra la flota, reservas, mantenimientos y combustible.',
+                'theme' => 'blue',
+                'icon' => '🚙',
                 'actions' => array_filter([
 
                     // TODOS
@@ -45,6 +47,8 @@ class DashboardController extends Controller
 
             'rooms' => [
                 'name' => 'Módulo Salas',
+                'description' => 'Reserva y gestión de disponibilidad de salas de reuniones.',
+                'theme' => 'purple',
                 'icon' => '🏢',
                 'actions' => array_filter([
 
@@ -73,7 +77,9 @@ class DashboardController extends Controller
 
             'assets' => [
                 'name' => 'Módulo Activos',
-                'icon' => '📦',
+                'description' => 'Control de inventario, código de barras y asignaciones de equipos.',
+                'theme' => 'emerald',
+                'icon' => '💻',
                 'actions' => array_filter([
 
                     // TODOS (lectura)
@@ -88,14 +94,57 @@ class DashboardController extends Controller
 
                 ])
             ],
-        ];
-        // 🔹 Módulos autorizados (FUENTE REAL)
-        $modules = $user->authorized_modules ?? [];
 
+            'finances' => [
+                'name' => 'Módulo Finanzas',
+                'description' => 'Aprobación de fondos, revisión de rendiciones y auditoría financiera.',
+                'theme' => 'rose',
+                'icon' => '💰',
+                'actions' => array_filter([
+                    in_array($user->role, ['admin', 'jefatura']) ? 
+                        ['label' => 'Aprobaciones', 'route' => 'renditions.approvals'] : null,
+                        
+                    in_array($user->role, ['admin']) || $user->departamento === 'Finanzas' ? 
+                        ['label' => 'Panel Finanzas', 'route' => 'renditions.finances'] : null,
+                        
+                    in_array($user->role, ['admin']) || $user->departamento === 'Controlling' ? 
+                        ['label' => 'Panel Controlling', 'route' => 'renditions.controlling'] : null,
+
+                    in_array($user->role, ['admin', 'jefatura']) || in_array($user->departamento, ['Finanzas', 'Controlling']) ? 
+                        ['label' => 'Historial General', 'route' => 'renditions.history'] : null,
+                ])
+            ],
+
+            'renditions' => [
+                'name' => 'Módulo Rendiciones',
+                'description' => 'Solicitudes de fondos, rendiciones y seguimiento de gastos personales.',
+                'theme' => 'orange',
+                'icon' => '📄',
+                'actions' => array_filter([
+                    ['label' => 'Crear Planificación', 'route' => 'route-plannings.create'],
+                    ['label' => 'Mis Solicitudes', 'route' => 'route-plannings.index'],
+                    ['label' => 'Mis Rendiciones', 'route' => 'renditions.index'],
+
+                    !in_array($user->role, ['admin', 'jefatura']) && !in_array($user->departamento, ['Finanzas', 'Controlling'])
+                        ? ['label' => 'Historial', 'route' => 'renditions.history']
+                        : null,
+                ])
+            ],
+        ];
         // 🔹 Filtrar módulos según usuario
-        if (!in_array('all', $modules)) {
-            $allModules = array_intersect_key($allModules, array_flip($modules));
-        }
+        $allModules = array_filter($allModules, function ($key) use ($user) {
+            if ($key === 'finances') {
+                return in_array($user->role, ['admin', 'jefatura'])
+                    || in_array($user->departamento, ['Finanzas', 'Controlling']);
+            }
+
+            if ($key === 'renditions') {
+                return $user->hasModuleAccess('renditions')
+                    || $user->role === 'admin';
+            }
+
+            return $user->hasModuleAccess($key);
+        }, ARRAY_FILTER_USE_KEY);
 
         // 🔹 Filtrar acciones que realmente existen
         foreach ($allModules as $key => $module) {
