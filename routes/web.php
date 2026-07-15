@@ -154,6 +154,10 @@ Route::middleware('auth')->group(function () {
     // Gestión de Salas - Catálogo y Disponibilidad (Accesible para todos, incl. Viewer)
     Route::get('/reservar-sala', [RoomReservationController::class, 'index'])->name('reservations.catalog');
     Route::get('/rooms/{room}/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
+    
+    Route::get('/admin/rooms/agenda', [RoomReservationController::class, 'agenda'])
+        ->middleware(['role:admin,supervisor,worker,driver,jefatura,viewer'])
+        ->name('rooms.agenda');
 
     // Acciones de Reserva (Solo Admin, Supervisor, Worker, Driver, Jefatura) - NO Viewer
     Route::middleware(['role:admin,supervisor,worker,driver,jefatura'])->group(function () {
@@ -172,8 +176,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/room-reservations/{id}/approve', [RoomReservationController::class, 'approve'])->name('room-reservations.approve');
         Route::put('/room-reservations/{id}/reject', [RoomReservationController::class, 'reject'])->name('room-reservations.reject');
         Route::put('/room-reservations/{id}/cancel-admin', [RoomReservationController::class, 'cancelByAdmin'])->name('room-reservations.cancel_admin');
-
-        Route::get('/admin/rooms/agenda', [RoomReservationController::class, 'agenda'])->name('rooms.agenda');
 
         Route::get('/admin/rooms/history', [RoomReservationController::class, 'history'])->name('rooms.history');
         Route::get('/admin/rooms/report', [RoomReservationController::class, 'downloadMonthlyReport'])->name('rooms.report');
@@ -253,6 +255,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/assets/{id}/history', [\App\Http\Controllers\AssetController::class, 'history'])->name('assets.history');
         Route::get('/assets/{id}/history/pdf', [\App\Http\Controllers\AssetController::class, 'downloadHistoryPdf'])->name('assets.history.pdf');
         Route::get('/assets/export-pdf', [\App\Http\Controllers\AssetController::class, 'exportPdf'])->name('assets.export-pdf');
+        Route::resource('asset-categories', \App\Http\Controllers\AssetCategoryController::class)
+           ->except(['show', 'create', 'edit']);
 
         // Rutas para resolver alertas de daños y mantenciones
         Route::post('/assets/{id}/maintenance', [\App\Http\Controllers\AssetController::class, 'sendToMaintenance'])->name('assets.maintenance.send');

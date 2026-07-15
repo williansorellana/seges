@@ -22,7 +22,7 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
 
-                <form method="GET" action="{{ route('requests.manage') }}" class="mb-6 flex gap-3">
+                <form method="GET" action="{{ route('requests.index') }}" class="mb-6 flex gap-3">
                     <select name="status"
                         class="rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
                         <option value="all">Todos</option>
