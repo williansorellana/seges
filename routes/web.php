@@ -209,6 +209,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/historial-uso-vehiculos/{id}', [VehicleRequestController::class, 'destroy'])->name('requests.history.destroy');
     Route::put('/historial-uso-vehiculos/{id}/restore', [VehicleRequestController::class, 'restore'])->name('requests.history.restore');
     Route::delete('/historial-uso-vehiculos/{id}/force', [VehicleRequestController::class, 'forceDelete'])->name('requests.history.force-delete');
+    Route::post('/requests/{id}/cancel', [VehicleRequestController::class, 'cancel'])->name('requests.cancel');
 
     // AJAX Check for External RUT
     Route::get('/requests/check-external-rut', [VehicleRequestController::class, 'checkExternalRut'])->name('requests.check-external-rut');
