@@ -139,40 +139,76 @@ class RoomReservationController extends Controller
     /**
  * Aprueba una reserva pendiente.
  */
-    public function approve($id)
+   public function approve($id)
     {
         $reservation = RoomReservation::findOrFail($id);
-        
+
         $start = Carbon::parse($reservation->start_time);
         $end = Carbon::parse($reservation->end_time);
 
-     
-        $exists = $this->hasRoomConflict(
-            $reservation->meeting_room_id,
-            $start,
-            $end,
-            $reservation->id
-        );
+        // Verificar que no exista otra reserva ya aprobada
+        $exists = RoomReservation::where('meeting_room_id', $reservation->meeting_room_id)
+            ->where('status', 'approved')
+            ->where('id', '!=', $reservation->id)
+            ->where(function ($query) use ($start, $end) {
+                $query->where('start_time', '<', $end)
+                    ->where('end_time', '>', $start);
+            })
+            ->exists();
 
-        
         if ($exists) {
-            return redirect()->back()->with('error', '⛔ No se puede aprobar: Ya existe otra reserva confirmada en este horario.');
+            return redirect()->back()->with(
+                'error',
+                '⛔ No se puede aprobar: ya existe otra reserva confirmada en este horario.'
+            );
         }
 
+        // Aprobar la reserva seleccionada
         $reservation->status = 'approved';
         $reservation->save();
-        $reservation->user->notify(new ReservationConfirmed($reservation));
+
+        // Rechazar automáticamente las demás solicitudes
+        // pendientes que se crucen con esta reserva.
+        $conflictingReservations = RoomReservation::where(
+                'meeting_room_id',
+                $reservation->meeting_room_id
+            )
+            ->where('status', 'pending')
+            ->where('id', '!=', $reservation->id)
+            ->where(function ($query) use ($start, $end) {
+                $query->where('start_time', '<', $end)
+                    ->where('end_time', '>', $start);
+            })
+            ->get();
+
+        foreach ($conflictingReservations as $pending) {
+            $pending->status = 'rejected';
+            $pending->save();
+        }
+
+        // Notificar al usuario cuya reserva fue aprobada
+        $reservation->user->notify(
+            new ReservationConfirmed($reservation)
+        );
 
         $reservation->load(['guests', 'meetingRoom', 'user']);
-        
-// Enviar invitación por correo a los invitados.
-            foreach ($reservation->guests as $guest) {
-                (new AnonymousNotifiable)
-                    ->route('mail', $guest->email)
-                    ->notify(new RoomGuestInvitationNotification($reservation, $guest->name));
-            }
 
-        return redirect()->back()->with('success', 'Reserva aprobada con éxito.');
+        // Enviar invitaciones a los invitados
+        foreach ($reservation->guests as $guest) {
+            (new AnonymousNotifiable)
+                ->route('mail', $guest->email)
+                ->notify(
+                    new RoomGuestInvitationNotification(
+                        $reservation,
+                        $guest->name
+                    )
+                );
+        }
+
+        return redirect()->back()->with(
+            'success',
+            'Reserva aprobada con éxito. Las solicitudes que se solapaban fueron rechazadas automáticamente.'
+        );
     }
 
 /**
@@ -447,7 +483,7 @@ class RoomReservationController extends Controller
     
     private function hasRoomConflict($meetingRoomId, $start, $end, $excludeId = null){
         return  RoomReservation::where('meeting_room_id', $meetingRoomId)
-            ->whereIn('status', ['approved', 'pending'])
+            ->where('status', 'approved')
             ->when($excludeId, function ($query) use ($excludeId) {
                 $query->where('id', '!=', $excludeId);
             })
