@@ -624,6 +624,7 @@
                                                 // PREPARAR TODOS LOS DATOS DEL USUARIO
                                                 $userData = [
                                                     'name' => $request->user->name,
+                                                    'last_name' => $request->user->last_name,
                                                     'email' => $request->user->email,
                                                     'photo_url' => $request->user->profile_photo_path ? Storage::url($request->user->profile_photo_path) : null,
                                                     'initials' => substr($request->user->name, 0, 1),
@@ -644,11 +645,14 @@
                                                     @if($request->user->profile_photo_path)
                                                         <img src="{{ Storage::url($request->user->profile_photo_path) }}" class="h-8 w-8 rounded-full object-cover">
                                                     @else
-                                                        {{ substr($request->user->name, 0, 1) }}
+                                                        {{ strtoupper(
+                                                            substr($request->user->name, 0, 1) .
+                                                            substr($request->user->last_name ?? '', 0, 1))
+                                                        }}
                                                     @endif
                                                 </div>
                                                 <div class="text-sm font-medium text-white group-hover:text-blue-400 transition-colors underline decoration-dotted decoration-gray-600 group-hover:decoration-blue-400">
-                                                    {{ $request->user->name ?? 'Usuario Eliminado' }}
+                                                    {{ trim(($request->user->name ?? '') . ' ' . ($request->user->last_name ?? '')) ?: 'Usuario Eliminado' }}
                                                 </div>
                                             </button>
                                         </td>
