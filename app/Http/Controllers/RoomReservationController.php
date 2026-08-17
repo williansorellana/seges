@@ -55,7 +55,13 @@ class RoomReservationController extends Controller
             'start_time' => 'required|date',
             'end_time' => 'required|date',
             'purpose' => 'required|string|max:255',
-            'attendees' => 'required|integer|min:1', 
+            'attendees' => 'required|integer|min:1',
+            'cellphone' => [
+                'required',
+                'string',
+                'size:9',
+                'regex:/^9\d{8}$/',
+            ],
             'resources' => 'nullable|string|max:500',
             'guests' => 'nullable|array|max:20',
             'guests.*.name' => 'required_with:guests.*.email|string|max:255',
@@ -97,6 +103,7 @@ class RoomReservationController extends Controller
             'end_time' => $end,
             'purpose' => $request->purpose,
             'attendees' => $request->attendees,
+            'cellphone' => $request->cellphone,
             'resources' => $request->resources,
             'status' => 'pending' 
         ]);
@@ -431,6 +438,12 @@ class RoomReservationController extends Controller
             'end_time'        => 'required|date|after:start_time',
             'purpose'         => 'required|string|max:150',
             'attendees'       => 'required|integer|min:1',
+            'cellphone' => [
+                'required',
+                'string',
+                'size:9',
+                'regex:/^9\d{8}$/',
+            ],
             'resources'       => 'nullable|string|max:500',
         ]);
 
@@ -474,6 +487,7 @@ class RoomReservationController extends Controller
             'end_time'        => $end,
             'purpose'         => $finalPurpose, 
             'attendees'       => $request->attendees,
+            'cellphone'       => $request->cellphone,
             'resources'       => $request->resources,
             'status'          => 'approved' 
         ]);

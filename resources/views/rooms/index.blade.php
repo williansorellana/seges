@@ -611,6 +611,7 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Usuario</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Sala</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Fecha y Hora</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Contacto</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Detalles</th>
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Acciones</th>
                                 </tr>
@@ -628,7 +629,7 @@
                                                     'initials' => substr($request->user->name, 0, 1),
                                                     // Datos adicionales para el detalle completo
                                                     'rut' => $request->user->rut ?? 'N/A',
-                                                    'phone' => $request->user->phone ?? 'N/A',
+                                                    'phone' => $request->cellphone ? '+56 ' . $request->cellphone : 'No informado',
                                                     'address' => $request->user->address ?? 'N/A',
                                                     'role' => ucfirst($request->user->role ?? 'Usuario'),
                                                     'status' => $request->user->status ?? 'Activo',
@@ -675,22 +676,45 @@
                                             <div class="text-sm text-gray-300">D: <span class="text-white">{{ \Carbon\Carbon::parse($request->start_time)->format('d/m H:i') }}</span></div>
                                             <div class="text-sm text-gray-300">H: <span class="text-white">{{ \Carbon\Carbon::parse($request->end_time)->format('d/m H:i') }}</span></div>
                                         </td>
+                                        
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            @if($request->cellphone)
+                                                <div class="flex items-center text-sm text-gray-300">
+                                                    <span class="mr-2 text-green-400">📞</span>
+                                                    <span class="text-white">+56 {{ $request->cellphone }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-sm text-gray-500">
+                                                    No informado
+                                                </span>
+                                            @endif
+                                        </td>
 
                                         <td class="px-4 py-4">
-                                            <div class="text-sm text-gray-300 italic mb-2">"{{ $request->purpose }}"</div>
+                                            <div class="text-sm text-gray-300 italic mb-2">
+                                                "{{ $request->purpose }}"
+                                            </div>
+
                                             <div class="space-y-1">
+
+                                                {{-- Cantidad de asistentes --}}
                                                 <div class="flex items-center text-xs text-gray-400">
-                                                    <span class="mr-1">👥</span> {{ $request->attendees }} personas
+                                                    <span class="mr-1">👥</span>
+                                                    {{ $request->attendees }} personas
                                                 </div>
+
+                                                {{-- Recursos solicitados --}}
                                                 @if($request->resources)
                                                     <div class="text-xs text-indigo-300 bg-indigo-900/30 p-1.5 rounded border border-indigo-800/50 mt-1">
-                                                        <span class="font-bold block text-indigo-200 mb-0.5">Solicita:</span>
+                                                        <span class="font-bold block text-indigo-200 mb-0.5">
+                                                            Solicita:
+                                                        </span>
                                                         {{ $request->resources }}
                                                     </div>
                                                 @endif
+
                                             </div>
                                         </td>
-
                                         <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex justify-end space-x-2">
                                                 <form action="{{ route('room-reservations.approve', $request->id) }}" method="POST">@csrf @method('PUT')<button type="submit" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded-full transition shadow-lg hover:shadow-green-500/50" title="Aprobar"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button></form>

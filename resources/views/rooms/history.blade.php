@@ -41,6 +41,7 @@
                                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Fecha</th>
                                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Sala</th>
                                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Solicitante</th>
+                                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Contacto</th>
                                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Propósito</th>
                                         <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider">Estado Tiempo</th>
                                     </tr>
@@ -62,15 +63,37 @@
                                             <td class="px-5 py-4 text-sm">
                                                 <div class="flex items-center">
                                                     <div class="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white mr-2">
-                                                        {{ substr($res->user->name ?? 'X', 0, 1) }}
+                                                        @if($res->user)
+                                                            {{ strtoupper(
+                                                                substr($res->user->name, 0, 1) .
+                                                                substr($res->user->last_name ?? '', 0, 1)
+                                                            ) }}
+                                                        @else
+                                                            X
+                                                        @endif
                                                     </div>
                                                     <div>
-                                                        <div class="font-medium text-white">{{ $res->user->name ?? 'Usuario Eliminado' }}</div>
+                                                        <div class="font-medium text-white">
+                                                            {{ $res->user
+                                                                ? trim($res->user->name . ' ' . $res->user->last_name)
+                                                                : 'Usuario Eliminado' }}
+                                                        </div>
                                                         <div class="text-xs text-gray-500">{{ $res->user->email ?? '' }}</div>
                                                     </div>
                                                 </div>
                                             </td>
-
+                                            <td class="px-5 py-4 text-sm">
+                                                @if($res->cellphone)
+                                                    <div class="flex items-center gap-2 text-gray-200">
+                                                        <span class="text-green-400">☎</span>
+                                                        <span>+56 {{ $res->cellphone }}</span>
+                                                    </div>
+                                                @else
+                                                    <span class="text-gray-500">
+                                                        No informado
+                                                    </span>
+                                                @endif
+                                            </td>
                                             <td class="px-5 py-4 text-sm">
                                                 <div class="text-white italic">"{{ $res->purpose }}"</div>
                                                 @if($res->resources)

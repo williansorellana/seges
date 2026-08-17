@@ -765,6 +765,36 @@
                                         class="w-full bg-gray-900 border-gray-700 rounded text-white">
                                 </div>
 
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-300 mb-1">
+                                        Número de contacto
+                                    </label>
+
+                                    <div class="flex w-full">
+                                        <div class="flex items-center gap-2 px-4 bg-gray-800 border border-gray-700 rounded-l text-gray-300">
+                                            <span class="text-sm font-semibold">CL</span>
+                                            <span class="text-sm">+56</span>
+                                        </div>
+
+                                        <input
+                                            type="tel"
+                                            name="cellphone"
+                                            inputmode="numeric"
+                                            maxlength="9"
+                                            minlength="9"
+                                            pattern="9[0-9]{8}"
+                                            placeholder="912345678"
+                                            required
+                                            class="w-full ml-2 px-4 bg-gray-900 border-gray-700 rounded-lg text-white"
+                                            oninput="this.value = this.value.replace(/\D/g, '').slice(0, 9)"
+                                        >
+                                    </div>
+
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Ingresa los 9 dígitos del número celular.
+                                    </p>
+                                </div>
+
                                 <div class="bg-gray-900/70 border border-gray-700 rounded-lg p-4">
                                     <div class="flex items-center justify-between mb-3">
                                         <div>

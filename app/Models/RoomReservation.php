@@ -14,6 +14,7 @@ class RoomReservation extends Model
         'end_time',
         'purpose',
         'attendees',
+        'cellphone',
         'resources',
         'status',
     ];
