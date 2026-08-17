@@ -39,6 +39,7 @@
             modalUser: false, 
             modalCancel: false,
             modalCreate: false,
+            modalDay: false,
             fullDay: false,
             guests: [],
             addGuest() {
@@ -66,11 +67,18 @@
             data: {},       // Datos de la reserva actual
             roomData: {},   // Datos de la sala
             userData: {},   // Datos del usuario
+            dayReservations: [],
+            selectedDay: '',
 
             // Funciones Helpers
             openRes(reservationData) {
                 this.data = reservationData;
                 this.modalRes = true;
+            },
+            openDay(reservations, date) {
+                this.dayReservations = reservations;
+                this.selectedDay = date;
+                this.modalDay = true;
             },
             openCancel(url) {
                 this.cancelUrl = url;
@@ -269,13 +277,24 @@
                                 }
                             @endphp
 
-                            <div class="min-h-[120px] p-3 border-r border-b border-gray-700 {{ $boxClass }} transition">
-                                <div class="flex justify-between items-start mb-2">
-                                    <span class="text-lg font-bold text-white">{{ $day }}</span>
-                                    <span class="text-[10px] font-bold uppercase {{ $statusClass }}">
-                                        {{ $statusText }}
-                                    </span>
-                                </div>
+                            <div 
+                                class="min-h-[120px] p-3 border-r border-b border-gray-700 {{ $boxClass }} transition relative"
+                                @if($hasReservations)
+                                    @click="openDay(
+                                        @js($dayReservations->map(function($reservation) {
+                                            return [
+                                                'start' => $reservation->start_time->format('H:i'),
+                                                'end' => $reservation->end_time->format('H:i'),
+                                                'purpose' => $reservation->purpose,
+                                                'user' => trim(($reservation->user->name ?? '') . ' ' . ($reservation->user->last_name ?? '')),
+                                                'room' => $reservation->meetingRoom->name ?? 'Sala eliminada'
+                                            ];
+                                        })->values()),
+                                        @js($date->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY'))
+                                    )"
+                                    class="cursor-pointer"
+                                @endif
+                            >
 
                                 @if($hasReservations)
                                     <div class="space-y-1 mb-3">
@@ -306,11 +325,11 @@
                                 @if(!$isFullDay && isset($selectedRoom) && $selectedRoom && Auth::user()->role !== 'viewer')
                                     <button
                                         type="button"
-                                        @click="
+                                        @click.stop="
                                             startTime = '{{ $dateKey }}T09:00';
                                             endTime = '{{ $dateKey }}T18:00';
                                             fullDay = false;
-                                         modalCreate = true;
+                                            modalCreate = true;
                                         "
                                         class="w-full mt-auto px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold">
                                         Reservar
@@ -507,6 +526,165 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </template>
+        <!-- Modal: Reservas del día -->
+        <template x-teleport="body">
+            <div 
+                x-show="modalDay" 
+                x-cloak 
+                class="fixed inset-0 z-[9999] overflow-y-auto"
+                role="dialog"
+                aria-modal="true"
+            >
+                <div class="flex items-center justify-center min-h-screen px-4 py-8">
+
+                    <!-- Fondo -->
+                    <div 
+                        x-show="modalDay"
+                        x-transition.opacity
+                        class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm"
+                        @click="modalDay = false"
+                    ></div>
+
+                    <!-- Modal -->
+                    <div
+                        x-show="modalDay"
+                        x-transition.scale
+                        class="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                    >
+
+                        <!-- Encabezado -->
+                        <div class="px-6 py-4 bg-gray-800 dark:bg-gray-900 border-b border-gray-700 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">
+                                    Reservas del día
+                                </h3>
+
+                                <p 
+                                    class="text-sm text-gray-400 capitalize mt-1"
+                                    x-text="selectedDay"
+                                ></p>
+                            </div>
+
+                            <button
+                                type="button"
+                                @click="modalDay = false"
+                                class="text-gray-400 hover:text-white transition"
+                            >
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path 
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Reservas -->
+                        <div class="p-6 max-h-[65vh] overflow-y-auto">
+
+                            <template x-if="dayReservations.length > 0">
+                                <div class="space-y-3">
+
+                                    <template x-for="(reservation, index) in dayReservations" :key="index">
+
+                                        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+
+                                            <!-- Horario -->
+                                            <div class="flex items-center gap-2 mb-3">
+
+                                                <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                        />
+                                                    </svg>
+                                                </div>
+
+                                                <div>
+                                                    <p 
+                                                        class="text-sm font-bold text-gray-900 dark:text-white"
+                                                        x-text="reservation.start + ' - ' + reservation.end"
+                                                    ></p>
+
+                                                    <p 
+                                                        class="text-xs text-gray-500 dark:text-gray-400"
+                                                        x-text="reservation.room"
+                                                    ></p>
+                                                </div>
+
+                                            </div>
+
+                                            <!-- Asunto -->
+                                            <div class="mb-3">
+                                                <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                                    Asunto
+                                                </span>
+
+                                                <p 
+                                                    class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-200"
+                                                    x-text="reservation.purpose || 'Sin asunto'"
+                                                ></p>
+                                            </div>
+
+                                            <!-- Reservado por -->
+                                            <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+
+                                                <div class="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                                                    <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                        />
+                                                    </svg>
+                                                </div>
+
+                                                <div>
+                                                    <span class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                                        Reservado por
+                                                    </span>
+
+                                                    <p 
+                                                        class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                                                        x-text="reservation.user"
+                                                    ></p>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </template>
+
+                                </div>
+                            </template>
+
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 flex justify-end border-t border-gray-200 dark:border-gray-700">
+
+                            <button
+                                type="button"
+                                @click="modalDay = false"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm font-bold transition"
+                            >
+                                Cerrar
+                            </button>
+
+                        </div>
+
+                    </div>
+
                 </div>
             </div>
         </template>
