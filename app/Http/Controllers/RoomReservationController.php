@@ -66,6 +66,9 @@ class RoomReservationController extends Controller
             'guests' => 'nullable|array|max:20',
             'guests.*.name' => 'required_with:guests.*.email|string|max:255',
             'guests.*.email' => 'required_with:guests.*.name|email|max:255',
+            'cellphone.required' => 'El número de contacto es obligatorio.',
+            'cellphone.size' => 'El número de contacto debe tener exactamente 9 dígitos.',
+            'cellphone.regex' => 'El número de contacto debe comenzar con 9 y tener 9 dígitos.',
         
         ]);
         $timezone = 'America/Santiago';
