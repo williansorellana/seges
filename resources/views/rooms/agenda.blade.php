@@ -295,6 +295,15 @@
                                     class="cursor-pointer"
                                 @endif
                             >
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-lg font-bold text-white">
+                                    {{ $day }}
+                                </span>
+
+                                <span class="text-[10px] font-bold uppercase {{ $statusClass }}">
+                                    {{ $statusText }}
+                                </span>
+                            </div>
 
                                 @if($hasReservations)
                                     <div class="space-y-1 mb-3">
