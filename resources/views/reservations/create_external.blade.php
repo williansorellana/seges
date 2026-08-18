@@ -117,6 +117,37 @@
                             </div>
                         </div>
 
+                        {{-- Número de contacto --}}
+                        <div class="mb-6">
+                            <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 text-sm">
+                                Número de contacto <span class="text-red-400">*</span>
+                            </label>
+
+                            <div class="flex w-full">
+                                <div class="flex items-center gap-2 px-4 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                                    <span class="text-sm font-semibold">CL</span>
+                                    <span class="text-sm">+56</span>
+                                </div>
+
+                                <input
+                                    type="tel"
+                                    name="cellphone"
+                                    inputmode="numeric"
+                                    maxlength="9"
+                                    minlength="9"
+                                    pattern="9[0-9]{8}"
+                                    placeholder="912345678"
+                                    required
+                                    class="w-full ml-2 px-4 bg-[#1e293b] border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 focus:ring-0"
+                                    oninput="this.value = this.value.replace(/\D/g, '').slice(0, 9)"
+                                >
+                            </div>
+
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Ingresa los 9 dígitos del número celular.
+                            </p>
+                        </div>
+
                         {{-- Propósito --}}
                         <div class="mb-6">
                             <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 text-sm">Motivo / Propósito</label>
