@@ -67,6 +67,21 @@
                     @endif
                 </div>
             </div>
+            {{-- Buscador de usuarios --}}
+            <div class="mb-5">
+                <input
+                    id="globalSearch"
+                    type="text"
+                    placeholder="Buscar usuario..."
+                    class="w-full px-4 py-3
+                        text-gray-900 dark:text-white
+                        bg-white dark:bg-slate-800
+                        border border-gray-200 dark:border-gray-700
+                        rounded-xl
+                        focus:ring-2 focus:ring-blue-500
+                        focus:outline-none"
+                >
+            </div>
 
             <div class="bg-white dark:bg-slate-800 shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                 <div class="overflow-x-auto">
@@ -89,7 +104,10 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach ($users as $user)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                                <tr
+                                    class="user-row hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                                    data-search="{{ strtolower($user->short_name) }}"
+                                >
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10 cursor-pointer relative" x-data=""
@@ -636,4 +654,21 @@
             </div>
         </form>
     </x-modal>
+
+    {{-- Buscador --}}
+    <script>
+        const globalSearch = document.getElementById('globalSearch');
+
+        globalSearch.addEventListener('input', () => {
+            const value = globalSearch.value.toLowerCase();
+
+            document.querySelectorAll('.user-row').forEach(row => {
+                const content = row.dataset.search;
+
+                row.style.display = content.includes(value)
+                    ? ''
+                    : 'none';
+            });
+        });
+    </script>
 </x-app-layout>
