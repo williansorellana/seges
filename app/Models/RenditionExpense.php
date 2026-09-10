@@ -15,6 +15,8 @@ class RenditionExpense extends Model
     protected $casts = [
         'date' => 'date',
         'amount' => 'decimal:2',
+        'authorized_amount' => 'decimal:2',
+        'lodging_excess_amount' => 'decimal:2',
         'is_valid' => 'boolean',
     ];
 

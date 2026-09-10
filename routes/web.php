@@ -52,6 +52,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
         Route::put('/{rendition}/gastos/{expense}', [RenditionController::class, 'updateExpense'])->name('expenses.update');
         Route::delete('/{rendition}/gastos/{expense}', [RenditionController::class, 'destroyExpense'])->name('expenses.destroy');
+        Route::post('/{rendition}/gastos/{expense}/autorizar-excedente-alojamiento', [RenditionController::class, 'approveLodgingExcess'])->name('expenses.approve-lodging-excess');
         Route::post('/gastos/{expense}/validar', [RenditionController::class, 'validateExpense'])->name('expenses.validate');
         Route::post('/gastos/{expense}/observar', [RenditionController::class, 'invalidateExpense'])->name('expenses.invalidate');
         Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');

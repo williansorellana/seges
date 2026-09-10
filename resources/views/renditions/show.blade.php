@@ -242,6 +242,12 @@
                                                                 Observado
                                                             </span>
 
+                                                            @if($expense->expense_category === 'alojamiento' && $expense->lodging_excess_amount > 0)
+                                                                <div class="mt-2 text-xs {{ $expense->lodging_excess_status === 'approved' ? 'text-emerald-400' : 'text-amber-400' }}">Autorizado: ${{ number_format($expense->authorized_amount, 0, ',', '.') }} · Excedente: ${{ number_format($expense->lodging_excess_amount, 0, ',', '.') }} ({{ $expense->lodging_excess_status }})</div>
+                                                                @if($expense->lodging_excess_status === 'pending' && (auth()->user()->role === 'admin' || auth()->id() === $rendition->user->jefatura_id))
+                                                                    <form method="POST" action="{{ route('renditions.expenses.approve-lodging-excess', [$rendition, $expense]) }}" class="mt-2">@csrf<button class="text-xs bg-emerald-600 px-2 py-1 rounded">Autorizar excedente</button></form>
+                                                                @endif
+                                                            @endif
                                                             @if($expense->rejection_reason)
                                                                 <span class="text-[10px] text-rose-300 font-medium text-right leading-snug">
                                                                     {{ $expense->rejection_reason }}
@@ -1418,4 +1424,3 @@
         });
     </script>
 </x-app-layout>
-

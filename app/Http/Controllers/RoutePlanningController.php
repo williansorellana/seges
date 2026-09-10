@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
 use App\Services\AmipassCalculatorService;
 use App\Notifications\TravelNotification;
+use App\Models\RutCostCenter;
+use App\Services\RenditionDeadlineService;
 
 class RoutePlanningController extends Controller
 {
@@ -79,8 +81,14 @@ class RoutePlanningController extends Controller
             'destination' => 'required|string|max:255',
             'region' => 'nullable|string|max:255',
             'companions' => 'nullable|string|max:500',
+            'companions_data' => 'nullable|array|max:20',
+            'companions_data.*.name' => 'required_with:companions_data|string|max:255',
+            'companions_data.*.rut' => 'required_with:companions_data|string|max:20',
+            'companions_data.*.receives_amipass' => 'nullable|boolean',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'project' => 'nullable|string|max:255',
+            'section' => 'nullable|string|max:255',
 
             'requires_funds' => 'nullable|boolean',
             'requested_funds' => 'nullable|numeric|min:0|required_if:requires_funds,1',
@@ -97,8 +105,12 @@ class RoutePlanningController extends Controller
             'requires_amipass' => 'nullable|boolean',
             'amipass_start_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',
             'amipass_end_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',
-            'amipass_ruts' => 'nullable|required_if:requires_amipass,1|array',
-            'amipass_ruts.*' => 'nullable|required_if:requires_amipass,1|string|max:20',
+            'amipass_ruts' => 'nullable|array',
+            'amipass_ruts.*' => 'nullable|string|max:20',
+            'includes_breakfast' => 'nullable|boolean',
+            'excluded_lunches' => 'nullable|integer|min:0|max:366',
+            'excluded_dinners' => 'nullable|integer|min:0|max:366',
+            'amipass_rate_type' => 'nullable|in:venta,otros',
         ]);
 
         $planning = new \App\Models\RoutePlanning();
@@ -108,9 +120,22 @@ class RoutePlanningController extends Controller
         $planning->motive = $validated['motive'];
         $planning->destination = $validated['destination'];
         $planning->region = $validated['region'] ?? null;
-        $planning->companions = $validated['companions'] ?? null;
+        $companions = collect($validated['companions_data'] ?? [])
+            ->filter(fn ($companion) => !empty($companion['name']) || !empty($companion['rut']))
+            ->values();
+        $planning->companions = $companions->isNotEmpty()
+            ? $companions->pluck('name')->implode(', ')
+            : ($validated['companions'] ?? null);
         $planning->start_date = $validated['start_date'];
         $planning->end_date = $validated['end_date'];
+        $planning->project = $validated['project'] ?? null;
+        $planning->section = $validated['section'] ?? auth()->user()->departamento;
+
+        $normalizedRut = preg_replace('/[^0-9K]/', '', strtoupper((string) auth()->user()->rut));
+        $costCenter = RutCostCenter::where('is_active', true)->get()->first(function ($item) use ($normalizedRut) {
+            return preg_replace('/[^0-9K]/', '', strtoupper($item->rut)) === $normalizedRut;
+        });
+        $planning->cost_center = $costCenter?->cost_center;
 
         if ($request->filled('destinations')) {
             $planning->destinations = json_decode($request->input('destinations'), true);
@@ -123,7 +148,10 @@ class RoutePlanningController extends Controller
             $planning->funds_peaje = $request->input('funds_peaje') ?: 0;
             $planning->funds_bencina = $request->input('funds_bencina') ?: 0;
             $planning->funds_alojamiento = $request->input('funds_alojamiento') ?: 0;
-            $planning->funds_alimentacion = $request->input('funds_alimentacion') ?: 0;
+            // La comida se solicita como fondo solamente para reuniones.
+            $planning->funds_alimentacion = $planning->trip_type === 'reunion'
+                ? ($request->input('funds_alimentacion') ?: 0)
+                : 0;
             $planning->funds_otros = $request->input('funds_otros') ?: 0;
             $planning->funds_description = $request->input('funds_description');
             $planning->requested_funds = $planning->funds_peaje + $planning->funds_bencina + $planning->funds_alojamiento + $planning->funds_alimentacion + $planning->funds_otros;
@@ -137,35 +165,56 @@ class RoutePlanningController extends Controller
             $planning->requested_funds = null;
         }
 
-        $planning->requires_amipass = $request->has('requires_amipass');
+        // Una reunión extra puede solicitar fondo de alimentación; una salida a ruta
+        // usa Amipass y nunca permite rendir la categoría comida.
+        $planning->requires_amipass = $planning->trip_type === 'terreno' && $request->has('requires_amipass');
 
-        if ($request->has('requires_amipass')) {
+        if ($planning->requires_amipass) {
             $amipassCalculator = new AmipassCalculatorService();
+            $amipassCompanions = $companions->filter(fn ($companion) => !empty($companion['receives_amipass']));
 
             $amipassResult = $amipassCalculator->calculate(
                 $validated['start_date'],
                 $validated['end_date'],
                 $validated['amipass_start_time'],
-                $validated['amipass_end_time']
+                $validated['amipass_end_time'],
+                $validated['amipass_rate_type'] ?? 'otros',
+                $request->boolean('includes_breakfast'),
+                (int) ($validated['excluded_lunches'] ?? 0),
+                (int) ($validated['excluded_dinners'] ?? 0),
+                1 + $amipassCompanions->count(),
             );
 
             $planning->amipass_days = $amipassResult['business_days'];
             $planning->amipass_business_days = $amipassResult['business_days'];
             $planning->amipass_amount = $amipassResult['amount'];
+            $planning->amipass_per_person_amount = $amipassResult['per_person_amount'];
             $planning->amipass_start_time = $validated['amipass_start_time'];
             $planning->amipass_end_time = $validated['amipass_end_time'];
+            $planning->includes_breakfast = $request->boolean('includes_breakfast');
+            $planning->excluded_lunches = (int) ($validated['excluded_lunches'] ?? 0);
+            $planning->excluded_dinners = (int) ($validated['excluded_dinners'] ?? 0);
+            $planning->amipass_rate_type = $validated['amipass_rate_type'] ?? 'otros';
             $planning->usual_zone = null;
             $planning->extraordinary_zone = $validated['destination'];
-            $planning->amipass_ruts = array_values(array_filter($request->input('amipass_ruts', [])));
+            $planning->amipass_ruts = array_values(array_filter([
+                auth()->user()->rut,
+                ...$amipassCompanions->pluck('rut')->all(),
+            ]));
         } else {
             $planning->amipass_days = null;
             $planning->amipass_business_days = 0;
             $planning->amipass_amount = 0;
+            $planning->amipass_per_person_amount = 0;
             $planning->amipass_start_time = null;
             $planning->amipass_end_time = null;
             $planning->usual_zone = null;
             $planning->extraordinary_zone = null;
             $planning->amipass_ruts = null;
+            $planning->includes_breakfast = false;
+            $planning->excluded_lunches = 0;
+            $planning->excluded_dinners = 0;
+            $planning->amipass_rate_type = null;
         }
 
         if (auth()->user()->jefatura_id) {
@@ -177,6 +226,14 @@ class RoutePlanningController extends Controller
         }
 
         $planning->save();
+
+        foreach ($companions as $companion) {
+            $planning->companions()->create([
+                'name' => $companion['name'],
+                'rut' => $companion['rut'],
+                'receives_amipass' => !empty($companion['receives_amipass']),
+            ]);
+        }
 
         $signatureService = new DigitalSignatureService();
 
@@ -641,6 +698,7 @@ class RoutePlanningController extends Controller
                     'route_planning_id' => $planning->id,
                     'user_id' => $planning->user_id,
                     'funds_received' => $fundsReceived,
+                    'deadline_at' => app(RenditionDeadlineService::class)->deadlineFor($planning->end_date),
                     'status' => WorkflowHelper::STATUS_DRAFT,
                 ]);
             } elseif ($rendition->status === WorkflowHelper::STATUS_DRAFT) {

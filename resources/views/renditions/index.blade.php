@@ -163,9 +163,12 @@
                                                 <svg class="w-3 h-3 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                                 <span class="text-blue-300 font-bold">{{ \Carbon\Carbon::parse($ren->routePlanning->start_date)->format('d/m/Y') }}</span>
                                                 <span class="text-slate-500">al</span>
-                                                <span class="text-blue-300 font-bold">{{ \Carbon\Carbon::parse($ren->routePlanning->end_date)->format('d/m/Y') }}</span>
-                                            </div>
-                                        </td>
+                                                 <span class="text-blue-300 font-bold">{{ \Carbon\Carbon::parse($ren->routePlanning->end_date)->format('d/m/Y') }}</span>
+                                             </div>
+                                             @php($deadline = $ren->deadline_at ?? app(\App\Services\RenditionDeadlineService::class)->deadlineFor($ren->routePlanning->end_date))
+                                             <div class="text-[10px] mt-1 {{ now()->startOfDay()->greaterThan($deadline) ? 'text-rose-400' : 'text-amber-300' }}">Plazo para rendir: {{ $deadline->format('d/m/Y') }}</div>
+                                             @if($ren->rejection_count > 0)<div class="text-[10px] text-rose-300">{{ $ren->rejection_count }} rechazo(s)</div>@endif
+                                         </td>
  
                                         <!-- Fondos Recibidos -->
                                         <td class="px-6 py-5 whitespace-nowrap">
@@ -326,4 +329,3 @@
         </div>
     </div>
 </x-app-layout>
-

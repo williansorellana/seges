@@ -25,6 +25,7 @@ class Rendition extends Model
 
         'refund_resolved_at' => 'datetime',
         'payment_completed_at' => 'datetime',
+        'deadline_at' => 'date',
     ];
 
     public function routePlanning()

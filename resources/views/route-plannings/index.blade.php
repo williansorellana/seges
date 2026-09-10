@@ -498,7 +498,7 @@
                     </div>
 
                     <div class="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ requiresFunds: false, requiresAmipass: false, destinations: [], funds_bencina: 0, funds_peaje: 0, funds_alojamiento: 0, funds_alimentacion: 0, funds_otros: 0, get requested_funds() { return (parseInt(this.funds_bencina) || 0) + (parseInt(this.funds_peaje) || 0) + (parseInt(this.funds_alojamiento) || 0) + (parseInt(this.funds_alimentacion) || 0) + (parseInt(this.funds_otros) || 0); }, addDestination() { this.destinations.push({ region: '', destination: '' }); }, removeDestination(index) { this.destinations.splice(index, 1); } }">
+                        <form action="{{ route('route-plannings.store') }}" method="POST" class="p-8" x-data="{ tripType: '', requiresFunds: false, requiresAmipass: false, companionsData: [], destinations: [], funds_bencina: 0, funds_peaje: 0, funds_alojamiento: 0, funds_alimentacion: 0, funds_otros: 0, get requested_funds() { return (parseInt(this.funds_bencina) || 0) + (parseInt(this.funds_peaje) || 0) + (parseInt(this.funds_alojamiento) || 0) + (parseInt(this.funds_alimentacion) || 0) + (parseInt(this.funds_otros) || 0); }, addDestination() { this.destinations.push({ region: '', destination: '' }); }, removeDestination(index) { this.destinations.splice(index, 1); }, addCompanion() { this.companionsData.push({ name: '', rut: '', receives_amipass: true }); } }">
                         @csrf
                         
                         @php
@@ -531,11 +531,11 @@
                                 <label class="block text-sm font-medium text-slate-300 mb-2">Tipo de Actividad <span class="text-red-500">*</span></label>
                                 <div class="flex space-x-6">
                                     <label class="inline-flex items-center cursor-pointer">
-                                        <input type="radio" name="trip_type" value="terreno" class="form-radio text-orange-600 focus:ring-orange-500 border-slate-700 bg-slate-900" required>
+                                        <input type="radio" name="trip_type" value="terreno" x-model="tripType" class="form-radio text-orange-600 focus:ring-orange-500 border-slate-700 bg-slate-900" required>
                                         <span class="ml-2 text-slate-300">Trabajo en Terreno</span>
                                     </label>
                                     <label class="inline-flex items-center cursor-pointer">
-                                        <input type="radio" name="trip_type" value="reunion" class="form-radio text-orange-600 focus:ring-orange-500 border-slate-700 bg-slate-900" required>
+                                        <input type="radio" name="trip_type" value="reunion" x-model="tripType" class="form-radio text-orange-600 focus:ring-orange-500 border-slate-700 bg-slate-900" required>
                                         <span class="ml-2 text-slate-300">Reunión de Negocios</span>
                                     </label>
                                 </div>
@@ -629,16 +629,20 @@
                                 </div>
                             </div>
 
+                            <div>
+                                <label for="project" class="block text-sm font-medium text-slate-300 mb-1">Proyecto</label>
+                                <input type="text" name="project" id="project" placeholder="Ej: Proyecto cliente norte" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100">
+                            </div>
+                            <div>
+                                <label for="section" class="block text-sm font-medium text-slate-300 mb-1">Sección</label>
+                                <input type="text" name="section" id="section" value="{{ auth()->user()->departamento }}" placeholder="Área o sección" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100">
+                            </div>
+
                             <!-- Acompañantes -->
                             <div class="col-span-1 md:col-span-2">
-                                <label for="companions" class="block text-sm font-medium text-slate-300 mb-1">
-                                    Acompañantes
-                                    <span class="text-xs text-slate-500 font-normal ml-1">(Opcional)</span>
-                                </label>
-                                <div class="flex items-start border border-slate-700 rounded-lg bg-slate-900 px-3 py-2.5 focus-within:border-blue-500 focus-within:bg-[#0f172a] hover:border-slate-600 transition-colors w-full min-h-[70px]">
-                                    <textarea name="companions" id="companions" rows="2" placeholder="Ej: Juan Pérez, María González, Carlos López..." class="w-full bg-transparent border-none outline-none text-slate-100 placeholder-slate-500 text-sm resize-y"></textarea>
-                                </div>
-                                <p class="text-xs text-slate-500 mt-1">Escribe los nombres de las personas que te acompañarán, separados por coma.</p>
+                                <div class="flex items-center justify-between mb-2"><label class="block text-sm font-medium text-slate-300">Acompañantes y Amipass</label><button type="button" @click="addCompanion()" class="text-xs text-blue-400 font-bold">+ Agregar acompañante</button></div>
+                                <template x-for="(companion, index) in companionsData" :key="index"><div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 bg-slate-900 p-3 rounded-lg"><input type="text" :name="`companions_data[${index}][name]`" x-model="companion.name" placeholder="Nombre" class="bg-slate-800 border-slate-700 rounded-lg text-sm text-white"><input type="text" :name="`companions_data[${index}][rut]`" x-model="companion.rut" placeholder="RUT" class="bg-slate-800 border-slate-700 rounded-lg text-sm text-white"><label class="text-xs text-slate-300 flex items-center gap-2"><input type="hidden" :name="`companions_data[${index}][receives_amipass]`" value="0"><input type="checkbox" :name="`companions_data[${index}][receives_amipass]`" value="1" x-model="companion.receives_amipass" :disabled="tripType !== 'terreno'">Recibe Amipass</label></div></template>
+                                <p class="text-xs text-slate-500">Para una salida a ruta se registra un RUT por acompañante y se calcula su recarga individual.</p>
                             </div>
 
                             <!-- Correos Dinámicos -->
@@ -715,17 +719,18 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-slate-300 mb-1">Alojamiento ($)</label>
+                                             <label class="block text-xs font-medium text-slate-300 mb-1">Alojamiento ($)</label>
+                                             <p class="text-[10px] text-amber-400 mb-1">Tope autorizado: $41.650 por día. El excedente requiere aprobación.</p>
                                             <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
                                                 <span class="text-slate-500 text-xs mr-1.5">$</span>
                                                 <input type="number" name="funds_alojamiento" x-model.number="funds_alojamiento" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
                                             </div>
                                         </div>
-                                        <div>
+                                        <div x-show="tripType === 'reunion'" x-cloak>
                                             <label class="block text-xs font-medium text-slate-300 mb-1">Alimentación ($)</label>
                                             <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
                                                 <span class="text-slate-500 text-xs mr-1.5">$</span>
-                                                <input type="number" name="funds_alimentacion" x-model.number="funds_alimentacion" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
+                                                <input type="number" name="funds_alimentacion" x-model.number="funds_alimentacion" min="0" :disabled="tripType !== 'reunion'" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">
                                             </div>
                                         </div>
                                         <div class="sm:col-span-2">
@@ -753,7 +758,7 @@
                             </div>
 
                             <!-- Amipass -->
-                            <div class="bg-slate-800/40 p-5 rounded-xl border border-slate-700 transition-all">
+                            <div class="bg-slate-800/40 p-5 rounded-xl border border-slate-700 transition-all" x-show="tripType === 'terreno'" x-cloak>
                                 <label class="flex items-center cursor-pointer mb-3">
                                     <div class="relative">
                                         <input type="checkbox" name="requires_amipass" value="1" class="sr-only" x-model="requiresAmipass">
@@ -768,6 +773,12 @@
                                 <p class="text-xs text-slate-400 mb-4 ml-12">Recarga diaria para almuerzo/comidas durante el viaje.</p>
                                 
                                 <div x-show="requiresAmipass" x-transition.opacity class="ml-12 space-y-4" style="display: none;">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <label class="text-xs text-slate-300"><input type="checkbox" name="includes_breakfast" value="1"> Hospedaje incluye desayuno</label>
+                                        <select name="amipass_rate_type" class="bg-slate-900 border-slate-700 rounded-lg text-sm text-white"><option value="otros">Tarifa otros</option><option value="venta">Tarifa venta</option></select>
+                                        <label class="text-xs text-slate-300">Excluye almuerzo <input type="number" name="excluded_lunches" min="0" value="0" class="w-16 bg-slate-900 border-slate-700 rounded text-white"></label>
+                                        <label class="text-xs text-slate-300">Excluye cena <input type="number" name="excluded_dinners" min="0" value="0" class="w-16 bg-slate-900 border-slate-700 rounded text-white"></label>
+                                    </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label for="amipass_start_time" class="block text-sm font-medium text-slate-300 mb-1">

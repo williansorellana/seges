@@ -31,6 +31,8 @@ class RoutePlanning extends Model
         'amipass_days' => 'integer',
         'amipass_business_days' => 'integer',
         'amipass_amount' => 'decimal:2',
+        'amipass_per_person_amount' => 'decimal:2',
+        'includes_breakfast' => 'boolean',
 
         'signed_at' => 'datetime',
         'submitted_at' => 'datetime',
@@ -67,6 +69,11 @@ class RoutePlanning extends Model
     public function rendition()
     {
         return $this->hasOne(\App\Models\Rendition::class);
+    }
+
+    public function companions()
+    {
+        return $this->hasMany(RoutePlanningCompanion::class);
     }
 
     /**

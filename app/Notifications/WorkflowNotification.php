@@ -13,7 +13,8 @@ class WorkflowNotification extends Notification
     public function __construct(
         public string $title,
         public string $message,
-        public ?string $actionUrl = null
+        public ?string $actionUrl = null,
+        public ?string $copyTo = null,
     ) {}
 
     public function via(object $notifiable): array
@@ -39,6 +40,10 @@ class WorkflowNotification extends Notification
 
         if ($this->actionUrl) {
             $mail->action('Revisar en SEGES', $this->actionUrl);
+        }
+
+        if ($this->copyTo) {
+            $mail->cc($this->copyTo);
         }
 
         return $mail

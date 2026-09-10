@@ -14,7 +14,19 @@
 
     <div class="py-12 bg-[#0f172a] min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Gasto rendido</div><div class="text-2xl font-black text-white">${{ number_format($currentTotal, 0, ',', '.') }}</div></div>
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Período anterior</div><div class="text-2xl font-black text-white">${{ number_format($previousTotal, 0, ',', '.') }}</div></div>
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Variación</div><div class="text-2xl font-black {{ $currentTotal > $previousTotal ? 'text-amber-400' : 'text-emerald-400' }}">${{ number_format($currentTotal - $previousTotal, 0, ',', '.') }}</div></div>
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Solicitudes</div><div class="text-2xl font-black text-white">{{ $plannings->total() }}</div></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                @foreach(['Gastos por tipo' => $expenseByCategory, 'Gastos por proyecto' => $projectTotals, 'Gastos por sección' => $sectionTotals] as $title => $totals)
+                    <div class="bg-slate-800 p-5 rounded-2xl"><h3 class="text-xs font-black uppercase text-slate-300 mb-3">{{ $title }}</h3>@forelse($totals as $name => $amount)<div class="flex justify-between text-sm text-slate-300 border-b border-slate-700 py-1"><span>{{ ucfirst(str_replace('_', ' ', $name)) }}</span><strong>${{ number_format($amount, 0, ',', '.') }}</strong></div>@empty<p class="text-sm text-slate-500">Sin datos para los filtros aplicados.</p>@endforelse</div>
+                @endforeach
+            </div>
+
             <!-- Filters Card -->
             <div class="bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 rounded-[2rem] shadow-2xl p-8 relative overflow-hidden">
                 <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/5 rounded-full blur-[60px] pointer-events-none"></div>
@@ -26,6 +38,10 @@
 
                 <form method="GET" action="{{ route('renditions.reports') }}" class="space-y-6" id="reports-filter-form">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Desde</label><input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs"></div>
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Hasta</label><input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs"></div>
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Proyecto</label><input name="project" value="{{ request('project') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs" placeholder="Proyecto"></div>
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Sección</label><input name="section" value="{{ request('section') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs" placeholder="Sección"></div>
                         
                         <!-- Colaborador -->
                         <div class="group">
