@@ -287,7 +287,7 @@
                         @click="openVehicleModal({
                             id: {{ $vehicle->id }},
                             plate: @js($vehicle->plate),
-
+                            model: @js($vehicle->brand . ' ' . $vehicle->model),
                             reservations: @js(
                                 $vehicle->reservations->map(function ($reservation) {
                                     return [
@@ -421,7 +421,7 @@
 
                         <p
                             class="text-sm text-indigo-400 font-bold mt-1"
-                            x-text="viewingVehicle?.plate"
+                            x-text="`${viewingVehicle?.model} · ${viewingVehicle?.plate}`"
                         ></p>
                     </div>
                     <button
