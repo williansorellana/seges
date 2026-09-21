@@ -5,7 +5,219 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="{ openViewModal: false, viewingVehicle: {} }">
+    <div
+        class="py-12"
+        x-data="{
+            openViewModal: false,
+            viewingVehicle: null,
+
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+
+            openVehicleModal(vehicle) {
+                this.viewingVehicle = vehicle;
+
+                this.currentMonth = new Date().getMonth();
+                this.currentYear = new Date().getFullYear();
+
+                this.openViewModal = true;
+            },
+
+            previousMonth() {
+                if (this.currentMonth === 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                } else {
+                    this.currentMonth--;
+                }
+            },
+
+            nextMonth() {
+                if (this.currentMonth === 11) {
+                    this.currentMonth = 0;
+                    this.currentYear++;
+                } else {
+                    this.currentMonth++;
+                }
+            },
+
+            monthName() {
+                return new Intl.DateTimeFormat('es-CL', {
+                    month: 'long',
+                    year: 'numeric'
+                }).format(
+                    new Date(this.currentYear, this.currentMonth, 1)
+                );
+            },
+
+            formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+
+                return `${year}-${month}-${day}`;
+            },
+
+            calendarWeeks() {
+                const firstDay = new Date(
+                    this.currentYear,
+                    this.currentMonth,
+                    1
+                );
+
+                const lastDay = new Date(
+                    this.currentYear,
+                    this.currentMonth + 1,
+                    0
+                );
+
+                let startDay = firstDay.getDay();
+
+                // Lunes = 0 ... Domingo = 6
+                startDay = startDay === 0 ? 6 : startDay - 1;
+
+                const calendarStart = new Date(
+                    this.currentYear,
+                    this.currentMonth,
+                    1 - startDay
+                );
+
+                const weeks = [];
+
+                for (let week = 0; week < 6; week++) {
+
+                    const days = [];
+
+                    for (let day = 0; day < 7; day++) {
+
+                        const date = new Date(calendarStart);
+
+                        date.setDate(
+                            calendarStart.getDate() +
+                            (week * 7) +
+                            day
+                        );
+
+                        days.push({
+                            date: this.formatDate(date),
+                            day: date.getDate(),
+                            currentMonth:
+                                date.getMonth() === this.currentMonth
+                        });
+                    }
+
+                    weeks.push(days);
+                }
+
+                // Quitamos la sexta semana si está completamente fuera
+                const lastWeek = weeks[weeks.length - 1];
+
+                if (lastWeek.every(day => !day.currentMonth)) {
+                    weeks.pop();
+                }
+
+                return weeks;
+            },
+
+            reservationSegments(week) {
+
+                if (!this.viewingVehicle?.reservations) {
+                    return [];
+                }
+
+                const weekStart = week[0].date;
+                const weekEnd = week[6].date;
+
+                const reservations = this.viewingVehicle.reservations
+                    .filter(reservation => {
+                        return reservation.start_date <= weekEnd &&
+                            reservation.end_date >= weekStart;
+                    })
+                    .map(reservation => {
+
+                        let startIndex = week.findIndex(
+                            day => day.date >= reservation.start_date
+                        );
+
+                        let endIndex = -1;
+
+                        for (let i = week.length - 1; i >= 0; i--) {
+                            if (week[i].date <= reservation.end_date) {
+                                endIndex = i;
+                                break;
+                            }
+                        }
+
+                        if (startIndex === -1) {
+                            startIndex = 0;
+                        }
+
+                        if (endIndex === -1) {
+                            endIndex = 6;
+                        }
+
+                        return {
+                            ...reservation,
+                            startColumn: startIndex + 1,
+                            endColumn: endIndex + 1
+                        };
+                    })
+                    .sort((a, b) => {
+                        if (a.startColumn !== b.startColumn) {
+                            return a.startColumn - b.startColumn;
+                        }
+
+                        return a.endColumn - b.endColumn;
+                    });
+
+
+                // Líneas ocupadas.
+                // Cada posición representa hasta qué columna
+                // está ocupada esa línea.
+                const laneEnds = [];
+
+
+                return reservations.map(reservation => {
+
+                    let lane = 0;
+
+                    // Buscar la primera línea donde la reserva
+                    // no se solape con otra.
+                    while (
+                        laneEnds[lane] !== undefined &&
+                        reservation.startColumn <= laneEnds[lane]
+                    ) {
+                        lane++;
+                    }
+
+                    // Esta línea queda ocupada hasta esta columna.
+                    laneEnds[lane] = reservation.endColumn;
+
+                    return {
+                        ...reservation,
+                        lane: lane
+                    };
+
+                });
+            },
+            weekHeight(week) {
+                const reservations = this.reservationSegments(week);
+                if (!reservations.length) {
+                    return 88;
+                }
+                const maxLane = Math.max(
+                    ...reservations.map(reservation => reservation.lane)
+                );
+                // 30px para la fecha +
+                // 28px por cada línea de reserva +
+                // margen inferior.
+                return Math.max(
+                    88,
+                    30 + ((maxLane + 1) * 28) + 10
+                );
+            },
+        }"
+    >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl p-6 mb-12 border border-gray-700">
@@ -71,7 +283,32 @@
                         // USAMOS EL ESTADO DIRECTO DE LA BD PARA EVITAR ERRORES
                         $status = $vehicle->status; 
                     @endphp
-                    <div class="bg-gray-800 border border-gray-700 rounded-3xl overflow-hidden hover:ring-2 hover:ring-indigo-500 transition-all duration-300 group shadow-2xl">
+                    <div
+                        @click="openVehicleModal({
+                            id: {{ $vehicle->id }},
+                            plate: @js($vehicle->plate),
+
+                            reservations: @js(
+                                $vehicle->reservations->map(function ($reservation) {
+                                    return [
+                                        'id' => $reservation->id,
+                                        'start_date' => $reservation->start_date?->format('Y-m-d'),
+                                        'end_date' => $reservation->end_date?->format('Y-m-d'),
+                                        'start_time' => $reservation->start_date?->format('H:i'),
+                                        'end_time' => $reservation->end_date?->format('H:i'),
+                                        'status' => $reservation->status,
+                                        'user' => $reservation->user
+                                            ? trim($reservation->user->name . ' ' . $reservation->user->last_name)
+                                            : 'Sin usuario',
+                                        'conductor' => $reservation->conductor_name ?? 'Sin conductor',
+                                    ];
+                                })->values()
+                            )
+                        })"
+                        class="bg-gray-800 border border-gray-700 rounded-3xl overflow-hidden
+                            hover:ring-2 hover:ring-indigo-500 transition-all duration-300
+                            group shadow-2xl cursor-pointer"
+                    >
                         <div class="relative h-48 bg-gray-900 overflow-hidden">
                             @if($vehicle->image_path)
                                 <img src="{{ Storage::url($vehicle->image_path) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
@@ -145,20 +382,6 @@
                                         <span class="text-[10px] text-gray-600 italic">No Data</span>
                                     @endif
                                 </div>
-                                @if(Auth::user()->role === 'supervisor')
-                                <button @click="viewingVehicle = { 
-                                    plate: '{{ $vehicle->plate }}', 
-                                    brand: '{{ $vehicle->brand }}', 
-                                    model: '{{ $vehicle->model }}', 
-                                    year: {{ $vehicle->year }}, 
-                                    mileage: {{ $vehicle->mileage }}, 
-                                    status: '{{ $status }}', 
-                                    imageUrl: '{{ $vehicle->image_path ? Storage::url($vehicle->image_path) : '' }}',
-                                    assignedUser: '{{ ($status === 'occupied' && $vehicle->active_reservation) ? $vehicle->active_reservation->user->name : '' }}'
-                                }; openViewModal = true" class="p-2 bg-gray-700 hover:bg-emerald-600 rounded-xl text-white transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                </button>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -170,55 +393,212 @@
             </div>
         </div>
 
-        <div x-show="openViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
-            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="openViewModal = false"></div>
-            <div class="relative bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden z-50">
-                <div class="p-8">
-                    <h2 class="text-xl font-bold text-white mb-6 border-b border-gray-700 pb-2">Ficha del Vehículo</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="bg-gray-900 rounded-xl p-2 border border-gray-700">
-                            <template x-if="viewingVehicle.imageUrl">
-                                <img :src="viewingVehicle.imageUrl" class="w-full h-56 object-cover rounded-lg">
-                            </template>
-                            <template x-if="!viewingVehicle.imageUrl">
-                                <div class="w-full h-56 flex items-center justify-center bg-gray-800 text-gray-500 italic rounded-lg">Sin Imagen</div>
-                            </template>
-                        </div>
-                        <div class="space-y-4 text-white">
-                            <div><span class="block text-[10px] text-gray-400 uppercase tracking-widest font-bold">Patente</span><span class="text-2xl font-black text-indigo-400" x-text="viewingVehicle.plate"></span></div>
-                            <div><span class="block text-[10px] text-gray-400 uppercase tracking-widest font-bold">Marca / Modelo</span><span class="text-lg" x-text="viewingVehicle.brand + ' ' + viewingVehicle.model"></span></div>
-                            <div>
-                                <span class="block text-[10px] text-gray-400 uppercase tracking-widest font-bold">Estado</span>
-                                <span class="text-lg font-bold" 
-                                    :class="{
-                                        'text-green-400': viewingVehicle.status === 'available',
-                                        'text-blue-400': viewingVehicle.status === 'occupied',
-                                        'text-red-400': viewingVehicle.status === 'out_of_service',
-                                        'text-yellow-400': viewingVehicle.status === 'maintenance'
-                                    }"
-                                    x-text="viewingVehicle.status === 'occupied' ? 'RESERVADO' : (viewingVehicle.status === 'out_of_service' ? 'FUERA DE SERVICIO' : (viewingVehicle.status === 'available' ? 'DISPONIBLE' : viewingVehicle.status.toUpperCase()))">
-                                </span>
-                            </div>
-                            
-                            <!-- Assigned User (Visible only if reserved) -->
-                            <template x-if="viewingVehicle.status === 'occupied' && viewingVehicle.assignedUser">
-                                <div>
-                                    <span class="block text-[10px] text-gray-400 uppercase tracking-widest font-bold">Asignado a</span>
-                                    <span class="text-lg font-bold text-blue-300" x-text="viewingVehicle.assignedUser"></span>
-                                </div>
-                            </template>
-                        </div>
+        <!-- Modal Calendario de Reservas -->
+        <div
+            x-show="openViewModal"
+            x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style="display: none;"
+        >
+            <!-- Fondo -->
+            <div
+                class="fixed inset-0 bg-black/70 backdrop-blur-sm"
+                @click="openViewModal = false"
+            ></div>
+            <!-- Modal -->
+            <div
+                class="relative z-50 bg-gray-800 border border-gray-700
+                    rounded-2xl shadow-2xl w-full max-w-3xl
+                    overflow-hidden"
+                @click.stop
+            >
+                <!-- Encabezado -->
+                <div class="flex items-center justify-between px-6 py-5 border-b border-gray-700">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">
+                            Calendario de Reservas
+                        </h2>
+
+                        <p
+                            class="text-sm text-indigo-400 font-bold mt-1"
+                            x-text="viewingVehicle?.plate"
+                        ></p>
                     </div>
-                    <div class="mt-8 flex justify-end gap-3">
-                        <a :href="`{{ route('vehicles.index') }}?search=${viewingVehicle.plate}`" 
-                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition uppercase text-xs tracking-widest flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <button
+                        @click="openViewModal = false"
+                        class="p-2 rounded-lg text-gray-400
+                            hover:text-white hover:bg-gray-700 transition"
+                    >
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                </div>
+                <!-- Calendario -->
+                <div class="p-4">
+                    <!-- Navegación -->
+                    <div class="flex items-center justify-between mb-6">
+
+                        <button
+                            @click="previousMonth()"
+                            class="p-2 rounded-lg bg-gray-700
+                                hover:bg-gray-600 text-white transition"
+                        >
+                            <svg class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 19l-7-7 7-7"
+                                />
                             </svg>
-                            Ver Detalles Completos
-                        </a>
-                        <button @click="openViewModal = false" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition uppercase text-xs tracking-widest">Cerrar</button>
+                        </button>
+                        <h3
+                            class="text-lg font-bold text-white capitalize"
+                            x-text="monthName()"
+                        ></h3>
+                        <button
+                            @click="nextMonth()"
+                            class="p-2 rounded-lg bg-gray-700
+                                hover:bg-gray-600 text-white transition"
+                        >
+                            <svg class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </button>
                     </div>
+                    <!-- Encabezado de días -->
+                    <div class="grid grid-cols-7 mb-2">
+                        <template
+                            x-for="day in ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']"
+                            :key="day"
+                        >
+                            <div
+                                class="text-center text-[10px] font-black
+                                    uppercase tracking-widest text-gray-500 py-2"
+                                x-text="day"
+                            ></div>
+                        </template>
+                    </div>
+                    <!-- Semanas -->
+                    <div class="space-y-2">
+                        <template
+                            x-for="week in calendarWeeks()"
+                            :key="week[0].date"
+                        >
+                            <div
+                                class="relative grid grid-cols-7
+                                    rounded-xl overflow-visible"
+                                :style="`min-height: ${weekHeight(week)}px`"
+                            >
+                                <!-- Días -->
+                                <template
+                                    x-for="day in week"
+                                    :key="day.date"
+                                >
+                                    <div
+                                        class="border rounded-lg min-h-[88px]
+                                        p-1.5 transition h-full"
+                                        :class="{
+                                            'bg-gray-900 border-gray-700':
+                                                day.currentMonth,
+
+                                            'bg-gray-900/40 border-gray-800':
+                                                !day.currentMonth
+                                        }"
+                                    >
+                                        <span
+                                            class="text-sm font-bold"
+                                            :class="{
+                                                'text-gray-300': day.currentMonth,
+                                                'text-gray-600': !day.currentMonth
+                                            }"
+                                            x-text="day.day"
+                                        ></span>
+                                    </div>
+                                </template>
+                                <!-- Reservas -->
+                                <template
+                                    x-for="reservation in reservationSegments(week)"
+                                    :key="reservation.id"
+                                >
+                                    <div
+                                        class="absolute z-20
+                                            rounded-md
+                                            bg-blue-600
+                                            border border-blue-400
+                                            shadow-md
+                                            px-2 py-1
+                                            overflow-hidden
+                                            cursor-pointer
+                                            hover:bg-blue-500
+                                            transition"
+                                        :style="`
+                                            left: calc(
+                                                ${((reservation.startColumn - 1) * (100 / 7))}%
+                                                + 3px
+                                            );
+                                            width: calc(
+                                                ${(reservation.endColumn - reservation.startColumn + 1) * (100 / 7)}%
+                                                - 6px
+                                            );
+                                            top: ${30 + (reservation.lane * 28)}px;
+                                        `"
+                                    >
+                                        <div
+                                            class="text-[9px] font-bold
+                                                text-white truncate leading-tight"
+                                            x-text="reservation.user"
+                                        ></div>
+                                        <div
+                                            class="text-[8px] text-blue-100
+                                                font-medium leading-tight"
+                                            x-text="
+                                                reservation.start_time +
+                                                ' → ' +
+                                                reservation.end_time
+                                            "
+                                        ></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    <!-- Leyenda -->
+                    <div class="mt-5 flex items-center gap-2 text-xs text-gray-500">
+                        <span
+                            class="w-3 h-3 rounded bg-blue-600
+                                border border-blue-400"
+                        ></span>
+                        Reserva
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div class="flex justify-end px-6 py-4 border-t border-gray-700">
+                    <button
+                        @click="openViewModal = false"
+                        class="px-6 py-2 bg-gray-700 hover:bg-gray-600
+                            text-white font-bold rounded-lg
+                            transition uppercase text-xs tracking-widest"
+                    >
+                        Cerrar
+                    </button>
                 </div>
             </div>
         </div>

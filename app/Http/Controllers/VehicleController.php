@@ -39,7 +39,19 @@ class VehicleController extends Controller
         }
 
         // Ordenar
-        $vehicles = $query->orderBy('status', 'asc') // Available primero usualmente, o mejor por ID/fecha
+        $vehicles = $query
+            ->with([
+                'reservations' => function ($reservationQuery) {
+                    $reservationQuery
+                        ->with(['user', 'conductor'])
+                        ->whereIn('status', [
+                            VehicleRequest::STATUS_APPROVED,
+                            VehicleRequest::STATUS_IN_TRIP,
+                        ])
+                        ->orderBy('start_date', 'asc');
+                }
+            ])
+            ->orderBy('status', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
 
