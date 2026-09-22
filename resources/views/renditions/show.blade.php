@@ -14,10 +14,10 @@
             @php
                 $currentUser = auth()->user();
 
-                if ($currentUser->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_FINANCES) {
+                if ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_FINANCES) {
                     $backRoute = route('renditions.finances');
                     $backLabel = 'Volver a Finanzas';
-                } elseif ($currentUser->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING) {
+                } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING) {
                     $backRoute = route('renditions.controlling');
                     $backLabel = 'Volver a Controlling';
                 } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_JEFATURA) {
@@ -98,7 +98,7 @@
             @php
                 $isOwner = $rendition->user_id === auth()->id();
 
-                $isControlling = auth()->user()->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING;
+                $isControlling = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING;
 
                 $canManageExpenses = $isOwner && in_array($rendition->status, ['draft', 'rejected']);
 

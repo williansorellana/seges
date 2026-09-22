@@ -10,20 +10,17 @@ class RoutePlanningPolicy
     public function approveFinance(User $user, RoutePlanning $planning): bool
     {
         return
-            $planning->workflow_status === 'pending_finance'
+            $planning->status === 'pending_finances'
             &&
-            $user->departamento === 'Finanzas'
-            &&
-            in_array($user->role, [
-                'admin',
-                'finance_approver'
-            ]);
+            $user->role === 'finances';
     }
 
     public function approveJefatura(User $user, RoutePlanning $planning): bool
     {
         return
-            $planning->workflow_status === 'pending_jefatura'
+            $planning->status === 'pending_jefatura'
+            &&
+            $user->role === 'jefatura'
             &&
             $planning->user->jefatura_id === $user->id;
     }

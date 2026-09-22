@@ -27,16 +27,22 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/{planning}/pdf', [RoutePlanningController::class, 'downloadPdf'])->name('pdf');
 
         // Acciones de Jefatura
-        Route::post('/{planning}/approve-jefatura', [RoutePlanningController::class, 'approveByJefatura'])->name('approve-jefatura');
-        Route::post('/{planning}/reject-jefatura', [RoutePlanningController::class, 'rejectByJefatura'])->name('reject-jefatura');
+        Route::middleware('role:jefatura')->group(function () {
+            Route::post('/{planning}/approve-jefatura', [RoutePlanningController::class, 'approveByJefatura'])->name('approve-jefatura');
+            Route::post('/{planning}/reject-jefatura', [RoutePlanningController::class, 'rejectByJefatura'])->name('reject-jefatura');
+        });
         
         // Acciones de Controlling
-        Route::post('/{planning}/approve-controlling', [RoutePlanningController::class, 'approveByControlling'])->name('approve-controlling');
-        Route::post('/{planning}/reject-controlling', [RoutePlanningController::class, 'rejectByControlling'])->name('reject-controlling');
+        Route::middleware('role:controlling')->group(function () {
+            Route::post('/{planning}/approve-controlling', [RoutePlanningController::class, 'approveByControlling'])->name('approve-controlling');
+            Route::post('/{planning}/reject-controlling', [RoutePlanningController::class, 'rejectByControlling'])->name('reject-controlling');
+        });
         
         // Acciones de Finanzas
-        Route::post('/{planning}/approve-finances', [RoutePlanningController::class, 'approveByFinances'])->name('approve-finances');
-        Route::post('/{planning}/reject-finances', [RoutePlanningController::class, 'rejectByFinances'])->name('reject-finances');
+        Route::middleware('role:finances')->group(function () {
+            Route::post('/{planning}/approve-finances', [RoutePlanningController::class, 'approveByFinances'])->name('approve-finances');
+            Route::post('/{planning}/reject-finances', [RoutePlanningController::class, 'rejectByFinances'])->name('reject-finances');
+        });
         Route::post('/{planning}/send-notification', [RoutePlanningController::class, 'sendTravelNotification'])->name('send-notification');
         Route::post('/{planning}/lock', [RoutePlanningController::class, 'lock'])->name('lock');
         Route::post('/{planning}/unlock', [RoutePlanningController::class, 'unlock'])->name('unlock');
@@ -53,30 +59,38 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::put('/{rendition}/gastos/{expense}', [RenditionController::class, 'updateExpense'])->name('expenses.update');
         Route::delete('/{rendition}/gastos/{expense}', [RenditionController::class, 'destroyExpense'])->name('expenses.destroy');
         Route::post('/{rendition}/gastos/{expense}/autorizar-excedente-alojamiento', [RenditionController::class, 'approveLodgingExcess'])->name('expenses.approve-lodging-excess');
-        Route::post('/gastos/{expense}/validar', [RenditionController::class, 'validateExpense'])->name('expenses.validate');
-        Route::post('/gastos/{expense}/observar', [RenditionController::class, 'invalidateExpense'])->name('expenses.invalidate');
+        Route::middleware('role:controlling')->group(function () {
+            Route::post('/gastos/{expense}/validar', [RenditionController::class, 'validateExpense'])->name('expenses.validate');
+            Route::post('/gastos/{expense}/observar', [RenditionController::class, 'invalidateExpense'])->name('expenses.invalidate');
+        });
         Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');
         Route::get('/{rendition}/pdf', [RenditionController::class, 'downloadPdf'])->name('pdf');
         
         // Paneles específicos por rol/departamento
-        Route::get('/aprobaciones-jefatura', [RenditionController::class, 'approvals'])->name('approvals');
-        Route::get('/finanzas', [RenditionController::class, 'finances'])->name('finances');
-        Route::get('/controlling', [RenditionController::class, 'controlling'])->name('controlling');
-        Route::get('/historial', [RenditionController::class, 'history'])->name('history');
-        Route::get('/reportes', [RenditionController::class, 'reports'])->name('reports');
-        Route::get('/reportes/exportar', [RenditionController::class, 'exportReports'])->name('reports.export');
+        Route::get('/aprobaciones-jefatura', [RenditionController::class, 'approvals'])->middleware('role:jefatura')->name('approvals');
+        Route::get('/finanzas', [RenditionController::class, 'finances'])->middleware('role:finances')->name('finances');
+        Route::get('/controlling', [RenditionController::class, 'controlling'])->middleware('role:controlling')->name('controlling');
+        Route::get('/historial', [RenditionController::class, 'history'])->middleware('role:worker,jefatura,controlling,finances')->name('history');
+        Route::get('/reportes', [RenditionController::class, 'reports'])->middleware('role:finances,controlling')->name('reports');
+        Route::get('/reportes/exportar', [RenditionController::class, 'exportReports'])->middleware('role:finances,controlling')->name('reports.export');
         
         // Acciones sobre Rendiciones
-        Route::post('/{rendition}/approve-jefatura', [RenditionController::class, 'approveByJefatura'])->name('approve-jefatura-rendition');
-        Route::post('/{rendition}/reject-jefatura', [RenditionController::class, 'rejectByJefatura'])->name('reject-jefatura-rendition');
-        Route::post('/{rendition}/approve-controlling', [RenditionController::class, 'approveByControlling'])->name('approve-controlling-rendition');
-        Route::post('/{rendition}/reject-controlling', [RenditionController::class, 'rejectByControlling'])->name('reject-controlling-rendition');
-        Route::post('/{rendition}/payment-completed', [RenditionController::class, 'markPaymentCompleted'])->name('payment-completed');
-        Route::post('/{rendition}/approve-finances', [RenditionController::class, 'approveByFinances'])->name('approve-finances-rendition');
-        Route::post('/{rendition}/reject-finances', [RenditionController::class, 'rejectByFinances'])->name('reject-finances-rendition');
+        Route::middleware('role:jefatura')->group(function () {
+            Route::post('/{rendition}/approve-jefatura', [RenditionController::class, 'approveByJefatura'])->name('approve-jefatura-rendition');
+            Route::post('/{rendition}/reject-jefatura', [RenditionController::class, 'rejectByJefatura'])->name('reject-jefatura-rendition');
+        });
+        Route::middleware('role:controlling')->group(function () {
+            Route::post('/{rendition}/approve-controlling', [RenditionController::class, 'approveByControlling'])->name('approve-controlling-rendition');
+            Route::post('/{rendition}/reject-controlling', [RenditionController::class, 'rejectByControlling'])->name('reject-controlling-rendition');
+        });
+        Route::middleware('role:finances')->group(function () {
+            Route::post('/{rendition}/payment-completed', [RenditionController::class, 'markPaymentCompleted'])->name('payment-completed');
+            Route::post('/{rendition}/approve-finances', [RenditionController::class, 'approveByFinances'])->name('approve-finances-rendition');
+            Route::post('/{rendition}/reject-finances', [RenditionController::class, 'rejectByFinances'])->name('reject-finances-rendition');
+        });
         Route::post('/{rendition}/upload-transfer-proof', [RenditionController::class, 'uploadTransferProof'])->name('upload-transfer-proof');
         Route::get('/{rendition}/download-transfer-proof', [RenditionController::class, 'downloadTransferProof'])->name('download-transfer-proof');
-        Route::post('/{id}/reject-transfer', [RenditionController::class, 'rejectTransferProof'])->name('reject-transfer');
+        Route::post('/{id}/reject-transfer', [RenditionController::class, 'rejectTransferProof'])->middleware('role:finances')->name('reject-transfer');
         Route::post('/unlock-all', [RoutePlanningController::class, 'unlockAll'])->name('unlock-all');
     });
 });

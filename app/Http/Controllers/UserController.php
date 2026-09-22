@@ -37,13 +37,17 @@ class UserController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,supervisor,worker,viewer,jefatura'],
+            'role' => ['required', 'in:admin,supervisor,worker,viewer,jefatura,controlling,finances'],
             'authorized_modules' => ['nullable', 'array'],
+            'authorized_modules.*' => ['in:all,vehicles,rooms,assets,renditions'],
             'departamento' => ['nullable', 'string', 'max:255'],
             'jefatura_id' => ['nullable', 'exists:users,id'],
         ]);
 
-        $authorizedModules = $request->input('authorized_modules', []);
+        $authorizedModules = $this->normalizeAuthorizedModules(
+            $request->input('authorized_modules', []),
+            $request->role
+        );
 
         $user = User::create([
             'name' => $request->name,
@@ -72,14 +76,18 @@ class UserController extends Controller
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'last_name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['sometimes', 'required', 'in:admin,supervisor,worker,viewer,jefatura'],
+            'role' => ['sometimes', 'required', 'in:admin,supervisor,worker,viewer,jefatura,controlling,finances'],
             'is_active' => ['sometimes', 'required', 'boolean'],
             'authorized_modules' => ['nullable', 'array'],
+            'authorized_modules.*' => ['in:all,vehicles,rooms,assets,renditions'],
             'departamento' => ['nullable', 'string', 'max:255'],
             'jefatura_id' => ['nullable', 'exists:users,id'],
         ]);
 
-        $validated['authorized_modules'] = $request->input('authorized_modules', []);
+        $validated['authorized_modules'] = $this->normalizeAuthorizedModules(
+            $request->input('authorized_modules', []),
+            $validated['role'] ?? $user->role
+        );
 
         $oldRole = $user->role;
 
@@ -160,6 +168,23 @@ class UserController extends Controller
         $workers = \App\Models\Worker::all();
 
         return view('assets.users-index', compact('users', 'workers'));
+    }
+
+    /**
+     * Los perfiles que gestionan rendiciones siempre deben poder abrir el módulo
+     * que reúne sus paneles. El permiso "finances" deja de existir como módulo.
+     */
+    private function normalizeAuthorizedModules(array $modules, string $role): array
+    {
+        $modules = array_values(array_unique($modules));
+
+        if (in_array($role, ['jefatura', 'controlling', 'finances'], true)
+            && !in_array('all', $modules, true)
+            && !in_array('renditions', $modules, true)) {
+            $modules[] = 'renditions';
+        }
+
+        return $modules;
     }
 
 

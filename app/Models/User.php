@@ -97,6 +97,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return in_array($module, $modules, true);
     }
 
+    /**
+     * Nombres visibles para los perfiles que administran el flujo de rendiciones.
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return [
+            'admin' => 'Administrador',
+            'supervisor' => 'Supervisor',
+            'worker' => 'Trabajador',
+            'viewer' => 'Visualizador',
+            'jefatura' => 'Jefatura',
+            'controlling' => 'Controlling',
+            'finances' => 'Finanzas',
+        ][$this->role] ?? ucfirst($this->role);
+    }
+
     public function vehicleRequests()
     {
         return $this->hasMany(VehicleRequest::class);

@@ -149,7 +149,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($user->deleted_at)
                                             <span class="px-2.5 py-1 inline-flex text-xs font-semibold rounded border bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-300 dark:text-slate-950 dark:border-slate-400">
-                                                {{ ucfirst($user->role === 'worker' ? 'Trabajador' : ($user->role === 'supervisor' ? 'Supervisor' : ($user->role === 'viewer' ? 'Visualizador' : ($user->role === 'jefatura' ? 'Jefatura' : 'Administrador')))) }}
+                                                {{ $user->role_label }}
                                             </span>
                                         @else
                                             <form action="{{ route('users.update', $user->id) }}" method="POST">
@@ -167,6 +167,8 @@
                                                     <option value="supervisor" {{ $user->role === 'supervisor' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Supervisor</option>
                                                     <option value="viewer" {{ $user->role === 'viewer' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Visualizador</option>
                                                     <option value="jefatura" {{ $user->role === 'jefatura' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Jefatura</option>
+                                                    <option value="controlling" {{ $user->role === 'controlling' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Controlling</option>
+                                                    <option value="finances" {{ $user->role === 'finances' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Finanzas</option>
                                                     <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }} class="bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">Administrador</option>
                                                 </select>
                                             </form>
@@ -276,7 +278,7 @@
                         </h3>
                         <p class="text-sm text-gray-500">{{ $user->email }}</p>
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800 mt-1">
-                            {{ ucfirst($user->role === 'worker' ? 'Trabajador' : ($user->role === 'supervisor' ? 'Supervisor' : ($user->role === 'viewer' ? 'Visualizador' : ($user->role === 'jefatura' ? 'Jefatura' : 'Administrador')))) }}
+                            {{ $user->role_label }}
                         </span>
                     </div>
                 </div>
@@ -309,8 +311,8 @@
                 x-data="{
                     openRole: false,
                     selectedRole: '{{ old('role', $user->role) }}',
-                    roleLabel: '{{ old('role', $user->role) == 'admin' ? 'Administrador' : (old('role', $user->role) == 'supervisor' ? 'Supervisor' : (old('role', $user->role) == 'jefatura' ? 'Jefatura' : (old('role', $user->role) == 'viewer' ? 'Visualizador' : 'Trabajador'))) }}',
-                    roles: [{v:'worker',l:'Trabajador'},{v:'supervisor',l:'Supervisor'},{v:'jefatura',l:'Jefatura'},{v:'admin',l:'Administrador'},{v:'viewer',l:'Visualizador'}],
+                    roleLabel: @js(['admin' => 'Administrador', 'supervisor' => 'Supervisor', 'worker' => 'Trabajador', 'viewer' => 'Visualizador', 'jefatura' => 'Jefatura', 'controlling' => 'Controlling', 'finances' => 'Finanzas'][old('role', $user->role)] ?? 'Trabajador'),
+                    roles: [{v:'worker',l:'Trabajador'},{v:'supervisor',l:'Supervisor'},{v:'jefatura',l:'Jefatura'},{v:'controlling',l:'Controlling'},{v:'finances',l:'Finanzas'},{v:'admin',l:'Administrador'},{v:'viewer',l:'Visualizador'}],
                     openEstado: false,
                     selectedEstado: '{{ old('is_active', $user->is_active) ? '1' : '0' }}',
                     estadoLabel: '{{ old('is_active', $user->is_active) ? 'Activo' : 'Inactivo' }}',
@@ -425,10 +427,6 @@
                             <input type="checkbox" name="authorized_modules[]" value="renditions" x-model="modules" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span class="ml-2 text-sm text-gray-300">Rendiciones</span>
                         </label>
-                        <label class="inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="authorized_modules[]" value="finances" x-model="modules" class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
-                            <span class="ml-2 text-sm text-gray-300">Finanzas</span>
-                        </label>
                      </div>
                 </div>
 
@@ -472,7 +470,7 @@
                         <p class="text-sm font-semibold text-white truncate">{{ $user->name }} {{ $user->last_name }}</p>
                         <p class="text-xs text-slate-400 truncate">{{ $user->email }}</p>
                         <span class="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-700 text-slate-300">
-                            {{ ucfirst($user->role === 'worker' ? 'Trabajador' : ($user->role === 'supervisor' ? 'Supervisor' : ($user->role === 'viewer' ? 'Visualizador' : ($user->role === 'jefatura' ? 'Jefatura' : 'Administrador')))) }}
+                            {{ $user->role_label }}
                         </span>
                     </div>
                 </div>
@@ -508,7 +506,7 @@
                 {{ __('El usuario recibirá un correo para verificar su cuenta. La primera vez que ingrese deberá cambiar su contraseña obligatoriamente.') }}
             </p>
 
-            <div class="mt-6 space-y-4" x-data="{ openRole: false, selectedRole: '{{ old('role', 'worker') }}', roleLabel: '{{ old('role') == 'admin' ? 'Administrador' : (old('role') == 'supervisor' ? 'Supervisor' : (old('role') == 'jefatura' ? 'Jefatura' : (old('role') == 'viewer' ? 'Visualizador' : 'Trabajador'))) }}', roles: [{v:'worker',l:'Trabajador'},{v:'supervisor',l:'Supervisor'},{v:'jefatura',l:'Jefatura'},{v:'admin',l:'Administrador'},{v:'viewer',l:'Visualizador'}] }">
+            <div class="mt-6 space-y-4" x-data="{ openRole: false, selectedRole: '{{ old('role', 'worker') }}', roleLabel: @js(['admin' => 'Administrador', 'supervisor' => 'Supervisor', 'worker' => 'Trabajador', 'viewer' => 'Visualizador', 'jefatura' => 'Jefatura', 'controlling' => 'Controlling', 'finances' => 'Finanzas'][old('role', 'worker')] ?? 'Trabajador'), roles: [{v:'worker',l:'Trabajador'},{v:'supervisor',l:'Supervisor'},{v:'jefatura',l:'Jefatura'},{v:'controlling',l:'Controlling'},{v:'finances',l:'Finanzas'},{v:'admin',l:'Administrador'},{v:'viewer',l:'Visualizador'}] }">
                 <!-- Nombre -->
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-1">Nombres</label>
@@ -609,11 +607,6 @@
                             <input type="checkbox" name="authorized_modules[]" value="renditions" x-model="modules"
                                 class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Rendiciones</span>
-                        </label>
-                        <label class="inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="authorized_modules[]" value="finances" x-model="modules"
-                                class="rounded border-slate-600 bg-slate-800 text-blue-600 shadow-sm focus:ring-blue-500">
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Finanzas</span>
                         </label>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">Selecciona "Todos" para acceso completo según el rol.</p>

@@ -39,4 +39,8 @@ class WorkflowHelper
     public const ROLE_JEFATURA = 'jefatura';
 
     public const ROLE_SUPERVISOR = 'supervisor';
+
+    public const ROLE_CONTROLLING = 'controlling';
+
+    public const ROLE_FINANCES = 'finances';
 }

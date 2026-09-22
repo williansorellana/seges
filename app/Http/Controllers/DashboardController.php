@@ -95,49 +95,27 @@ class DashboardController extends Controller
                 ])
             ],
 
-            'finances' => [
-                'name' => 'Módulo Finanzas',
-                'description' => 'Aprobación de fondos, revisión de rendiciones y auditoría financiera.',
-                'theme' => 'rose',
-                'icon' => '💰',
-                'actions' => array_filter([
-                    in_array($user->role, ['admin', 'jefatura']) ? 
-                        ['label' => 'Aprobaciones', 'route' => 'renditions.approvals'] : null,
-                        
-                    in_array($user->role, ['admin']) || $user->departamento === 'Finanzas' ? 
-                        ['label' => 'Panel Finanzas', 'route' => 'renditions.finances'] : null,
-                        
-                    in_array($user->role, ['admin']) || $user->departamento === 'Controlling' ? 
-                        ['label' => 'Panel Controlling', 'route' => 'renditions.controlling'] : null,
-
-                    in_array($user->role, ['admin', 'jefatura']) || in_array($user->departamento, ['Finanzas', 'Controlling']) ? 
-                        ['label' => 'Historial General', 'route' => 'renditions.history'] : null,
-                ])
-            ],
-
             'renditions' => [
                 'name' => 'Módulo Rendiciones',
-                'description' => 'Solicitudes de fondos, rendiciones y seguimiento de gastos personales.',
+                'description' => 'Solicitudes, rendiciones, aprobaciones y auditoría, según tu rol.',
                 'theme' => 'orange',
                 'icon' => '📄',
                 'actions' => array_filter([
-                    ['label' => 'Crear Planificación', 'route' => 'route-plannings.create'],
+                    $user->role === 'worker' ? ['label' => 'Crear Planificación', 'route' => 'route-plannings.create'] : null,
                     ['label' => 'Mis Solicitudes', 'route' => 'route-plannings.index'],
                     ['label' => 'Mis Rendiciones', 'route' => 'renditions.index'],
-
-                    !in_array($user->role, ['admin', 'jefatura']) && !in_array($user->departamento, ['Finanzas', 'Controlling'])
-                        ? ['label' => 'Historial', 'route' => 'renditions.history']
-                        : null,
+                    $user->role === 'jefatura' ? ['label' => 'Aprobaciones jefatura', 'route' => 'renditions.approvals'] : null,
+                    $user->role === 'controlling' ? ['label' => 'Panel Controlling', 'route' => 'renditions.controlling'] : null,
+                    $user->role === 'finances' ? ['label' => 'Panel Finanzas', 'route' => 'renditions.finances'] : null,
+                    in_array($user->role, ['worker', 'jefatura', 'controlling', 'finances'], true)
+                        ? ['label' => 'Historial', 'route' => 'renditions.history'] : null,
+                    in_array($user->role, ['controlling', 'finances'], true)
+                        ? ['label' => 'Reportes Rendiciones', 'route' => 'renditions.reports'] : null,
                 ])
             ],
         ];
         // 🔹 Filtrar módulos según usuario
         $allModules = array_filter($allModules, function ($key) use ($user) {
-            if ($key === 'finances') {
-                return in_array($user->role, ['admin', 'jefatura'])
-                    || in_array($user->departamento, ['Finanzas', 'Controlling']);
-            }
-
             if ($key === 'renditions') {
                 return $user->hasModuleAccess('renditions')
                     || $user->role === 'admin';

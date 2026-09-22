@@ -44,19 +44,14 @@ class RoutePlanningController extends Controller
 
         // controlling
 
-        elseif (
-            auth()->user()->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING
-            || auth()->user()->role === WorkflowHelper::ROLE_ADMIN
-        ) {
+        elseif (auth()->user()->role === WorkflowHelper::ROLE_CONTROLLING) {
 
             $query->where('status', WorkflowHelper::STATUS_PENDING_CONTROLLING);
         }
 
         // finanzas
 
-        elseif (
-            auth()->user()->departamento === WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        elseif (auth()->user()->role === WorkflowHelper::ROLE_FINANCES) {
 
             $query->where('status', WorkflowHelper::STATUS_PENDING_FINANCES);
         }
@@ -279,14 +274,14 @@ class RoutePlanningController extends Controller
                 route('renditions.approvals')
             ));
         } else {
-            $targetDepartment = $planning->trip_type === 'reunion'
-                ? WorkflowHelper::DEPARTMENT_FINANCES
-                : WorkflowHelper::DEPARTMENT_CONTROLLING;
+            $targetRole = $planning->trip_type === 'reunion'
+                ? WorkflowHelper::ROLE_FINANCES
+                : WorkflowHelper::ROLE_CONTROLLING;
 
-            $users = User::where('departamento', $targetDepartment)->get();
+            $users = User::where('role', $targetRole)->get();
 
             // Evitamos duplicar notificación a Controlling si ya se le enviará la de Auditoría y Validación
-            if ($targetDepartment !== WorkflowHelper::DEPARTMENT_CONTROLLING) {
+            if ($targetRole !== WorkflowHelper::ROLE_CONTROLLING) {
                 Notification::send($users, new WorkflowNotification(
                     'Nueva planificación pendiente',
                     'El trabajador ' . $planning->user->name . ' creó una planificación sin jefatura asignada.',
@@ -296,7 +291,7 @@ class RoutePlanningController extends Controller
         }
 
         // Siempre notificar a Controlling de que hay una Auditoría y Validación pendiente
-        $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+        $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->get();
         Notification::send($controllingUsers, new WorkflowNotification(
             'Auditoría y Validación pendiente',
             'El trabajador ' . $planning->user->name . ' creó una planificación de ruta. Hay una Auditoría y Validación pendiente por aprobar.',
@@ -330,7 +325,7 @@ class RoutePlanningController extends Controller
 
         if (
             $planning->user->jefatura_id !== auth()->id()
-            && auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            && auth()->user()->role !== WorkflowHelper::ROLE_JEFATURA
         ) {
             abort(403, 'No autorizado.');
         }
@@ -375,7 +370,7 @@ class RoutePlanningController extends Controller
 
         if ($planning->trip_type === 'reunion') {
 
-            $financeExists = \App\Models\User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)
+            $financeExists = \App\Models\User::where('role', WorkflowHelper::ROLE_FINANCES)
                 ->exists();
 
             if (!$financeExists) {
@@ -384,7 +379,7 @@ class RoutePlanningController extends Controller
                     ->back()
                     ->with(
                         'error',
-                        'No existe ningún usuario perteneciente al departamento Finanzas.'
+                        'No existe ningún usuario con el rol Finanzas.'
                     );
             }
 
@@ -392,7 +387,7 @@ class RoutePlanningController extends Controller
 
         } else {
 
-            $controllingExists = \App\Models\User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)
+            $controllingExists = \App\Models\User::where('role', WorkflowHelper::ROLE_CONTROLLING)
                 ->exists();
 
             if (!$controllingExists) {
@@ -401,7 +396,7 @@ class RoutePlanningController extends Controller
                     ->back()
                     ->with(
                         'error',
-                        'No existe ningún usuario perteneciente al departamento Controlling.'
+                        'No existe ningún usuario con el rol Controlling.'
                     );
             }
 
@@ -411,7 +406,7 @@ class RoutePlanningController extends Controller
         $planning->save();
 
         if ($planning->trip_type === 'reunion') {
-            $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
+            $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->get();
 
             Notification::send($financeUsers, new WorkflowNotification(
                 'Planificación pendiente en Finanzas',
@@ -419,7 +414,7 @@ class RoutePlanningController extends Controller
                 route('renditions.finances')
             ));
         } else {
-            $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+            $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->get();
 
             Notification::send($controllingUsers, new WorkflowNotification(
                 'Planificación pendiente en Controlling',
@@ -465,7 +460,7 @@ class RoutePlanningController extends Controller
         if (
             $planning->user->jefatura_id !== auth()->id()
             &&
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            auth()->user()->role !== WorkflowHelper::ROLE_JEFATURA
         ) {
             abort(403, 'No autorizado.');
         }
@@ -524,11 +519,7 @@ class RoutePlanningController extends Controller
 
     public function approveByControlling(\App\Models\RoutePlanning $planning)
     {
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403, 'No autorizado.');
         }
 
@@ -554,7 +545,7 @@ class RoutePlanningController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
+        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->get();
 
         Notification::send($financeUsers, new WorkflowNotification(
             'Planificación pendiente en Finanzas',
@@ -574,11 +565,7 @@ class RoutePlanningController extends Controller
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403, 'No autorizado.');
         }
 
@@ -627,11 +614,7 @@ class RoutePlanningController extends Controller
 
     public function approveByFinances(\App\Models\RoutePlanning $planning)
     {
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403, 'No autorizado.');
         }
 
@@ -720,11 +703,7 @@ class RoutePlanningController extends Controller
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403, 'No autorizado.');
         }
 
@@ -779,9 +758,9 @@ class RoutePlanningController extends Controller
             $user->role !== WorkflowHelper::ROLE_ADMIN
             && $planning->user_id !== $user->id
             && $planning->user->jefatura_id !== $user->id
-            && !in_array($user->departamento, [
-                WorkflowHelper::DEPARTMENT_CONTROLLING,
-                WorkflowHelper::DEPARTMENT_FINANCES,
+            && !in_array($user->role, [
+                WorkflowHelper::ROLE_CONTROLLING,
+                WorkflowHelper::ROLE_FINANCES,
             ])
         ) {
             abort(403, 'No autorizado.');
@@ -822,9 +801,9 @@ class RoutePlanningController extends Controller
             $user->role !== WorkflowHelper::ROLE_ADMIN
             && $planning->user_id !== $user->id
             && $planning->user->jefatura_id !== $user->id
-            && !in_array($user->departamento, [
-                WorkflowHelper::DEPARTMENT_CONTROLLING,
-                WorkflowHelper::DEPARTMENT_FINANCES,
+            && !in_array($user->role, [
+                WorkflowHelper::ROLE_CONTROLLING,
+                WorkflowHelper::ROLE_FINANCES,
             ])
         ) {
             abort(403, 'No authorized.');

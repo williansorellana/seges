@@ -71,9 +71,9 @@ class RenditionController extends Controller
 
         $isJefatura = $rendition->user->jefatura_id === $user->id;
 
-        $isFinanzas = $user->departamento === WorkflowHelper::DEPARTMENT_FINANCES;
+        $isFinanzas = $user->role === WorkflowHelper::ROLE_FINANCES;
 
-        $isControlling = $user->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING;
+        $isControlling = $user->role === WorkflowHelper::ROLE_CONTROLLING;
 
         if (
             !$isOwner
@@ -352,7 +352,7 @@ class RenditionController extends Controller
                 route('renditions.approvals')
             ));
         } else {
-            $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+            $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->get();
 
             Notification::send($controllingUsers, new WorkflowNotification(
                 'Nueva rendición pendiente',
@@ -373,8 +373,8 @@ class RenditionController extends Controller
         $isOwner = $rendition->user_id === $user->id;
         $isAdmin = $user->role === 'admin';
         $isJefatura = $rendition->user->jefatura_id === $user->id;
-        $isFinanzas = $user->departamento === WorkflowHelper::DEPARTMENT_FINANCES;
-        $isControlling = $user->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING;
+        $isFinanzas = $user->role === WorkflowHelper::ROLE_FINANCES;
+        $isControlling = $user->role === WorkflowHelper::ROLE_CONTROLLING;
 
         if (
             !$isOwner
@@ -415,8 +415,8 @@ class RenditionController extends Controller
         $isOwner = $rendition->user_id === $user->id;
         $isAdmin = $user->role === 'admin';
         $isJefatura = $rendition->user && $rendition->user->jefatura_id === $user->id;
-        $isFinanzas = $user->departamento === WorkflowHelper::DEPARTMENT_FINANCES;
-        $isControlling = $user->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING;
+        $isFinanzas = $user->role === WorkflowHelper::ROLE_FINANCES;
+        $isControlling = $user->role === WorkflowHelper::ROLE_CONTROLLING;
 
         if (
             !$isOwner
@@ -453,12 +453,12 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role !== 'admin' && $user->role !== 'jefatura') {
+        if ($user->role !== WorkflowHelper::ROLE_JEFATURA) {
             abort(403, 'No autorizado.');
         }
 
         $plannings = \App\Models\RoutePlanning::with('user')
-            ->when($user->role !== 'admin', function ($query) use ($user) {
+            ->when($user->role === WorkflowHelper::ROLE_JEFATURA, function ($query) use ($user) {
                 $query->whereHas('user', function ($subQuery) use ($user) {
                     $subQuery->where('jefatura_id', $user->id);
                 });
@@ -468,7 +468,7 @@ class RenditionController extends Controller
             ->paginate(10, ['*'], 'plannings_page');
 
         $renditions = \App\Models\Rendition::with(['user', 'routePlanning', 'observations.user'])
-            ->when($user->role !== 'admin', function ($query) use ($user) {
+            ->when($user->role === WorkflowHelper::ROLE_JEFATURA, function ($query) use ($user) {
                 $query->whereHas('user', function ($subQuery) use ($user) {
                     $subQuery->where('jefatura_id', $user->id);
                 });
@@ -482,7 +482,7 @@ class RenditionController extends Controller
 
     public function finances()
     {
-        if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES) abort(403);
+        if (auth()->user()->role !== WorkflowHelper::ROLE_FINANCES) abort(403);
 
         $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_finances')->orderBy('created_at', 'asc')->paginate(10, ['*'], 'plannings_page');
         $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user'])
@@ -501,7 +501,7 @@ class RenditionController extends Controller
 
     public function controlling()
     {
-        if (auth()->user()->role !== 'admin' && auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING) abort(403);
+        if (auth()->user()->role !== WorkflowHelper::ROLE_CONTROLLING) abort(403);
 
         $plannings = \App\Models\RoutePlanning::with('user')->where('status', 'pending_controlling')->orderBy('created_at', 'asc')->paginate(10, ['*'], 'plannings_page');
         $renditions = \App\Models\Rendition::with(['user','routePlanning','observations.user','expenses'])
@@ -527,14 +527,8 @@ class RenditionController extends Controller
 
         // Permisos
 
-        if (
-            $user->role !== 'admin'
-            &&
-            (
-                $user->role !== 'jefatura'
-                || $rendition->user->jefatura_id !== $user->id
-            )
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_JEFATURA
+            || $rendition->user->jefatura_id !== $user->id) {
             abort(403, 'No autorizado.');
         }
 
@@ -584,7 +578,7 @@ class RenditionController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
+        $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->get();
 
         Notification::send($controllingUsers, new WorkflowNotification(
             'Rendición pendiente en Controlling',
@@ -604,14 +598,8 @@ class RenditionController extends Controller
 
         // Permisos
 
-        if (
-            $user->role !== 'admin'
-            &&
-            (
-                $user->role !== 'jefatura'
-                || $rendition->user->jefatura_id !== $user->id
-            )
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_JEFATURA
+            || $rendition->user->jefatura_id !== $user->id) {
             abort(403, 'No autorizado.');
         }
 
@@ -676,11 +664,7 @@ class RenditionController extends Controller
 
         // permisos
 
-        if (
-            $user->role !== 'admin'
-            &&
-            $user->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403);
         }
 
@@ -717,7 +701,7 @@ class RenditionController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
+        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->get();
 
         Notification::send($financeUsers, new WorkflowNotification(
             'Rendición pendiente en Finanzas',
@@ -737,11 +721,7 @@ class RenditionController extends Controller
 
         // Permisos
 
-        if (
-            $user->role !== 'admin'
-            &&
-            $user->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403);
         }
 
@@ -806,11 +786,7 @@ class RenditionController extends Controller
 
         // permisos
 
-        if (
-            $user->role !== 'admin'
-            &&
-            $user->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403);
         }
 
@@ -920,11 +896,7 @@ class RenditionController extends Controller
 
         // permisos
 
-        if (
-            $user->role !== 'admin'
-            &&
-            $user->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403);
         }
 
@@ -988,11 +960,7 @@ class RenditionController extends Controller
     {
         $user = auth()->user();
 
-        if (
-            $user->role !== 'admin'
-            &&
-            $user->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403);
         }
 
@@ -1052,11 +1020,7 @@ class RenditionController extends Controller
             abort(404);
         }
 
-        if (
-            $user->role !== 'admin'
-            &&
-            $user->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403);
         }
 
@@ -1098,11 +1062,7 @@ class RenditionController extends Controller
             abort(404);
         }
 
-        if (
-            $user->role !== 'admin'
-            &&
-            $user->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        if ($user->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403);
         }
 
@@ -1190,8 +1150,8 @@ class RenditionController extends Controller
         $isOwner = $rendition->user_id === $user->id;
         $isAdmin = $user->role === 'admin';
         $isJefatura = $rendition->user && $rendition->user->jefatura_id === $user->id;
-        $isFinanzas = $user->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_FINANCES;
-        $isControlling = $user->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING;
+        $isFinanzas = $user->role === WorkflowHelper::ROLE_FINANCES;
+        $isControlling = $user->role === WorkflowHelper::ROLE_CONTROLLING;
 
         if (!$isOwner && !$isAdmin && !$isJefatura && !$isFinanzas && !$isControlling) {
             abort(403, 'No autorizado.');
@@ -1227,12 +1187,10 @@ class RenditionController extends Controller
         ])
             ->whereIn('status', ['approved', 'rejected']);
 
-        if ($user->role === 'admin') {
-            // Admin ve todo.
-        } elseif (in_array($user->departamento, [
-            WorkflowHelper::DEPARTMENT_FINANCES,
-            WorkflowHelper::DEPARTMENT_CONTROLLING,
-        ])) {
+        if (in_array($user->role, [
+            WorkflowHelper::ROLE_FINANCES,
+            WorkflowHelper::ROLE_CONTROLLING,
+        ], true)) {
             // Finanzas y Controlling ven todo lo aprobado/rechazado.
         } elseif ($user->role === 'jefatura') {
             $planningQuery->whereHas('user', function ($query) use ($user) {
@@ -1420,7 +1378,7 @@ class RenditionController extends Controller
     public function reports(Request $request)
     {
         $user = auth()->user();
-        if ($user->role !== 'admin' && !in_array($user->departamento, ['Finanzas', 'Controlling'])) {
+        if (!in_array($user->role, [WorkflowHelper::ROLE_FINANCES, WorkflowHelper::ROLE_CONTROLLING], true)) {
             abort(403);
         }
 
@@ -1491,7 +1449,7 @@ class RenditionController extends Controller
     public function exportReports(Request $request)
     {
         $user = auth()->user();
-        if ($user->role !== 'admin' && !in_array($user->departamento, ['Finanzas', 'Controlling'])) {
+        if (!in_array($user->role, [WorkflowHelper::ROLE_FINANCES, WorkflowHelper::ROLE_CONTROLLING], true)) {
             abort(403);
         }
 
