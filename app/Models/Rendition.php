@@ -13,6 +13,16 @@ class Rendition extends Model
 
     protected $guarded = [];
 
+    protected static function booted(): void
+    {
+        static::updating(function (self $rendition) {
+            if ($rendition->isDirty('status') && $rendition->status === 'rejected') {
+                $rendition->last_rejected_at = now();
+                $rendition->correction_deadline_at = app(\App\Services\RenditionDeadlineService::class)->addBusinessDays(now(), 2);
+            }
+        });
+    }
+
     protected $casts = [
         'funds_received' => 'decimal:2',
         'total_declared' => 'decimal:2',
@@ -26,6 +36,10 @@ class Rendition extends Model
         'refund_resolved_at' => 'datetime',
         'payment_completed_at' => 'datetime',
         'deadline_at' => 'date',
+        'correction_deadline_at' => 'date',
+        'first_submitted_at' => 'datetime',
+        'last_submitted_at' => 'datetime',
+        'last_rejected_at' => 'datetime',
     ];
 
     public function routePlanning()

@@ -101,6 +101,10 @@
                 $isControlling = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING;
 
                 $canManageExpenses = $isOwner && in_array($rendition->status, ['draft', 'rejected']);
+                $boss = $rendition->user->jefatura;
+                $canSubmitNow = $canManageExpenses && $rendition->routePlanning
+                    && now()->startOfDay()->gte($rendition->routePlanning->end_date)
+                    && $boss && $boss->is_active && $boss->role === 'jefatura' && $boss->id !== $rendition->user_id;
 
                 $canAuditExpenses = $isControlling
                     && $rendition->status === 'pending_controlling'
@@ -108,6 +112,10 @@
                     && !($isLocked ?? false);
             @endphp
 
+            @include('renditions.deadline-notice', ['item' => $rendition])
+            @if($canManageExpenses && !$canSubmitNow)
+                <p class="mb-5 text-amber-300">Puedes continuar guardando gastos. Para enviar, debe haber terminado la ruta y debes tener una jefatura activa asignada.</p>
+            @endif
             @if($rendition->status === 'rejected' && $rendition->observations->count() > 0)
                 <div class="mb-8 bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                     <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/5 rounded-full blur-[60px] pointer-events-none"></div>
@@ -815,7 +823,7 @@
                             </div>
 
                             <!-- Botón Enviar -->
-                            @if($canManageExpenses)
+                            @if($canSubmitNow)
                             <div class="mt-10 pt-8 border-t border-slate-800" x-data="{ showSubmitModal: false }">
                                 <button type="button" @click="showSubmitModal = true" class="w-full py-4 px-6 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-emerald-600/40 transition-all flex items-center justify-center gap-3 cursor-pointer group">
                                     <svg class="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

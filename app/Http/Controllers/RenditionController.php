@@ -263,103 +263,107 @@ class RenditionController extends Controller
             'user_observation' => 'nullable|string|max:1000',
         ]);
 
-        $hasBoleta = $rendition->expenses()
-            ->where('document_type', 'boleta')
-            ->exists();
+        $result = DB::transaction(function () use ($request, $rendition) {
+            User::whereKey($rendition->user_id)->lockForUpdate()->firstOrFail();
+            $rendition->refresh();
+            if (!in_array($rendition->status, ['draft', 'rejected'], true)) {
+                return back()->withErrors(['expenses' => 'Esta rendición ya fue enviada a revisión.']);
+            }
 
-        $hasFactura = $rendition->expenses()
-            ->where('document_type', 'factura')
-            ->exists();
+            if (now()->startOfDay()->lt($rendition->routePlanning->end_date->startOfDay())) {
+                return back()->withErrors(['expenses' => 'Puedes guardar gastos durante el viaje. El envío oficial estará disponible desde la fecha de término de la ruta.']);
+            }
+            $jefatura = $rendition->user->jefatura;
+            if (!$jefatura || $jefatura->role !== 'jefatura' || !$jefatura->is_active || $jefatura->id === $rendition->user_id) {
+                return back()->withErrors(['expenses' => 'Solicita que se te asigne una jefatura activa antes de enviar. Puedes continuar guardando tu borrador.']);
+            }
 
-        if (!$hasBoleta || !$hasFactura) {
-            return redirect()
-                ->back()
-                ->withErrors([
-                    'expenses' => 'Debes adjuntar al menos una boleta y una factura antes de enviar la rendición.'
-                ]);
+            if (!$rendition->expenses()->exists()) {
+                return redirect()
+                    ->back()
+                    ->withErrors([
+                        'expenses' => 'Debes adjuntar al menos un comprobante válido antes de enviar la rendición.'
+                    ]);
+            }
+
+            $observedExpenses = $rendition->expenses()
+                ->where('is_valid', false)
+                ->get();
+
+            if ($observedExpenses->isNotEmpty()) {
+                $observedDetails = $observedExpenses
+                    ->map(function ($expense) {
+                        $documentNumber = $expense->document_number ?: 'S/N';
+
+                        return $expense->provider
+                            . ' | '
+                            . strtoupper($expense->document_type)
+                            . ' N° '
+                            . $documentNumber
+                            . ' | $'
+                            . number_format($expense->amount, 0, ',', '.')
+                            . ($expense->rejection_reason ? ' | Motivo: ' . $expense->rejection_reason : '');
+                    })
+                    ->implode(' / ');
+
+                return redirect()
+                    ->back()
+                    ->withErrors([
+                        'expenses' => 'No puedes reenviar la rendición porque existen documentos observados. Corrige o reemplaza: ' . $observedDetails
+                    ]);
+            }
+
+            if ($rendition->expenses()->where('lodging_excess_status', 'pending')->exists()) {
+                return back()->withErrors(['expenses' => 'Existe un excedente de alojamiento pendiente de autorización por jefatura o gerencia.']);
+            }
+
+            $signatureService = new DigitalSignatureService();
+
+            $signatureService->sign(
+                model: $rendition,
+                user: auth()->user(),
+                snapshot: [
+                    'rendition_id' => $rendition->id,
+                    'route_planning_id' => $rendition->route_planning_id,
+                    'worker_name' => auth()->user()->name,
+                    'worker_rut' => auth()->user()->rut ?? null,
+                    'funds_received' => $rendition->funds_received,
+                    'total_declared' => $rendition->expenses()->sum('amount'),
+                    'expenses_count' => $rendition->expenses()->count(),
+                    'signed_at' => now()->toDateTimeString(),
+                    'user_observation' => $request->user_observation,
+                ],
+                type: 'rendition_worker_signature'
+            );
+
+            // El envío oficial siempre requiere la jefatura asignada.
+            $fromStatus = $rendition->status;
+
+            $rendition->first_submitted_at ??= now();
+            $rendition->last_submitted_at = now();
+            $rendition->status = 'pending_jefatura';
+            $rendition->save();
+
+            \App\Models\WorkflowHistory::create([
+                'workflowable_type' => \App\Models\Rendition::class,
+                'workflowable_id' => $rendition->id,
+                'user_id' => auth()->id(),
+                'action' => 'submitted_by_worker',
+                'from_status' => $fromStatus,
+                'to_status' => $rendition->status,
+                'observation' => $request->user_observation,
+                'ip_address' => $request->ip(),
+            ]);
+            return null;
+        });
+        if ($result) {
+            return $result;
         }
-
-        $observedExpenses = $rendition->expenses()
-            ->where('is_valid', false)
-            ->get();
-
-        if ($observedExpenses->isNotEmpty()) {
-            $observedDetails = $observedExpenses
-                ->map(function ($expense) {
-                    $documentNumber = $expense->document_number ?: 'S/N';
-
-                    return $expense->provider
-                        . ' | '
-                        . strtoupper($expense->document_type)
-                        . ' N° '
-                        . $documentNumber
-                        . ' | $'
-                        . number_format($expense->amount, 0, ',', '.')
-                        . ($expense->rejection_reason ? ' | Motivo: ' . $expense->rejection_reason : '');
-                })
-                ->implode(' / ');
-
-            return redirect()
-                ->back()
-                ->withErrors([
-                    'expenses' => 'No puedes reenviar la rendición porque existen documentos observados. Corrige o reemplaza: ' . $observedDetails
-                ]);
-        }
-
-        if ($rendition->expenses()->where('lodging_excess_status', 'pending')->exists()) {
-            return back()->withErrors(['expenses' => 'Existe un excedente de alojamiento pendiente de autorización por jefatura o gerencia.']);
-        }
-
-        $signatureService = new DigitalSignatureService();
-
-        $signatureService->sign(
-            model: $rendition,
-            user: auth()->user(),
-            snapshot: [
-                'rendition_id' => $rendition->id,
-                'route_planning_id' => $rendition->route_planning_id,
-                'worker_name' => auth()->user()->name,
-                'worker_rut' => auth()->user()->rut ?? null,
-                'funds_received' => $rendition->funds_received,
-                'total_declared' => $rendition->expenses()->sum('amount'),
-                'expenses_count' => $rendition->expenses()->count(),
-                'signed_at' => now()->toDateTimeString(),
-                'user_observation' => $request->user_observation,
-            ],
-            type: 'rendition_worker_signature'
-        );
-
-        // Envía a jefatura si tiene, si no, directo a controlling.
-        $fromStatus = $rendition->status;
-
-        $rendition->status = auth()->user()->jefatura_id ? 'pending_jefatura' : 'pending_controlling';
-        $rendition->save();
-
-        \App\Models\WorkflowHistory::create([
-            'workflowable_type' => \App\Models\Rendition::class,
-            'workflowable_id' => $rendition->id,
-            'user_id' => auth()->id(),
-            'action' => 'submitted_by_worker',
-            'from_status' => $fromStatus,
-            'to_status' => $rendition->status,
-            'observation' => $request->user_observation,
-            'ip_address' => $request->ip(),
-        ]);
-        if ($rendition->user->jefatura) {
-            $rendition->user->jefatura->notify(new WorkflowNotification(
-                'Nueva rendición pendiente',
-                'El trabajador ' . $rendition->user->name . ' envió una rendición para revisión.',
-                route('renditions.approvals')
-            ));
-        } else {
-            $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->get();
-
-            Notification::send($controllingUsers, new WorkflowNotification(
-                'Nueva rendición pendiente',
-                'El trabajador ' . $rendition->user->name . ' envió una rendición directamente a Controlling.',
-                route('renditions.controlling')
-            ));
-        }
+        $rendition->user->jefatura->notify(new WorkflowNotification(
+            'Nueva rendición pendiente',
+            'El trabajador ' . $rendition->user->name . ' envió una rendición para revisión.',
+            route('renditions.approvals')
+        ));
 
         return redirect()->route('renditions.index')->with('success', 'Rendición finalizada y enviada a revisión con éxito.');
     }
@@ -1306,10 +1310,9 @@ class RenditionController extends Controller
 
     private function assertRenditionOpen(\App\Models\Rendition $rendition): void
     {
-        $planning = $rendition->routePlanning;
-        if ($planning && app(RenditionDeadlineService::class)->isExpired($planning->end_date)) {
-            abort(403, 'El plazo para rendir venció cinco días hábiles después del término de la ruta.');
-        }
+        // Overdue drafts remain editable to allow regularization. The deadline
+        // blocks new planning requests rather than the outstanding rendition.
+        abort_unless(in_array($rendition->status, ['draft', 'rejected'], true), 403);
     }
 
     private function lodgingPolicyData(\App\Models\Rendition $rendition, float $amount, string $date, ?\App\Models\RenditionExpense $excluding = null): array

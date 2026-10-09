@@ -24,6 +24,9 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/', [RoutePlanningController::class, 'index'])->name('index');
         Route::get('/crear', [RoutePlanningController::class, 'create'])->name('create');
         Route::post('/', [RoutePlanningController::class, 'store'])->name('store');
+        Route::post('/excepciones', [\App\Http\Controllers\PlanningExceptionController::class, 'store'])->name('exceptions.store');
+        Route::post('/excepciones/{exception}/resolver', [\App\Http\Controllers\PlanningExceptionController::class, 'decide'])
+            ->middleware('role:jefatura')->name('exceptions.decide');
         Route::get('/{planning}/pdf', [RoutePlanningController::class, 'downloadPdf'])->name('pdf');
 
         // Acciones de Jefatura
@@ -51,6 +54,12 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     // Rutas de Rendiciones
     Route::prefix('rendiciones')->name('renditions.')->middleware('module:renditions')->group(function () {
         Route::get('/', [RenditionController::class, 'index'])->name('index');
+        Route::middleware('role:admin,controlling')->group(function () {
+            Route::get('/calendario', [\App\Http\Controllers\BusinessCalendarController::class, 'index'])->name('calendar');
+            Route::post('/calendario', [\App\Http\Controllers\BusinessCalendarController::class, 'store'])->name('calendar.store');
+            Route::delete('/calendario/{holiday}', [\App\Http\Controllers\BusinessCalendarController::class, 'destroy'])->name('calendar.destroy');
+            Route::post('/calendario/confirmar', [\App\Http\Controllers\BusinessCalendarController::class, 'confirmYear'])->name('calendar.confirm');
+        });
         Route::post('/{rendition}/lock', [RenditionController::class, 'lock'])->name('lock');
         Route::post('/{rendition}/unlock', [RenditionController::class, 'unlock'])->name('unlock');
         Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
@@ -103,7 +112,7 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura'])
+    ->middleware(['auth', 'force.password.change', 'role:admin,supervisor,driver,worker,viewer,jefatura,controlling,finances'])
     ->name('dashboard');
 
     // Panel de Vehiculos

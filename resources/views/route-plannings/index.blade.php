@@ -59,6 +59,7 @@
             @endif
 
             <!-- Action Bar -->
+            @include('route-plannings.eligibility')
             <div class="flex justify-end mb-6">
                 <button x-data="" x-on:click.prevent="$dispatch('open-modal', 'create-planning-modal')"
                     class="inline-flex items-center px-5 py-2 bg-blue-600 border border-blue-500 rounded-lg font-bold text-[11px] text-white uppercase tracking-wider hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all duration-300 group h-10 shadow-[0_0_20px_rgba(37,99,235,0.3)] cursor-pointer">

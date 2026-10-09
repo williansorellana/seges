@@ -14,6 +14,8 @@ use App\Services\AmipassCalculatorService;
 use App\Notifications\TravelNotification;
 use App\Models\RutCostCenter;
 use App\Services\RenditionDeadlineService;
+use App\Services\PlanningEligibilityService;
+use App\Models\PlanningException;
 
 class RoutePlanningController extends Controller
 {
@@ -60,7 +62,17 @@ class RoutePlanningController extends Controller
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
 
-        return view('route-plannings.index', compact('plannings'));
+        $eligibility = app(PlanningEligibilityService::class);
+        $overdueRenditions = $eligibility->overdue(auth()->user());
+        $dailyCount = $eligibility->dailyCount(auth()->user());
+        $exceptions = PlanningException::with('user', 'decider')->whereDate('valid_on', now()->toDateString())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id());
+                if (auth()->user()->role === 'jefatura') {
+                    $query->orWhereHas('user', fn ($users) => $users->where('jefatura_id', auth()->id()));
+                }
+            })->get();
+        return view('route-plannings.index', compact('plannings', 'overdueRenditions', 'dailyCount', 'exceptions'));
     }
 
     public function create()
@@ -108,164 +120,184 @@ class RoutePlanningController extends Controller
             'amipass_rate_type' => 'nullable|in:venta,otros',
         ]);
 
-        $planning = new \App\Models\RoutePlanning();
+        $planning = DB::transaction(function () use ($request, $validated) {
+            $worker = User::whereKey(auth()->id())->lockForUpdate()->firstOrFail();
+            $grants = app(PlanningEligibilityService::class)->assertCanCreate($worker);
+            // Calculate now, not at final approval, so an unconfigured calendar does
+            // not leave an approved request without a usable expense draft.
+            app(RenditionDeadlineService::class)->deadlineFor($validated['end_date']);
+            $planning = new \App\Models\RoutePlanning();
+            $planning->requested_on = now('America/Santiago')->toDateString();
 
-        $planning->user_id = auth()->id();
-        $planning->trip_type = $validated['trip_type'];
-        $planning->motive = $validated['motive'];
-        $planning->destination = $validated['destination'];
-        $planning->region = $validated['region'] ?? null;
-        $companions = collect($validated['companions_data'] ?? [])
-            ->filter(fn ($companion) => !empty($companion['name']) || !empty($companion['rut']))
-            ->values();
-        $planning->companions = $companions->isNotEmpty()
-            ? $companions->pluck('name')->implode(', ')
-            : ($validated['companions'] ?? null);
-        $planning->start_date = $validated['start_date'];
-        $planning->end_date = $validated['end_date'];
-        $planning->project = $validated['project'] ?? null;
-        $planning->section = $validated['section'] ?? auth()->user()->departamento;
+            $planning->user_id = auth()->id();
+            $planning->trip_type = $validated['trip_type'];
+            $planning->motive = $validated['motive'];
+            $planning->destination = $validated['destination'];
+            $planning->region = $validated['region'] ?? null;
+            $companions = collect($validated['companions_data'] ?? [])
+                ->filter(fn ($companion) => !empty($companion['name']) || !empty($companion['rut']))
+                ->values();
+            $planning->companions = $companions->isNotEmpty()
+                ? $companions->pluck('name')->implode(', ')
+                : ($validated['companions'] ?? null);
+            $planning->start_date = $validated['start_date'];
+            $planning->end_date = $validated['end_date'];
+            $planning->project = $validated['project'] ?? null;
+            $planning->section = $validated['section'] ?? auth()->user()->departamento;
 
-        $normalizedRut = preg_replace('/[^0-9K]/', '', strtoupper((string) auth()->user()->rut));
-        $costCenter = RutCostCenter::where('is_active', true)->get()->first(function ($item) use ($normalizedRut) {
-            return preg_replace('/[^0-9K]/', '', strtoupper($item->rut)) === $normalizedRut;
-        });
-        $planning->cost_center = $costCenter?->cost_center;
+            $normalizedRut = preg_replace('/[^0-9K]/', '', strtoupper((string) auth()->user()->rut));
+            $costCenter = RutCostCenter::where('is_active', true)->get()->first(function ($item) use ($normalizedRut) {
+                return preg_replace('/[^0-9K]/', '', strtoupper($item->rut)) === $normalizedRut;
+            });
+            $planning->cost_center = $costCenter?->cost_center;
 
-        if ($request->filled('destinations')) {
-            $planning->destinations = json_decode($request->input('destinations'), true);
-        } else {
-            $planning->destinations = null;
-        }
+            if ($request->filled('destinations')) {
+                $planning->destinations = json_decode($request->input('destinations'), true);
+            } else {
+                $planning->destinations = null;
+            }
 
-        $planning->requires_funds = $request->has('requires_funds');
-        if ($planning->requires_funds) {
-            $planning->funds_peaje = $request->input('funds_peaje') ?: 0;
-            $planning->funds_bencina = $request->input('funds_bencina') ?: 0;
-            $planning->funds_alojamiento = $request->input('funds_alojamiento') ?: 0;
-            // La comida se solicita como fondo solamente para reuniones.
-            $planning->funds_alimentacion = $planning->trip_type === 'reunion'
-                ? ($request->input('funds_alimentacion') ?: 0)
-                : 0;
-            $planning->funds_otros = $request->input('funds_otros') ?: 0;
-            $planning->funds_description = $request->input('funds_description');
-            $planning->requested_funds = $planning->funds_peaje + $planning->funds_bencina + $planning->funds_alojamiento + $planning->funds_alimentacion + $planning->funds_otros;
-        } else {
-            $planning->funds_peaje = null;
-            $planning->funds_bencina = null;
-            $planning->funds_alojamiento = null;
-            $planning->funds_alimentacion = null;
-            $planning->funds_otros = null;
-            $planning->funds_description = null;
-            $planning->requested_funds = null;
-        }
+            $planning->requires_funds = $request->has('requires_funds');
+            if ($planning->requires_funds) {
+                $planning->funds_peaje = $request->input('funds_peaje') ?: 0;
+                $planning->funds_bencina = $request->input('funds_bencina') ?: 0;
+                $planning->funds_alojamiento = $request->input('funds_alojamiento') ?: 0;
+                // La comida se solicita como fondo solamente para reuniones.
+                $planning->funds_alimentacion = $planning->trip_type === 'reunion'
+                    ? ($request->input('funds_alimentacion') ?: 0)
+                    : 0;
+                $planning->funds_otros = $request->input('funds_otros') ?: 0;
+                $planning->funds_description = $request->input('funds_description');
+                $planning->requested_funds = $planning->funds_peaje + $planning->funds_bencina + $planning->funds_alojamiento + $planning->funds_alimentacion + $planning->funds_otros;
+            } else {
+                $planning->funds_peaje = null;
+                $planning->funds_bencina = null;
+                $planning->funds_alojamiento = null;
+                $planning->funds_alimentacion = null;
+                $planning->funds_otros = null;
+                $planning->funds_description = null;
+                $planning->requested_funds = null;
+            }
 
-        // Una reunión extra puede solicitar fondo de alimentación; una salida a ruta
-        // usa Amipass y nunca permite rendir la categoría comida.
-        $planning->requires_amipass = $planning->trip_type === 'terreno' && $request->has('requires_amipass');
+            // Una reunión extra puede solicitar fondo de alimentación; una salida a ruta
+            // usa Amipass y nunca permite rendir la categoría comida.
+            $planning->requires_amipass = $planning->trip_type === 'terreno' && $request->has('requires_amipass');
 
-        if ($planning->requires_amipass) {
-            $amipassCalculator = new AmipassCalculatorService();
-            $amipassCompanions = $companions->filter(fn ($companion) => !empty($companion['receives_amipass']));
+            if ($planning->requires_amipass) {
+                $amipassCalculator = new AmipassCalculatorService();
+                $amipassCompanions = $companions->filter(fn ($companion) => !empty($companion['receives_amipass']));
 
-            $amipassResult = $amipassCalculator->calculate(
-                $validated['start_date'],
-                $validated['end_date'],
-                $validated['amipass_start_time'],
-                $validated['amipass_end_time'],
-                $validated['amipass_rate_type'] ?? 'otros',
-                $request->boolean('includes_breakfast'),
-                (int) ($validated['excluded_lunches'] ?? 0),
-                (int) ($validated['excluded_dinners'] ?? 0),
-                1 + $amipassCompanions->count(),
+                $amipassResult = $amipassCalculator->calculate(
+                    $validated['start_date'],
+                    $validated['end_date'],
+                    $validated['amipass_start_time'],
+                    $validated['amipass_end_time'],
+                    $validated['amipass_rate_type'] ?? 'otros',
+                    $request->boolean('includes_breakfast'),
+                    (int) ($validated['excluded_lunches'] ?? 0),
+                    (int) ($validated['excluded_dinners'] ?? 0),
+                    1 + $amipassCompanions->count(),
+                );
+
+                $planning->amipass_days = $amipassResult['business_days'];
+                $planning->amipass_business_days = $amipassResult['business_days'];
+                $planning->amipass_amount = $amipassResult['amount'];
+                $planning->amipass_per_person_amount = $amipassResult['per_person_amount'];
+                $planning->amipass_start_time = $validated['amipass_start_time'];
+                $planning->amipass_end_time = $validated['amipass_end_time'];
+                $planning->includes_breakfast = $request->boolean('includes_breakfast');
+                $planning->excluded_lunches = (int) ($validated['excluded_lunches'] ?? 0);
+                $planning->excluded_dinners = (int) ($validated['excluded_dinners'] ?? 0);
+                $planning->amipass_rate_type = $validated['amipass_rate_type'] ?? 'otros';
+                $planning->usual_zone = null;
+                $planning->extraordinary_zone = $validated['destination'];
+                $planning->amipass_ruts = array_values(array_filter([
+                    auth()->user()->rut,
+                    ...$amipassCompanions->pluck('rut')->all(),
+                ]));
+            } else {
+                $planning->amipass_days = null;
+                $planning->amipass_business_days = 0;
+                $planning->amipass_amount = 0;
+                $planning->amipass_per_person_amount = 0;
+                $planning->amipass_start_time = null;
+                $planning->amipass_end_time = null;
+                $planning->usual_zone = null;
+                $planning->extraordinary_zone = null;
+                $planning->amipass_ruts = null;
+                $planning->includes_breakfast = false;
+                $planning->excluded_lunches = 0;
+                $planning->excluded_dinners = 0;
+                $planning->amipass_rate_type = null;
+            }
+
+            if (auth()->user()->jefatura_id) {
+                $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
+            } else {
+                $planning->status = $planning->trip_type === 'reunion'
+                    ? WorkflowHelper::STATUS_PENDING_FINANCES
+                    : WorkflowHelper::STATUS_PENDING_CONTROLLING;
+            }
+
+            $planning->save();
+
+            foreach ($companions as $companion) {
+                $planning->companions()->create([
+                    'name' => $companion['name'],
+                    'rut' => $companion['rut'],
+                    'receives_amipass' => !empty($companion['receives_amipass']),
+                ]);
+            }
+
+            $signatureService = new DigitalSignatureService();
+
+            $signatureService->sign(
+                model: $planning,
+                user: auth()->user(),
+                snapshot: [
+                    'planning_id' => $planning->id,
+                    'worker_name' => auth()->user()->name,
+                    'worker_rut' => auth()->user()->rut ?? null,
+                    'trip_type' => $planning->trip_type,
+                    'motive' => $planning->motive,
+                    'destination' => $planning->destination,
+                    'destinations' => $planning->destinations,
+                    'start_date' => $planning->start_date,
+                    'end_date' => $planning->end_date,
+                    'requires_funds' => $planning->requires_funds,
+                    'requested_funds' => $planning->requested_funds,
+                    'funds_peaje' => $planning->funds_peaje,
+                    'funds_bencina' => $planning->funds_bencina,
+                    'funds_alojamiento' => $planning->funds_alojamiento,
+                    'funds_alimentacion' => $planning->funds_alimentacion,
+                    'funds_otros' => $planning->funds_otros,
+                    'funds_description' => $planning->funds_description,
+                    'requires_amipass' => $planning->requires_amipass,
+                    'amipass_days' => $planning->amipass_days,
+                    'amipass_business_days' => $planning->amipass_business_days,
+                    'amipass_amount' => $planning->amipass_amount,
+                    'amipass_start_time' => $planning->amipass_start_time,
+                    'amipass_end_time' => $planning->amipass_end_time,
+                    'amipass_ruts' => $planning->amipass_ruts,
+                    'usual_zone' => $planning->usual_zone,
+                    'extraordinary_zone' => $planning->extraordinary_zone,
+                    'signed_at' => now()->toDateTimeString(),
+                ],
+                type: 'planning_worker_signature'
             );
 
-            $planning->amipass_days = $amipassResult['business_days'];
-            $planning->amipass_business_days = $amipassResult['business_days'];
-            $planning->amipass_amount = $amipassResult['amount'];
-            $planning->amipass_per_person_amount = $amipassResult['per_person_amount'];
-            $planning->amipass_start_time = $validated['amipass_start_time'];
-            $planning->amipass_end_time = $validated['amipass_end_time'];
-            $planning->includes_breakfast = $request->boolean('includes_breakfast');
-            $planning->excluded_lunches = (int) ($validated['excluded_lunches'] ?? 0);
-            $planning->excluded_dinners = (int) ($validated['excluded_dinners'] ?? 0);
-            $planning->amipass_rate_type = $validated['amipass_rate_type'] ?? 'otros';
-            $planning->usual_zone = null;
-            $planning->extraordinary_zone = $validated['destination'];
-            $planning->amipass_ruts = array_values(array_filter([
-                auth()->user()->rut,
-                ...$amipassCompanions->pluck('rut')->all(),
-            ]));
-        } else {
-            $planning->amipass_days = null;
-            $planning->amipass_business_days = 0;
-            $planning->amipass_amount = 0;
-            $planning->amipass_per_person_amount = 0;
-            $planning->amipass_start_time = null;
-            $planning->amipass_end_time = null;
-            $planning->usual_zone = null;
-            $planning->extraordinary_zone = null;
-            $planning->amipass_ruts = null;
-            $planning->includes_breakfast = false;
-            $planning->excluded_lunches = 0;
-            $planning->excluded_dinners = 0;
-            $planning->amipass_rate_type = null;
-        }
-
-        if (auth()->user()->jefatura_id) {
-            $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
-        } else {
-            $planning->status = $planning->trip_type === 'reunion'
-                ? WorkflowHelper::STATUS_PENDING_FINANCES
-                : WorkflowHelper::STATUS_PENDING_CONTROLLING;
-        }
-
-        $planning->save();
-
-        foreach ($companions as $companion) {
-            $planning->companions()->create([
-                'name' => $companion['name'],
-                'rut' => $companion['rut'],
-                'receives_amipass' => !empty($companion['receives_amipass']),
-            ]);
-        }
-
-        $signatureService = new DigitalSignatureService();
-
-        $signatureService->sign(
-            model: $planning,
-            user: auth()->user(),
-            snapshot: [
-                'planning_id' => $planning->id,
-                'worker_name' => auth()->user()->name,
-                'worker_rut' => auth()->user()->rut ?? null,
-                'trip_type' => $planning->trip_type,
-                'motive' => $planning->motive,
-                'destination' => $planning->destination,
-                'destinations' => $planning->destinations,
-                'start_date' => $planning->start_date,
-                'end_date' => $planning->end_date,
-                'requires_funds' => $planning->requires_funds,
-                'requested_funds' => $planning->requested_funds,
-                'funds_peaje' => $planning->funds_peaje,
-                'funds_bencina' => $planning->funds_bencina,
-                'funds_alojamiento' => $planning->funds_alojamiento,
-                'funds_alimentacion' => $planning->funds_alimentacion,
-                'funds_otros' => $planning->funds_otros,
-                'funds_description' => $planning->funds_description,
-                'requires_amipass' => $planning->requires_amipass,
-                'amipass_days' => $planning->amipass_days,
-                'amipass_business_days' => $planning->amipass_business_days,
-                'amipass_amount' => $planning->amipass_amount,
-                'amipass_start_time' => $planning->amipass_start_time,
-                'amipass_end_time' => $planning->amipass_end_time,
-                'amipass_ruts' => $planning->amipass_ruts,
-                'usual_zone' => $planning->usual_zone,
-                'extraordinary_zone' => $planning->extraordinary_zone,
-                'signed_at' => now()->toDateTimeString(),
-            ],
-            type: 'planning_worker_signature'
-        );
+            foreach ($grants as $grant) {
+                $grant->update(['used_at' => now()]);
+                WorkflowHistory::create([
+                    'workflowable_type' => \App\Models\RoutePlanning::class, 'workflowable_id' => $planning->id,
+                    'user_id' => auth()->id(), 'action' => 'planning_exception_used',
+                    'from_status' => $planning->status, 'to_status' => $planning->status,
+                    'observation' => 'Excepción #' . $grant->id . ': ' . $grant->type . '. Autorizada por usuario #' . $grant->decided_by . ': ' . $grant->decision_reason,
+                    'ip_address' => request()->ip(),
+                ]);
+            }
+            return $planning;
+        });
 
         if ($planning->user->jefatura) {
             $planning->user->jefatura->notify(new WorkflowNotification(
@@ -325,7 +357,7 @@ class RoutePlanningController extends Controller
 
         if (
             $planning->user->jefatura_id !== auth()->id()
-            && auth()->user()->role !== WorkflowHelper::ROLE_JEFATURA
+            || auth()->user()->role !== WorkflowHelper::ROLE_JEFATURA
         ) {
             abort(403, 'No autorizado.');
         }
@@ -459,7 +491,7 @@ class RoutePlanningController extends Controller
 
         if (
             $planning->user->jefatura_id !== auth()->id()
-            &&
+            ||
             auth()->user()->role !== WorkflowHelper::ROLE_JEFATURA
         ) {
             abort(403, 'No autorizado.');

@@ -287,6 +287,9 @@
                         :class="{{ request()->routeIs('renditions.index') ? "'text-white bg-gray-800'" : "''" }}">
                         Mis rendiciones
                     </a>
+                    @if(in_array(Auth::user()->role, ['admin', 'controlling']))
+                        <a href="{{ route('renditions.calendar') }}" class="block pl-11 py-2 text-sm text-gray-400 hover:text-white">Calendario de feriados</a>
+                    @endif
                     @if(Auth::user()->role === 'jefatura')
                         <a href="{{ route('renditions.approvals') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"

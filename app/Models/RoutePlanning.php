@@ -15,6 +15,7 @@ class RoutePlanning extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'requested_on' => 'date',
 
         'requires_funds' => 'boolean',
         'requested_funds' => 'decimal:2',
