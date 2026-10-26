@@ -33,6 +33,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::middleware('role:jefatura')->group(function () {
             Route::post('/{planning}/approve-jefatura', [RoutePlanningController::class, 'approveByJefatura'])->name('approve-jefatura');
             Route::post('/{planning}/reject-jefatura', [RoutePlanningController::class, 'rejectByJefatura'])->name('reject-jefatura');
+            Route::post('/{planning}/autorizar-alojamiento', [RoutePlanningController::class, 'authorizeLodging'])->name('authorize-lodging');
         });
         
         // Acciones de Controlling
@@ -52,7 +53,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     });
 
     // Rutas de Rendiciones
-    Route::prefix('rendiciones')->name('renditions.')->middleware('module:renditions')->group(function () {
+    Route::prefix('rendiciones')->name('renditions.')->middleware(['module:renditions', \App\Http\Middleware\RenditionMutationTransaction::class])->group(function () {
         Route::get('/', [RenditionController::class, 'index'])->name('index');
         Route::middleware('role:admin,controlling')->group(function () {
             Route::get('/calendario', [\App\Http\Controllers\BusinessCalendarController::class, 'index'])->name('calendar');
@@ -64,6 +65,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/{rendition}/unlock', [RenditionController::class, 'unlock'])->name('unlock');
         Route::get('/rendition-expenses/{expense}/attachment',[RenditionController::class, 'downloadAttachment'])->name('expenses.attachment');
         Route::get('/{rendition}/ver', [RenditionController::class, 'show'])->name('show');
+        Route::post('/{rendition}/nuevo-intento', [RenditionController::class, 'newAttempt'])->name('new-attempt');
         Route::post('/{rendition}/gastos', [RenditionController::class, 'storeExpense'])->name('expenses.store');
         Route::put('/{rendition}/gastos/{expense}', [RenditionController::class, 'updateExpense'])->name('expenses.update');
         Route::delete('/{rendition}/gastos/{expense}', [RenditionController::class, 'destroyExpense'])->name('expenses.destroy');
@@ -73,7 +75,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
             Route::post('/gastos/{expense}/observar', [RenditionController::class, 'invalidateExpense'])->name('expenses.invalidate');
         });
         Route::post('/{rendition}/enviar', [RenditionController::class, 'submitRendition'])->name('submit');
-        Route::get('/{rendition}/pdf', [RenditionController::class, 'downloadPdf'])->name('pdf');
+        Route::get('/{rendition}/pdf', [RenditionController::class, 'downloadPdf'])->whereNumber('rendition')->name('pdf');
         
         // Paneles específicos por rol/departamento
         Route::get('/aprobaciones-jefatura', [RenditionController::class, 'approvals'])->middleware('role:jefatura')->name('approvals');
@@ -81,7 +83,8 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/controlling', [RenditionController::class, 'controlling'])->middleware('role:controlling')->name('controlling');
         Route::get('/historial', [RenditionController::class, 'history'])->middleware('role:worker,jefatura,controlling,finances')->name('history');
         Route::get('/reportes', [RenditionController::class, 'reports'])->middleware('role:finances,controlling')->name('reports');
-        Route::get('/reportes/exportar', [RenditionController::class, 'exportReports'])->middleware('role:finances,controlling')->name('reports.export');
+        Route::get('/reportes/exportar', [\App\Http\Controllers\RenditionReportController::class, 'xlsx'])->middleware('role:finances,controlling')->name('reports.export');
+        Route::get('/reportes/pdf', [\App\Http\Controllers\RenditionReportController::class, 'pdf'])->middleware('role:finances,controlling')->name('reports.pdf');
         
         // Acciones sobre Rendiciones
         Route::middleware('role:jefatura')->group(function () {
@@ -101,6 +104,11 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/{rendition}/download-transfer-proof', [RenditionController::class, 'downloadTransferProof'])->name('download-transfer-proof');
         Route::post('/{id}/reject-transfer', [RenditionController::class, 'rejectTransferProof'])->middleware('role:finances')->name('reject-transfer');
         Route::post('/unlock-all', [RoutePlanningController::class, 'unlockAll'])->name('unlock-all');
+    });
+    Route::prefix('centros-de-costo')->name('cost-centers.')->middleware(['module:renditions', 'role:admin,controlling,finances'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\CostCenterController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\CostCenterController::class, 'save'])->name('save');
+        Route::post('/asignaciones', [\App\Http\Controllers\CostCenterController::class, 'assign'])->name('assign');
     });
 });
 

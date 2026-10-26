@@ -129,6 +129,8 @@
  
                                         <!-- Detalles del Viaje -->
                                         <td class="px-6 py-5">
+                                            @include('route-plannings.lodging-budget')
+                                            <p class="text-xs text-slate-400">Centro de costo: {{ $plan->cost_center ?: 'Sin asignar: solicitar asignación en el mantenedor' }}</p>
                                             <div class="flex items-start gap-3">
                                                 <div class="flex-shrink-0 h-9 w-9 rounded-lg flex items-center justify-center mt-0.5 {{ $plan->trip_type === 'terreno' ? 'bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20' }}">
                                                     @if($plan->trip_type === 'terreno')
@@ -721,7 +723,8 @@
                                         </div>
                                         <div>
                                              <label class="block text-xs font-medium text-slate-300 mb-1">Alojamiento ($)</label>
-                                             <p class="text-[10px] text-amber-400 mb-1">Tope autorizado: $41.650 por día. El excedente requiere aprobación.</p>
+                                             <p class="text-[10px] text-amber-400 mb-1">Tope: $41.650 diarios con IVA incluido. El total debe incluir IVA. El adicional requiere autorización expresa de tu jefatura.</p>
+                                             <label class="block text-xs text-slate-300">Noches presupuestadas (si se omite, se usa la duración de la ruta)<input type="number" name="lodging_nights" min="1" max="366" class="w-full bg-slate-900 text-white rounded"></label>
                                             <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-3 py-2 focus-within:border-blue-500">
                                                 <span class="text-slate-500 text-xs mr-1.5">$</span>
                                                 <input type="number" name="funds_alojamiento" x-model.number="funds_alojamiento" min="0" class="w-full bg-transparent border-none outline-none text-white text-sm" placeholder="0">

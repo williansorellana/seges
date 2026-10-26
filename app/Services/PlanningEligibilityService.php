@@ -13,7 +13,7 @@ class PlanningEligibilityService
     public function overdue(User $user)
     {
         return Rendition::with('routePlanning')->where('user_id', $user->id)
-            ->whereIn('status', ['draft', 'rejected'])->get()->filter(function ($rendition) {
+            ->whereIn('status', ['draft', 'rejected'])->whereDoesntHave('replacement')->get()->filter(function ($rendition) {
                 $deadline = $this->effectiveDeadline($rendition);
 
                 return $deadline && now('America/Santiago')->startOfDay()->greaterThan($deadline);
@@ -22,10 +22,8 @@ class PlanningEligibilityService
 
     public function effectiveDeadline(Rendition $rendition)
     {
-        return $rendition->status === 'rejected' && $rendition->correction_deadline_at
-            ? $rendition->correction_deadline_at
-            : ($rendition->deadline_at ?? ($rendition->routePlanning
-                ? app(RenditionDeadlineService::class)->deadlineFor($rendition->routePlanning->end_date) : null));
+        return $rendition->deadline_at ?? ($rendition->routePlanning
+                ? app(RenditionDeadlineService::class)->deadlineFor($rendition->routePlanning->end_date) : null);
     }
 
     public function dailyCount(User $user): int

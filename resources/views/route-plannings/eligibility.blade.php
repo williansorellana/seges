@@ -1,6 +1,6 @@
 <div class="mb-6 p-5 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 space-y-3">
     <p>Planificaciones creadas hoy: <strong>{{ $dailyCount }}/2</strong>. Una tercera requiere autorización de tu jefatura; el máximo absoluto es tres.</p>
-    <p>Puedes guardar comprobantes durante el viaje y enviar la rendición desde el día de término. El plazo es de cinco días hábiles, excluyendo feriados. Los rechazos dan dos días hábiles para corregir.</p>
+    <p>Puedes guardar comprobantes durante el viaje y enviar la rendición desde el día de término. El plazo es de cinco días hábiles, excluyendo feriados. Un rechazo cierra ese intento; debes crear otro del mismo viaje, conservando los fondos y el plazo original.</p>
     @if($overdueRenditions->isNotEmpty())
         <p class="text-amber-300">Tienes rendiciones fuera de plazo. Envía todas las pendientes para habilitar nuevas planificaciones; no necesitas esperar su aprobación.</p>
         @foreach($overdueRenditions as $pending)

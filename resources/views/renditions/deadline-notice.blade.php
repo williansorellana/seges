@@ -1,12 +1,11 @@
 @php
     $due = app(\App\Services\PlanningEligibilityService::class)->effectiveDeadline($item);
-    $editable = in_array($item->status, ['draft', 'rejected'], true);
+    $editable = $item->status === 'draft';
     $expired = $due && now()->startOfDay()->gt($due);
 @endphp
 <div class="my-3 p-3 rounded-lg border border-slate-600 text-sm text-slate-200">
     @if($due)
-        <p>{{ $item->status === 'rejected' ? 'Plazo para corregir' : 'Plazo original para rendir' }}: {{ $due->format('d/m/Y') }}.</p>
-        @if($item->correction_deadline_at)<p>Vencimiento original: {{ $item->deadline_at?->format('d/m/Y') ?? 'No registrado' }}.</p>@endif
+        <p>Plazo original del viaje para rendir: {{ $due->format('d/m/Y') }}.</p>
         @if($editable)
             @if($expired)
                 <p class="text-amber-300">Fuera de plazo. Puedes completar y enviar esta rendición para regularizarla. Las nuevas planificaciones quedan bloqueadas mientras tengas rendiciones vencidas pendientes.</p>

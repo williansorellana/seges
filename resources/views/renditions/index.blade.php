@@ -166,7 +166,7 @@
                                                  <span class="text-blue-300 font-bold">{{ \Carbon\Carbon::parse($ren->routePlanning->end_date)->format('d/m/Y') }}</span>
                                              </div>
                                              @php($deadline = app(\App\Services\PlanningEligibilityService::class)->effectiveDeadline($ren))
-                                             <div class="text-[10px] mt-1 {{ now()->startOfDay()->greaterThan($deadline) && in_array($ren->status, ['draft', 'rejected']) ? 'text-rose-400' : 'text-amber-300' }}">{{ $ren->status === 'rejected' ? 'Plazo para corregir' : 'Plazo para rendir' }}: {{ $deadline->format('d/m/Y') }}{{ now()->startOfDay()->greaterThan($deadline) && in_array($ren->status, ['draft', 'rejected']) ? ' — Fuera de plazo: abre y envía para regularizar' : '' }}</div>
+                                             <div class="text-[10px] mt-1 text-amber-300">Plazo original: {{ $deadline->format('d/m/Y') }}. {{ $ren->status === 'rejected' ? 'Rechazada y cerrada: abre el detalle para crear un nuevo intento.' : (now()->startOfDay()->greaterThan($deadline) && $ren->status === 'draft' ? 'Fuera de plazo: abre y envía para regularizar.' : '') }}</div>
                                              @if($ren->rejection_count > 0)<div class="text-[10px] text-rose-300">{{ $ren->rejection_count }} rechazo(s)</div>@endif
                                          </td>
  

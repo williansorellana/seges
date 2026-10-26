@@ -18,7 +18,7 @@ class RenditionController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         $query = \App\Models\Rendition::with(['routePlanning', 'observations.user'])
-            ->where('user_id', auth()->id());
+            ->where('user_id', auth()->id())->whereDoesntHave('replacement');
 
         // Filtro por estado (agrupado)
         if ($request->filled('status')) {
@@ -109,7 +109,7 @@ class RenditionController extends Controller
 
     public function storeExpense(Request $request, \App\Models\Rendition $rendition)
     {
-        if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
+        if ($rendition->user_id !== auth()->id() || $rendition->status !== 'draft') {
             abort(403, 'No puedes agregar gastos a esta rendición en su estado actual.');
         }
         $this->assertRenditionOpen($rendition);
@@ -166,7 +166,7 @@ class RenditionController extends Controller
             abort(404);
         }
 
-        if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
+        if ($rendition->user_id !== auth()->id() || $rendition->status !== 'draft') {
             abort(403, 'No puedes editar gastos de esta rendición en su estado actual.');
         }
         $this->assertRenditionOpen($rendition);
@@ -235,7 +235,7 @@ class RenditionController extends Controller
             abort(404);
         }
 
-        if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
+        if ($rendition->user_id !== auth()->id() || $rendition->status !== 'draft') {
             abort(403, 'No puedes eliminar gastos de esta rendición en su estado actual.');
         }
         $this->assertRenditionOpen($rendition);
@@ -254,7 +254,7 @@ class RenditionController extends Controller
 
     public function submitRendition(Request $request, \App\Models\Rendition $rendition)
     {
-        if ($rendition->user_id !== auth()->id() || !in_array($rendition->status, ['draft', 'rejected'])) {
+        if ($rendition->user_id !== auth()->id() || $rendition->status !== 'draft') {
             abort(403, 'No autorizado.');
         }
         $this->assertRenditionOpen($rendition);
@@ -266,7 +266,7 @@ class RenditionController extends Controller
         $result = DB::transaction(function () use ($request, $rendition) {
             User::whereKey($rendition->user_id)->lockForUpdate()->firstOrFail();
             $rendition->refresh();
-            if (!in_array($rendition->status, ['draft', 'rejected'], true)) {
+            if ($rendition->status !== 'draft') {
                 return back()->withErrors(['expenses' => 'Esta rendición ya fue enviada a revisión.']);
             }
 
@@ -314,7 +314,7 @@ class RenditionController extends Controller
             }
 
             if ($rendition->expenses()->where('lodging_excess_status', 'pending')->exists()) {
-                return back()->withErrors(['expenses' => 'Existe un excedente de alojamiento pendiente de autorización por jefatura o gerencia.']);
+                return back()->withErrors(['expenses' => 'Existe un excedente de alojamiento con IVA pendiente de autorización de tu jefatura.']);
             }
 
             $signatureService = new DigitalSignatureService();
@@ -626,6 +626,7 @@ class RenditionController extends Controller
         // rechazar
 
         $rendition->status = 'rejected';
+        $rendition->rejection_reason = $request->observation;
         $rendition->rejection_count++;
         $rendition->save();
 
@@ -650,7 +651,7 @@ class RenditionController extends Controller
 
         $notification = new WorkflowNotification(
             'Rendición observada',
-            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue devuelta con observaciones. Revisa y corrige la información.',
+            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue rechazada y quedó cerrada. Revisa el motivo y crea una nueva rendición del mismo viaje.',
             route('renditions.show', $rendition->id),
             $rendition->user->jefatura?->email
         );
@@ -658,7 +659,7 @@ class RenditionController extends Controller
 
         return redirect()->back()->with(
             'success',
-            'Rendición devuelta al trabajador.'
+            'Intento rechazado y cerrado. El trabajador debe crear una nueva rendición.'
         );
     }
     
@@ -748,6 +749,7 @@ class RenditionController extends Controller
         // rechazar
 
         $rendition->status = 'rejected';
+        $rendition->rejection_reason = $request->observation;
         $rendition->rejection_count++;
         $rendition->save();
 
@@ -772,7 +774,7 @@ class RenditionController extends Controller
 
         $notification = new WorkflowNotification(
             'Rendición observada',
-            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue devuelta con observaciones. Revisa y corrige la información.',
+            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue rechazada y quedó cerrada. Revisa el motivo y crea una nueva rendición del mismo viaje.',
             route('renditions.show', $rendition->id),
             $rendition->user->jefatura?->email
         );
@@ -780,7 +782,7 @@ class RenditionController extends Controller
 
         return redirect()->back()->with(
             'success',
-            'Rendición devuelta por Controlling.'
+            'Intento rechazado y cerrado por Controlling.'
         );
     }
     
@@ -924,6 +926,7 @@ class RenditionController extends Controller
 
 
         $rendition->status = 'rejected';
+        $rendition->rejection_reason = $request->observation;
         $rendition->rejection_count++;
         $rendition->save();
 
@@ -948,7 +951,7 @@ class RenditionController extends Controller
 
         $notification = new WorkflowNotification(
             'Rendición observada',
-            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue devuelta con observaciones. Revisa y corrige la información.',
+            'La rendición de ' . $rendition->user->name . ' ' . $rendition->user->last_name . ' fue rechazada y quedó cerrada. Revisa el motivo y crea una nueva rendición del mismo viaje.',
             route('renditions.show', $rendition->id),
             $rendition->user->jefatura?->email
         );
@@ -956,7 +959,7 @@ class RenditionController extends Controller
 
         return redirect()->back()->with(
             'success',
-            'Rendición devuelta por Finanzas.'
+            'Intento rechazado y cerrado por Finanzas.'
         );
     }
 
@@ -1172,6 +1175,12 @@ class RenditionController extends Controller
         return Storage::disk('local')->download($rendition->transfer_proof_path);
     }
 
+    public function newAttempt(\App\Models\Rendition $rendition)
+    {
+        $next = app(\App\Services\RenditionAttemptService::class)->replace($rendition, auth()->user());
+        return redirect()->route('renditions.show', $next)->with('success', 'Nuevo intento creado. El rechazo anterior permanece cerrado en el historial.');
+    }
+
     public function history()
     {
         $user = auth()->user();
@@ -1280,9 +1289,11 @@ class RenditionController extends Controller
             abort(404);
         }
 
-        if ($user->role !== 'admin' && $rendition->user?->jefatura_id !== $user->id) {
-            abort(403, 'Solo la jefatura asignada o gerencia puede autorizar excedentes de alojamiento.');
+        if ($user->role !== 'jefatura' || $rendition->user?->jefatura_id !== $user->id || $rendition->user_id === $user->id) {
+            abort(403, 'Solo la jefatura asignada puede autorizar excedentes de alojamiento.');
         }
+
+        abort_if($rendition->status === 'rejected', 403, 'El intento rechazado está cerrado.');
 
         if ($expense->lodging_excess_status !== 'pending') {
             return back()->with('error', 'Este gasto no tiene un excedente pendiente de autorización.');
@@ -1312,7 +1323,7 @@ class RenditionController extends Controller
     {
         // Overdue drafts remain editable to allow regularization. The deadline
         // blocks new planning requests rather than the outstanding rendition.
-        abort_unless(in_array($rendition->status, ['draft', 'rejected'], true), 403);
+        abort_unless($rendition->status === 'draft', 403);
     }
 
     private function lodgingPolicyData(\App\Models\Rendition $rendition, float $amount, string $date, ?\App\Models\RenditionExpense $excluding = null): array
@@ -1387,61 +1398,27 @@ class RenditionController extends Controller
 
         $users = \App\Models\User::orderBy('name')->get();
 
-        $query = \App\Models\RoutePlanning::with(['user', 'rendition.expenses', 'workflowHistories.user']);
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-
-        if ($request->filled('month')) {
-            $query->whereMonth('start_date', $request->month);
-        }
-
-        if ($request->filled('year')) {
-            $query->whereYear('start_date', $request->year);
-        }
-
-        if ($request->filled('trip_type')) {
-            $query->where('trip_type', $request->trip_type);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('start_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('start_date', '<=', $request->date_to);
-        }
-
-        if ($request->filled('project')) {
-            $query->where('project', 'like', '%' . $request->project . '%');
-        }
-
-        if ($request->filled('section')) {
-            $query->where('section', 'like', '%' . $request->section . '%');
-        }
+        $query = app(\App\Services\RenditionReportService::class)->query($request);
 
         $analyticsPlans = (clone $query)->get();
-        $expenses = $analyticsPlans->flatMap(fn ($plan) => $plan->rendition?->expenses ?? collect());
+        $expenses = $analyticsPlans->flatMap(fn ($plan) => $plan->rendition?->status !== 'rejected' ? ($plan->rendition?->expenses ?? collect()) : collect());
         $expenseByCategory = $expenses->groupBy('expense_category')->map(fn ($items) => $items->sum('amount'));
         $projectTotals = $analyticsPlans->groupBy(fn ($plan) => $plan->project ?: 'Sin proyecto')
-            ->map(fn ($plans) => $plans->sum(fn ($plan) => $plan->rendition?->total_declared ?? 0));
+            ->map(fn ($plans) => $plans->sum(fn ($plan) => $plan->rendition?->status !== 'rejected' ? ($plan->rendition?->total_declared ?? 0) : 0));
         $sectionTotals = $analyticsPlans->groupBy(fn ($plan) => $plan->section ?: ($plan->user?->departamento ?: 'Sin sección'))
-            ->map(fn ($plans) => $plans->sum(fn ($plan) => $plan->rendition?->total_declared ?? 0));
+            ->map(fn ($plans) => $plans->sum(fn ($plan) => $plan->rendition?->status !== 'rejected' ? ($plan->rendition?->total_declared ?? 0) : 0));
         $currentTotal = $expenses->sum('amount');
 
         $previousTotal = 0;
         if ($request->filled('date_from') && $request->filled('date_to')) {
             $start = \Carbon\Carbon::parse($request->date_from);
             $days = $start->diffInDays(\Carbon\Carbon::parse($request->date_to)) + 1;
-            $previousTotal = \App\Models\RenditionExpense::whereBetween('date', [
-                $start->copy()->subDays($days)->toDateString(),
-                $start->copy()->subDay()->toDateString(),
-            ])->sum('amount');
+            $previousRequest = Request::create('/', 'GET', array_merge($request->except(['month', 'year']), [
+                'date_from' => $start->copy()->subDays($days)->toDateString(),
+                'date_to' => $start->copy()->subDay()->toDateString(),
+            ]));
+            $previousPlans = app(\App\Services\RenditionReportService::class)->query($previousRequest)->get();
+            $previousTotal = $previousPlans->sum(fn ($plan) => $plan->rendition?->status !== 'rejected' ? ($plan->rendition?->total_declared ?? 0) : 0);
         }
 
         $plannings = $query->orderBy('created_at', 'desc')->paginate(10);
@@ -1449,157 +1426,4 @@ class RenditionController extends Controller
         return view('renditions.reports', compact('plannings', 'users', 'expenseByCategory', 'projectTotals', 'sectionTotals', 'currentTotal', 'previousTotal'));
     }
 
-    public function exportReports(Request $request)
-    {
-        $user = auth()->user();
-        if (!in_array($user->role, [WorkflowHelper::ROLE_FINANCES, WorkflowHelper::ROLE_CONTROLLING], true)) {
-            abort(403);
-        }
-
-        $query = \App\Models\RoutePlanning::with(['user', 'rendition', 'workflowHistories.user']);
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-
-        if ($request->filled('month')) {
-            $query->whereMonth('start_date', $request->month);
-        }
-
-        if ($request->filled('year')) {
-            $query->whereYear('start_date', $request->year);
-        }
-
-        if ($request->filled('trip_type')) {
-            $query->where('trip_type', $request->trip_type);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('date_from')) { $query->whereDate('start_date', '>=', $request->date_from); }
-        if ($request->filled('date_to')) { $query->whereDate('start_date', '<=', $request->date_to); }
-        if ($request->filled('project')) { $query->where('project', 'like', '%' . $request->project . '%'); }
-        if ($request->filled('section')) { $query->where('section', 'like', '%' . $request->section . '%'); }
-
-        $plannings = $query->orderBy('created_at', 'desc')->get();
-
-        $fileName = 'Reporte_Rendiciones_' . now()->format('Ymd_His') . '.csv';
-
-        $headers = array(
-            "Content-type"        => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        );
-
-        $columns = [
-            'ID Planificacion',
-            'Colaborador',
-            'RUT Colaborador',
-            'Departamento',
-            'Proyecto',
-            'Sección',
-            'Centro de Costo',
-            'Destino Principal',
-            'Destinos Adicionales',
-            'Motivo',
-            'Tipo Viaje',
-            'Fecha Inicio',
-            'Fecha Fin',
-            'Fondos Solicitados',
-            'Monto Amipass',
-            'Total Asignado',
-            'Total Gastos Rendidos',
-            'Subtotal Boletas',
-            'Subtotal Facturas',
-            'Subtotal Vales/Otros',
-            'Diferencia',
-            'Estado Planificacion',
-            'Estado Rendicion',
-            'N° Rechazos Rendición',
-            'Auditado Por'
-        ];
-
-        $callback = function() use($plannings, $columns) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            fputcsv($file, $columns, ';');
-
-            foreach ($plannings as $plan) {
-                $rendition = $plan->rendition;
-                
-                $destinationsText = '';
-                if (!empty($plan->destinations)) {
-                    $dests = [];
-                    foreach ($plan->destinations as $d) {
-                        if (!empty($d['destination'])) {
-                            $dests[] = $d['destination'] . (!empty($d['region']) ? ' (' . $d['region'] . ')' : '');
-                        }
-                    }
-                    $destinationsText = implode(' | ', $dests);
-                }
-
-                $subtotalBoletas = 0;
-                $subtotalFacturas = 0;
-                $subtotalOtros = 0;
-                $diffText = 'N/A';
-
-                if ($rendition) {
-                    $subtotalBoletas = $rendition->expenses->where('document_type', 'boleta')->sum('amount');
-                    $subtotalFacturas = $rendition->expenses->where('document_type', 'factura')->sum('amount');
-                    $subtotalOtros = $rendition->expenses->whereNotIn('document_type', ['boleta', 'factura'])->sum('amount');
-                    
-                    $diff = $rendition->funds_received - $rendition->total_declared;
-                    if ($diff > 0) {
-                        $diffText = 'Devolver a Empresa: $' . number_format($diff, 0, ',', '.');
-                    } elseif ($diff < 0) {
-                        $diffText = 'Reembolso a Colaborador: $' . number_format(abs($diff), 0, ',', '.');
-                    } else {
-                        $diffText = 'Rendicion Exacta';
-                    }
-                }
-
-                $auditor = $plan->finalAuditor();
-                $auditorName = $auditor ? $auditor->name . ' ' . $auditor->last_name : 'No auditado';
-
-                $row = [
-                    'REQ-' . str_pad($plan->id, 4, '0', STR_PAD_LEFT),
-                    $plan->user ? $plan->user->name . ' ' . $plan->user->last_name : 'N/A',
-                    $plan->user ? $plan->user->rut : 'N/A',
-                    $plan->user ? $plan->user->departamento : 'N/A',
-                    $plan->project ?: '',
-                    $plan->section ?: '',
-                    $plan->cost_center ?: '',
-                    $plan->destination,
-                    $destinationsText ?: 'Ninguno',
-                    $plan->motive,
-                    ucfirst($plan->trip_type),
-                    $plan->start_date ? $plan->start_date->format('d/m/Y') : '',
-                    $plan->end_date ? $plan->end_date->format('d/m/Y') : '',
-                    $plan->requested_funds ?: 0,
-                    $plan->amipass_amount ?: 0,
-                    ($plan->requested_funds ?? 0) + ($plan->amipass_amount ?? 0),
-                    $rendition ? $rendition->total_declared : 0,
-                    $subtotalBoletas,
-                    $subtotalFacturas,
-                    $subtotalOtros,
-                    $diffText,
-                    ucfirst(str_replace('_', ' ', $plan->status)),
-                    $rendition ? ucfirst(str_replace('_', ' ', $rendition->status)) : 'No Iniciada',
-                    $rendition?->rejection_count ?? 0,
-                    $auditorName
-                ];
-
-                fputcsv($file, $row, ';');
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 }

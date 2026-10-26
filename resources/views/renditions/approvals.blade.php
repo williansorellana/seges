@@ -119,6 +119,7 @@
  
                                         <!-- Detalles Viaje -->
                                         <td class="px-6 py-5">
+                                            @include('route-plannings.lodging-budget')
                                             <div class="text-sm font-semibold text-white mb-1 tracking-tight truncate max-w-xs">
                                                 {{ $plan->destination }} 
                                                 <span class="text-xs text-slate-500 font-normal">({{ ucfirst($plan->trip_type) }})</span>

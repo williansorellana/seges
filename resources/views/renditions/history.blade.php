@@ -359,7 +359,7 @@
                                                 $renditionStatusClass = 'bg-amber-500/10 text-amber-400 ring-amber-500/20';
                                                 $renditionStatusIcon = 'pending';
                                             } elseif ($ren->status === 'rejected') {
-                                                $renditionStatusLabel = 'Rechazada';
+                                                $renditionStatusLabel = 'Rechazada y cerrada / intento ' . $ren->attempt_number;
                                                 $renditionStatusClass = 'bg-red-500/10 text-red-400 ring-red-500/20';
                                                 $renditionStatusIcon = 'rejected';
                                             } else {
@@ -407,6 +407,7 @@
                                             @endif
 
                                             <div class="flex gap-2">
+                                                @if($ren->status === 'rejected')<p class="text-xs text-rose-300">Motivo: {{ $ren->rejection_reason }}</p>@endif
                                                 <a href="{{ route('renditions.show', $ren->id) }}"
                                                 target="_blank"
                                                 class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 cursor-pointer">

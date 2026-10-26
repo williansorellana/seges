@@ -103,6 +103,7 @@ class RoutePlanningController extends Controller
             'funds_peaje' => 'nullable|numeric|min:0',
             'funds_bencina' => 'nullable|numeric|min:0',
             'funds_alojamiento' => 'nullable|numeric|min:0',
+            'lodging_nights' => 'nullable|integer|min:1|max:366',
             'funds_alimentacion' => 'nullable|numeric|min:0',
             'funds_otros' => 'nullable|numeric|min:0',
             'funds_description' => 'nullable|string|max:1000',
@@ -146,10 +147,10 @@ class RoutePlanningController extends Controller
             $planning->section = $validated['section'] ?? auth()->user()->departamento;
 
             $normalizedRut = preg_replace('/[^0-9K]/', '', strtoupper((string) auth()->user()->rut));
-            $costCenter = RutCostCenter::where('is_active', true)->get()->first(function ($item) use ($normalizedRut) {
-                return preg_replace('/[^0-9K]/', '', strtoupper($item->rut)) === $normalizedRut;
+            $costCenter = RutCostCenter::with('center')->where('is_active', true)->get()->first(function ($item) use ($normalizedRut) {
+                return $normalizedRut !== '' && ($item->user_id === auth()->id() || preg_replace('/[^0-9K]/', '', strtoupper($item->rut)) === $normalizedRut);
             });
-            $planning->cost_center = $costCenter?->cost_center;
+            $planning->cost_center = $costCenter?->center?->is_active ? $costCenter->center->code : null;
 
             if ($request->filled('destinations')) {
                 $planning->destinations = json_decode($request->input('destinations'), true);
@@ -230,6 +231,14 @@ class RoutePlanningController extends Controller
                 $planning->excluded_dinners = 0;
                 $planning->amipass_rate_type = null;
             }
+
+            $maxNights = max(1, (int) $planning->start_date->diffInDays($planning->end_date));
+            $planning->lodging_nights = $planning->funds_alojamiento > 0 ? (int) ($validated['lodging_nights'] ?? $maxNights) : null;
+            if ($planning->lodging_nights > $maxNights) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['lodging_nights' => 'Las noches de alojamiento no pueden superar la duración de la ruta.']);
+            }
+            $planning->lodging_excess_amount = max(0, (float) $planning->funds_alojamiento - 41650 * ($planning->lodging_nights ?? 0));
+            $planning->lodging_excess_status = $planning->lodging_excess_amount > 0 ? 'pending' : 'not_required';
 
             if (auth()->user()->jefatura_id) {
                 $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
@@ -353,6 +362,7 @@ class RoutePlanningController extends Controller
 
     public function approveByJefatura(\App\Models\RoutePlanning $planning)
     {
+        app(\App\Services\LodgingBudgetService::class)->assertAuthorized($planning);
         // Validación autorización
 
         if (
@@ -551,6 +561,7 @@ class RoutePlanningController extends Controller
 
     public function approveByControlling(\App\Models\RoutePlanning $planning)
     {
+        app(\App\Services\LodgingBudgetService::class)->assertAuthorized($planning);
         if (auth()->user()->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403, 'No autorizado.');
         }
@@ -646,6 +657,7 @@ class RoutePlanningController extends Controller
 
     public function approveByFinances(\App\Models\RoutePlanning $planning)
     {
+        app(\App\Services\LodgingBudgetService::class)->assertAuthorized($planning);
         if (auth()->user()->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403, 'No autorizado.');
         }
@@ -729,6 +741,20 @@ class RoutePlanningController extends Controller
         ));
 
         return redirect()->back()->with('success', 'Fondos liberados. Solicitud aprobada y firmada digitalmente.');
+    }
+
+    public function authorizeLodging(\App\Models\RoutePlanning $planning)
+    {
+        abort_unless(auth()->user()->role === 'jefatura' && $planning->user->jefatura_id === auth()->id()
+            && $planning->user_id !== auth()->id(), 403);
+        abort_unless(in_array($planning->status, ['pending_jefatura', 'pending_controlling', 'pending_finances'])
+            && $planning->lodging_excess_status === 'pending', 422);
+        $planning->update(['lodging_excess_status' => 'approved', 'lodging_authorized_by' => auth()->id(), 'lodging_authorized_at' => now()]);
+        WorkflowHistory::create(['workflowable_type' => \App\Models\RoutePlanning::class, 'workflowable_id' => $planning->id,
+            'user_id' => auth()->id(), 'action' => 'lodging_budget_excess_approved', 'from_status' => $planning->status,
+            'to_status' => $planning->status, 'observation' => 'Jefatura autoriza adicional de alojamiento con IVA por $' . number_format($planning->lodging_excess_amount, 0, ',', '.'),
+            'ip_address' => request()->ip()]);
+        return back()->with('success', 'Adicional de alojamiento autorizado expresamente por jefatura.');
     }
 
     public function rejectByFinances(Request $request, \App\Models\RoutePlanning $planning)

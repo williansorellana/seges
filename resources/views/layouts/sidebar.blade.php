@@ -287,6 +287,9 @@
                         :class="{{ request()->routeIs('renditions.index') ? "'text-white bg-gray-800'" : "''" }}">
                         Mis rendiciones
                     </a>
+                    @if(in_array(Auth::user()->role, ['admin', 'controlling', 'finances']))
+                        <a href="{{ route('cost-centers.index') }}" class="block pl-11 py-2 text-sm text-gray-400 hover:text-white">Centros de costo y personas</a>
+                    @endif
                     @if(in_array(Auth::user()->role, ['admin', 'controlling']))
                         <a href="{{ route('renditions.calendar') }}" class="block pl-11 py-2 text-sm text-gray-400 hover:text-white">Calendario de feriados</a>
                     @endif

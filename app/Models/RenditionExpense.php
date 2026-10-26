@@ -9,8 +9,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class RenditionExpense extends Model
 {
     use HasFactory, SoftDeletes;
-    
+
     protected $guarded = [];
+
+    protected static function booted(): void
+    {
+        $guard = function (self $expense) {
+            abort_if($expense->rendition()->where('status', 'rejected')->exists(), 403, 'Los comprobantes del intento rechazado son inalterables.');
+        };
+        static::saving($guard);
+        static::deleting($guard);
+    }
 
     protected $casts = [
         'date' => 'date',

@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\Lockable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\RenditionObservation;
-use App\Traits\Lockable;
 
 class Rendition extends Model
 {
@@ -16,10 +15,19 @@ class Rendition extends Model
     protected static function booted(): void
     {
         static::updating(function (self $rendition) {
+            if ($rendition->getOriginal('status') === 'rejected') {
+                throw \Illuminate\Validation\ValidationException::withMessages(['rendition' => 'El intento rechazado está cerrado y no se puede modificar. Crea una nueva rendición.']);
+            }
             if ($rendition->isDirty('status') && $rendition->status === 'rejected') {
                 $rendition->last_rejected_at = now();
-                $rendition->correction_deadline_at = app(\App\Services\RenditionDeadlineService::class)->addBusinessDays(now(), 2);
+                $rendition->closed_at = now();
+                $rendition->correction_deadline_at = null;
+                $rendition->rejection_snapshot = ['rendition' => $rendition->getAttributes(),
+                    'expenses' => $rendition->expenses()->get()->toArray()];
             }
+        });
+        static::deleting(function (self $rendition) {
+            abort_if($rendition->status === 'rejected', 403, 'No se elimina el historial rechazado.');
         });
     }
 
@@ -40,6 +48,8 @@ class Rendition extends Model
         'first_submitted_at' => 'datetime',
         'last_submitted_at' => 'datetime',
         'last_rejected_at' => 'datetime',
+        'closed_at' => 'datetime',
+        'rejection_snapshot' => 'array',
     ];
 
     public function routePlanning()
@@ -55,6 +65,16 @@ class Rendition extends Model
     public function expenses()
     {
         return $this->hasMany(RenditionExpense::class);
+    }
+
+    public function previousAttempt()
+    {
+        return $this->belongsTo(self::class, 'replaces_rendition_id');
+    }
+
+    public function replacement()
+    {
+        return $this->hasOne(self::class, 'replaces_rendition_id');
     }
 
     public function observations()
@@ -85,7 +105,7 @@ class Rendition extends Model
                 'rejected_by_controlling',
                 'approved_by_jefatura',
                 'rejected_by_jefatura',
-                'payment_completed_by_finances'
+                'payment_completed_by_finances',
             ])
             ->orderBy('id', 'desc')
             ->first();

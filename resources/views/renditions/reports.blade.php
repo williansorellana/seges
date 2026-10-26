@@ -125,6 +125,9 @@
 
                     </div>
 
+                    <label class="block text-sm text-slate-300 mb-4">Centro de costo
+                        <input name="cost_center" value="{{ request('cost_center') }}" maxlength="30" placeholder="Ej.: C113000001" class="block bg-slate-900 text-white border border-slate-700 rounded-lg mt-1">
+                    </label>
                     <div class="flex justify-end gap-3 pt-6 border-t border-slate-800/60">
                         <a href="{{ route('renditions.reports') }}" class="px-6 py-3 bg-slate-800/80 border border-slate-700/80 text-slate-300 hover:text-white hover:border-rose-500/60 hover:bg-rose-500/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,8 +144,9 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
-                            Exportar a Excel
+                            Exportar Excel (.xlsx)
                         </a>
+                        <a href="{{ route('renditions.reports.pdf', request()->all()) }}" class="px-7 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold">Exportar PDF</a>
                     </div>
                 </form>
             </div>

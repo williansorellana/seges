@@ -100,7 +100,7 @@
 
                 $isControlling = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING;
 
-                $canManageExpenses = $isOwner && in_array($rendition->status, ['draft', 'rejected']);
+                $canManageExpenses = $isOwner && $rendition->status === 'draft';
                 $boss = $rendition->user->jefatura;
                 $canSubmitNow = $canManageExpenses && $rendition->routePlanning
                     && now()->startOfDay()->gte($rendition->routePlanning->end_date)
@@ -113,6 +113,7 @@
             @endphp
 
             @include('renditions.deadline-notice', ['item' => $rendition])
+            @include('renditions.attempts')
             @if($canManageExpenses && !$canSubmitNow)
                 <p class="mb-5 text-amber-300">Puedes continuar guardando gastos. Para enviar, debe haber terminado la ruta y debes tener una jefatura activa asignada.</p>
             @endif
@@ -252,7 +253,7 @@
 
                                                             @if($expense->expense_category === 'alojamiento' && $expense->lodging_excess_amount > 0)
                                                                 <div class="mt-2 text-xs {{ $expense->lodging_excess_status === 'approved' ? 'text-emerald-400' : 'text-amber-400' }}">Autorizado: ${{ number_format($expense->authorized_amount, 0, ',', '.') }} · Excedente: ${{ number_format($expense->lodging_excess_amount, 0, ',', '.') }} ({{ $expense->lodging_excess_status }})</div>
-                                                                @if($expense->lodging_excess_status === 'pending' && (auth()->user()->role === 'admin' || auth()->id() === $rendition->user->jefatura_id))
+                                                                @if($rendition->status !== 'rejected' && $expense->lodging_excess_status === 'pending' && auth()->user()->role === 'jefatura' && auth()->id() === $rendition->user->jefatura_id && auth()->id() !== $rendition->user_id)
                                                                     <form method="POST" action="{{ route('renditions.expenses.approve-lodging-excess', [$rendition, $expense]) }}" class="mt-2">@csrf<button class="text-xs bg-emerald-600 px-2 py-1 rounded">Autorizar excedente</button></form>
                                                                 @endif
                                                             @endif
@@ -394,7 +395,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="group">
-                                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Monto ($)</label>
+                                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Monto con IVA incluido ($)</label>
                                                                 <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 transition-all">
                                                                     <input type="number" name="amount" value="{{ $expense->amount }}" min="1" class="w-full bg-transparent border-none outline-none text-white text-sm font-bold" required>
                                                                 </div>
@@ -588,7 +589,7 @@
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Monto Total ($)</label>
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Monto Total con IVA incluido ($)</label>
                                         <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all relative">
                                             <span class="text-blue-400 font-bold mr-2">$</span>
                                             <input type="number" name="amount" min="1" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold" placeholder="0" required>
