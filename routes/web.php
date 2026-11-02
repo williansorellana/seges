@@ -204,6 +204,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/requests/{id}/approve', [VehicleRequestController::class, 'approve'])->name('requests.approve');
     Route::post('/requests/{id}/reject', [VehicleRequestController::class, 'reject'])->name('requests.reject');
     Route::get('/mis-reservas', [VehicleRequestController::class, 'index'])->name('requests.index');
+    // Gestión de solicitudes: exclusivo para supervisores
+    Route::middleware(['role:supervisor'])->group(function () {
+
+        Route::get('/gestion-solicitudes', [
+            VehicleRequestController::class,
+            'manage'
+        ])->name('requests.manage');
+
+        Route::post('/requests/{id}/cancel-supervisor', [
+            VehicleRequestController::class,
+            'cancelBySupervisor'
+        ])->name('requests.cancel.supervisor');
+
+    });
+
     Route::post('/requests/{id}/complete', [VehicleRequestController::class, 'complete'])->name('requests.complete');
     Route::post('/requests/{id}/finish-early', [VehicleRequestController::class, 'finishEarly'])->name('requests.finish-early');
     Route::get('/historial-uso-vehiculos', [VehicleRequestController::class, 'history'])->name('requests.history.index');
