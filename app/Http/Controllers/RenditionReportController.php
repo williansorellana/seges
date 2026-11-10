@@ -23,6 +23,6 @@ class RenditionReportController extends Controller
         $data = app(RenditionReportService::class)->data($request);
 
         return \Barryvdh\DomPDF\Facade\Pdf::loadView('renditions.report-pdf', $data)->setPaper('a4', 'landscape')
-            ->download('Reporte_Rendiciones_'.now()->format('Ymd_His').'.pdf');
+            ->stream('Reporte_Rendiciones_'.now()->format('Ymd_His').'.pdf');
     }
 }

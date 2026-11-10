@@ -103,7 +103,7 @@
                                     <option value="">Todos los estados</option>
                                     <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Borrador</option>
                                     <option value="pending_jefatura" {{ request('status') === 'pending_jefatura' ? 'selected' : '' }}>Pendiente Jefatura</option>
-                                    <option value="pending_controlling" {{ request('status') === 'pending_controlling' ? 'selected' : '' }}>Pendiente Controlling</option>
+                                    <option value="pending_controlling" {{ request('status') === 'pending_controlling' ? 'selected' : '' }}>Controlling (flujo anterior)</option>
                                     <option value="pending_finances" {{ request('status') === 'pending_finances' ? 'selected' : '' }}>Pendiente Finanzas</option>
                                     <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Aprobado / Cerrado</option>
                                     <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rechazado</option>
@@ -146,7 +146,7 @@
                             </svg>
                             Exportar Excel (.xlsx)
                         </a>
-                        <a href="{{ route('renditions.reports.pdf', request()->all()) }}" class="px-7 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold">Exportar PDF</a>
+                        <a href="{{ route('renditions.reports.pdf', request()->all()) }}" target="_blank" rel="noopener" class="px-7 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold">Ver PDF</a>
                     </div>
                 </form>
             </div>

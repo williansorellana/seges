@@ -61,6 +61,9 @@
 
             <!-- Page Content -->
             <main class="flex-1 bg-gray-100 dark:bg-gray-900">
+                @if(session('mail_warning'))
+                    <p role="status" class="m-6 rounded-lg border border-amber-500 bg-slate-800 p-4 text-amber-300">{{ session('mail_warning') }}</p>
+                @endif
                 {{ $slot }}
             </main>
         </div>

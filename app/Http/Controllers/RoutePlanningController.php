@@ -44,13 +44,6 @@ class RoutePlanningController extends Controller
                 });
         }
 
-        // controlling
-
-        elseif (auth()->user()->role === WorkflowHelper::ROLE_CONTROLLING) {
-
-            $query->where('status', WorkflowHelper::STATUS_PENDING_CONTROLLING);
-        }
-
         // finanzas
 
         elseif (auth()->user()->role === WorkflowHelper::ROLE_FINANCES) {
@@ -123,6 +116,10 @@ class RoutePlanningController extends Controller
 
         $planning = DB::transaction(function () use ($request, $validated) {
             $worker = User::whereKey(auth()->id())->lockForUpdate()->firstOrFail();
+            $boss = $worker->jefatura;
+            if (!$boss || !$boss->is_active || $boss->role !== WorkflowHelper::ROLE_JEFATURA || $boss->id === $worker->id) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['jefatura' => 'Debes tener una jefatura activa asignada para enviar la planificación.']);
+            }
             $grants = app(PlanningEligibilityService::class)->assertCanCreate($worker);
             // Calculate now, not at final approval, so an unconfigured calendar does
             // not leave an approved request without a usable expense draft.
@@ -240,13 +237,7 @@ class RoutePlanningController extends Controller
             $planning->lodging_excess_amount = max(0, (float) $planning->funds_alojamiento - 41650 * ($planning->lodging_nights ?? 0));
             $planning->lodging_excess_status = $planning->lodging_excess_amount > 0 ? 'pending' : 'not_required';
 
-            if (auth()->user()->jefatura_id) {
-                $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
-            } else {
-                $planning->status = $planning->trip_type === 'reunion'
-                    ? WorkflowHelper::STATUS_PENDING_FINANCES
-                    : WorkflowHelper::STATUS_PENDING_CONTROLLING;
-            }
+            $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
 
             $planning->save();
 
@@ -295,6 +286,13 @@ class RoutePlanningController extends Controller
                 type: 'planning_worker_signature'
             );
 
+            WorkflowHistory::create([
+                'workflowable_type' => \App\Models\RoutePlanning::class, 'workflowable_id' => $planning->id,
+                'user_id' => $worker->id, 'action' => 'submitted_by_worker',
+                'from_status' => 'draft', 'to_status' => $planning->status,
+                'observation' => 'Solicitud enviada a la jefatura asignada.', 'ip_address' => $request->ip(),
+            ]);
+
             foreach ($grants as $grant) {
                 $grant->update(['used_at' => now()]);
                 WorkflowHistory::create([
@@ -308,35 +306,10 @@ class RoutePlanningController extends Controller
             return $planning;
         });
 
-        if ($planning->user->jefatura) {
-            $planning->user->jefatura->notify(new WorkflowNotification(
-                'Nueva planificación pendiente',
-                'El trabajador ' . $planning->user->name . ' creó una planificación de ruta.',
-                route('renditions.approvals')
-            ));
-        } else {
-            $targetRole = $planning->trip_type === 'reunion'
-                ? WorkflowHelper::ROLE_FINANCES
-                : WorkflowHelper::ROLE_CONTROLLING;
-
-            $users = User::where('role', $targetRole)->get();
-
-            // Evitamos duplicar notificación a Controlling si ya se le enviará la de Auditoría y Validación
-            if ($targetRole !== WorkflowHelper::ROLE_CONTROLLING) {
-                Notification::send($users, new WorkflowNotification(
-                    'Nueva planificación pendiente',
-                    'El trabajador ' . $planning->user->name . ' creó una planificación sin jefatura asignada.',
-                    route('renditions.finances')
-                ));
-            }
-        }
-
-        // Siempre notificar a Controlling de que hay una Auditoría y Validación pendiente
-        $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->get();
-        Notification::send($controllingUsers, new WorkflowNotification(
-            'Auditoría y Validación pendiente',
-            'El trabajador ' . $planning->user->name . ' creó una planificación de ruta. Hay una Auditoría y Validación pendiente por aprobar.',
-            route('renditions.controlling')
+        $planning->user->jefatura->notify(new WorkflowNotification(
+            'Nueva planificación pendiente',
+            'El trabajador ' . $planning->user->name . ' creó una planificación de ruta.',
+            route('renditions.approvals')
         ));
 
         if ($request->has('notification_emails')) {
@@ -380,6 +353,10 @@ class RoutePlanningController extends Controller
             abort(403, 'La planificación no está pendiente de Jefatura.');
         }
 
+        if (!User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['finance' => 'Debe existir una cuenta activa de Finanzas para continuar.']);
+        }
+
         // Firma digital jefatura
 
         $signatureService = new DigitalSignatureService();
@@ -408,63 +385,10 @@ class RoutePlanningController extends Controller
             type: 'jefatura_approval'
         );
 
-        // Workflow segun tipo viaje
-
-        if ($planning->trip_type === 'reunion') {
-
-            $financeExists = \App\Models\User::where('role', WorkflowHelper::ROLE_FINANCES)
-                ->exists();
-
-            if (!$financeExists) {
-
-                return redirect()
-                    ->back()
-                    ->with(
-                        'error',
-                        'No existe ningún usuario con el rol Finanzas.'
-                    );
-            }
-
-            $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
-
-        } else {
-
-            $controllingExists = \App\Models\User::where('role', WorkflowHelper::ROLE_CONTROLLING)
-                ->exists();
-
-            if (!$controllingExists) {
-
-                return redirect()
-                    ->back()
-                    ->with(
-                        'error',
-                        'No existe ningún usuario con el rol Controlling.'
-                    );
-            }
-
-            $planning->status = WorkflowHelper::STATUS_PENDING_CONTROLLING;
-        }
+        // Both trip types pass directly from Jefatura to Finanzas.
+        $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
 
         $planning->save();
-
-        if ($planning->trip_type === 'reunion') {
-            $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->get();
-
-            Notification::send($financeUsers, new WorkflowNotification(
-                'Planificación pendiente en Finanzas',
-                'Una planificación por reunión fue aprobada por jefatura.',
-                route('renditions.finances')
-            ));
-        } else {
-            $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->get();
-
-            Notification::send($controllingUsers, new WorkflowNotification(
-                'Planificación pendiente en Controlling',
-                'Una planificación de terreno fue aprobada por jefatura.',
-                route('renditions.controlling')
-            ));
-        }
-
 
         // Historial workflow
 
@@ -478,6 +402,13 @@ class RoutePlanningController extends Controller
             'observation' => 'Solicitud aprobada por jefatura.',
             'ip_address' => request()->ip(),
         ]);
+
+        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->get();
+        Notification::send($financeUsers, new WorkflowNotification(
+            'Planificación pendiente en Finanzas',
+            'Una planificación fue aprobada por jefatura y requiere revisión de Finanzas.',
+            route('renditions.finances')
+        ));
 
         // respuesta
 
@@ -873,7 +804,7 @@ class RoutePlanningController extends Controller
             'planning' => $planning,
         ])->setPaper('letter', 'portrait');
 
-        return $pdf->download('Planificacion_REQ-' . str_pad($planning->id, 4, '0', STR_PAD_LEFT) . '.pdf');
+        return $pdf->stream('Planificacion_REQ-' . str_pad($planning->id, 4, '0', STR_PAD_LEFT) . '.pdf');
     }
 
     public function lock(\App\Models\RoutePlanning $planning)

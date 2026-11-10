@@ -280,7 +280,7 @@
                     <a href="{{ route('route-plannings.index') }}" wire:navigate
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                         :class="{{ request()->routeIs('route-plannings.index') ? "'text-white bg-gray-800'" : "''" }}">
-                        Mis solicitudes
+                        Solicitudes
                     </a>
                     <a href="{{ route('renditions.index') }}" wire:navigate
                         class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
@@ -298,13 +298,6 @@
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('renditions.approvals') ? "'text-white bg-gray-800'" : "''" }}">
                             Aprobaciones jefatura
-                        </a>
-                    @endif
-                    @if(Auth::user()->role === 'controlling')
-                        <a href="{{ route('renditions.controlling') }}" wire:navigate
-                            class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
-                            :class="{{ request()->routeIs('renditions.controlling') ? "'text-white bg-gray-800'" : "''" }}">
-                            Panel Controlling
                         </a>
                     @endif
                     @if(Auth::user()->role === 'finances')

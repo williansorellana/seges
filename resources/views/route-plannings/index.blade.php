@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1">
             <h2 class="font-black text-2xl text-white leading-tight tracking-tight uppercase">
-                {{ __('Mis Solicitudes de Planificación') }}
+                {{ __('Solicitudes de Planificación') }}
             </h2>
             <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-md border border-blue-500/20">Solicitudes</span>
@@ -270,7 +270,7 @@
                                                 <a href="{{ route('route-plannings.pdf', $plan->id) }}"
                                                 target="_blank"
                                                 class="px-2.5 py-1 inline-flex items-center text-[10px] font-semibold rounded-md bg-rose-600 text-white hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer w-fit">
-                                                    Descargar PDF
+                                                    Ver PDF
                                                 </a>
 
                                                 @if($plan->status === 'approved' && $plan->rendition)

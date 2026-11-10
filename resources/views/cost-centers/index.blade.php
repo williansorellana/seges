@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header"><h2 class="text-xl text-white">Centros de costo y asignaciones</h2></x-slot>
-    <div class="max-w-7xl mx-auto p-6 text-slate-200 space-y-6">
+    <div class="cost-center-manager max-w-7xl mx-auto p-6 text-slate-200 space-y-6">
         @if(session('success'))<p class="text-emerald-300">{{ session('success') }}</p>@endif
         @foreach($errors->all() as $error)<p class="text-rose-300">{{ $error }}</p>@endforeach
         <p>Catálogo inicial: 21 códigos distintos del Excel DIMAK. OPERACIONES se cargó una vez. PERSONAL Y RR.HH. está pendiente porque no se proporcionó su código. No se asignaron personas automáticamente.</p>

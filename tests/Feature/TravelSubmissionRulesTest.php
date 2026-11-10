@@ -102,6 +102,106 @@ class TravelSubmissionRulesTest extends TestCase
             'attachment_path' => 'receipts/test.pdf'], $extra));
     }
 
+    public function test_rejected_rendition_list_and_detail_render_for_owner(): void
+    {
+        $rendition = $this->rendition();
+        $rendition->update(['status' => 'rejected', 'rejection_reason' => 'Faltan comprobantes', 'rejection_count' => 1]);
+        $this->actingAs($this->worker);
+        $this->get(route('renditions.index', ['status' => '', 'year' => '', 'destination' => '']))
+            ->assertOk()->assertSee('Rechazada y cerrada')->assertSee('Ver rechazo');
+        $this->get(route('renditions.show', $rendition))
+            ->assertOk()->assertSee('Faltan comprobantes')->assertSee('Crear nueva rendición del mismo viaje');
+    }
+
+    public function test_planning_and_rendition_go_directly_from_boss_to_finances_for_both_trip_types(): void
+    {
+        $finance = $this->user('finances');
+        $controlling = $this->user('controlling');
+        foreach (['terreno', 'reunion'] as $tripType) {
+            $this->actingAs($this->worker)->post(route('route-plannings.store'), array_merge($this->payload(), [
+                'trip_type' => $tripType, 'start_date' => '2026-10-07', 'end_date' => '2026-10-08',
+            ]))->assertSessionHasNoErrors();
+            $plan = RoutePlanning::latest('id')->firstOrFail();
+            $this->assertSame('pending_jefatura', $plan->status);
+            $this->assertNull($plan->rendition);
+            $this->actingAs($this->boss)->get(route('renditions.approvals'))->assertOk()->assertSee('Ver solicitud')->assertSee('planning-details-'.$plan->id);
+            $this->post(route('route-plannings.approve-jefatura', $plan))->assertSessionHasNoErrors();
+            $this->assertSame('pending_finances', $plan->fresh()->status);
+            $this->assertNull($plan->fresh()->rendition);
+            $this->assertSame('pending_finances', $plan->workflowHistories()->latest('id')->first()->to_status);
+            $this->actingAs($finance)->get(route('renditions.finances'))->assertOk()->assertSee($plan->destination);
+            $this->post(route('route-plannings.approve-finances', $plan))->assertSessionHasNoErrors();
+            $rendition = $plan->fresh()->rendition;
+            $this->assertNotNull($rendition);
+            $this->assertSame('draft', $rendition->status);
+            $this->receipt($rendition, ['date' => '2026-10-08']);
+            $this->actingAs($this->worker)->post(route('renditions.submit', $rendition))->assertSessionHasNoErrors();
+            $this->assertSame('pending_jefatura', $rendition->fresh()->status);
+            $this->actingAs($this->boss)->post(route('renditions.approve-jefatura-rendition', $rendition))->assertSessionHasNoErrors();
+            $this->assertSame('pending_finances', $rendition->fresh()->status);
+            $this->actingAs($finance)->get(route('renditions.finances', ['tab' => 'rendiciones']))->assertOk();
+            $this->post(route('renditions.approve-finances-rendition', $rendition))->assertSessionHasNoErrors();
+            $this->assertSame('approved', $rendition->fresh()->status);
+        }
+        Notification::assertNotSentTo($controlling, \App\Notifications\WorkflowNotification::class);
+        $this->actingAs($controlling)->get(route('renditions.controlling'))->assertRedirect(route('renditions.reports'));
+        $this->post('/planificaciones/'.$plan->id.'/approve-controlling')->assertNotFound();
+        $this->post('/rendiciones/'.$rendition->id.'/approve-controlling')->assertNotFound();
+    }
+
+    public function test_finances_review_receipts_and_cannot_approve_observed_documents(): void
+    {
+        $finance = $this->user('finances');
+        $rendition = $this->rendition(['status' => 'pending_finances']);
+        $this->receipt($rendition);
+        $expense = $rendition->expenses()->firstOrFail();
+        $this->actingAs($this->user('controlling'))->post(route('renditions.expenses.invalidate', $expense), ['rejection_reason' => 'Ilegible'])->assertForbidden();
+        $this->actingAs($finance)->post(route('renditions.expenses.invalidate', $expense), ['rejection_reason' => 'Ilegible'])->assertSessionHasNoErrors();
+        $this->post(route('renditions.approve-finances-rendition', $rendition))->assertSessionHasErrors('expenses');
+        $this->assertSame('pending_finances', $rendition->fresh()->status);
+        $this->post(route('renditions.expenses.validate', $expense))->assertSessionHasNoErrors();
+        $this->post(route('renditions.approve-finances-rendition', $rendition))->assertSessionHasNoErrors();
+        $this->assertSame('approved', $rendition->fresh()->status);
+    }
+
+    public function test_pdf_routes_are_inline_and_keep_access_controls(): void
+    {
+        $rendition = $this->rendition();
+        foreach (['route-plannings.pdf' => $rendition->routePlanning, 'renditions.pdf' => $rendition] as $route => $model) {
+            $response = $this->actingAs($this->worker)->get(route($route, $model))->assertOk();
+            $this->assertStringStartsWith('%PDF', $response->getContent());
+            $this->assertStringStartsWith('inline;', $response->headers->get('Content-Disposition'));
+            $this->actingAs($this->user('worker'))->get(route($route, $model))->assertForbidden();
+        }
+    }
+
+    public function test_legacy_controlling_queue_moves_to_finances_with_audit_history(): void
+    {
+        $rendition = $this->rendition(['status' => 'pending_controlling']);
+        $plan = $rendition->routePlanning;
+        $plan->update(['status' => 'pending_controlling']);
+        $migration = require database_path('migrations/2026_11_09_000001_route_planning_and_rendition_finance_flow.php');
+        $migration->up();
+        $migration->up();
+        $this->assertSame('pending_finances', $plan->fresh()->status);
+        $this->assertSame('pending_finances', $rendition->fresh()->status);
+        $this->assertSame(1, $plan->workflowHistories()->where('action', 'rerouted_to_finances')->count());
+        $this->assertSame(1, $rendition->workflowHistories()->where('action', 'rerouted_to_finances')->count());
+    }
+
+    public function test_smtp_failure_keeps_submission_and_internal_notification(): void
+    {
+        Notification::swap(new \Illuminate\Notifications\ChannelManager($this->app));
+        $mailer = \Mockery::mock(\Illuminate\Contracts\Mail\Mailer::class);
+        $mailer->shouldReceive('send')->once()->andThrow(new \Symfony\Component\Mailer\Exception\TransportException('SMTP unavailable'));
+        $this->mock(\Illuminate\Contracts\Mail\Factory::class)->shouldReceive('mailer')->andReturn($mailer);
+        $this->actingAs($this->worker)->post(route('route-plannings.store'), $this->payload())
+            ->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('mail_warning');
+        $this->assertSame('pending_jefatura', RoutePlanning::firstOrFail()->status);
+        $this->assertSame(1, $this->boss->notifications()->count());
+        $this->assertDatabaseCount('workflow_histories', 1);
+    }
+
     public function test_calendar_excludes_holidays_weekends_and_handles_year_boundary(): void
     {
         $service = app(RenditionDeadlineService::class);
@@ -363,10 +463,10 @@ class TravelSubmissionRulesTest extends TestCase
 
     public function test_all_review_roles_close_rejections_without_correction_window(): void
     {
-        foreach (['controlling' => 'pending_controlling', 'finances' => 'pending_finances'] as $role => $status) {
+        foreach (['jefatura' => 'pending_jefatura', 'finances' => 'pending_finances'] as $role => $status) {
             $rendition = $this->rendition(['status' => $status]);
             $this->receipt($rendition);
-            $reviewer = $this->user($role);
+            $reviewer = $role === 'jefatura' ? $this->boss : $this->user($role);
             $this->actingAs($reviewer)->post(route('renditions.reject-'.$role.'-rendition', $rendition), ['observation' => 'Rechazo definitivo de prueba'])->assertSessionHasNoErrors();
             $this->assertNotNull($rendition->fresh()->closed_at);
             $this->assertSame('Rechazo definitivo de prueba', $rendition->fresh()->rejection_reason);
@@ -376,7 +476,7 @@ class TravelSubmissionRulesTest extends TestCase
 
     public function test_planning_lodging_excess_requires_explicit_assigned_boss_authorization(): void
     {
-        $this->user('controlling');
+        $this->user('finances');
         $payload = array_merge($this->payload(), ['start_date' => '2026-10-10', 'end_date' => '2026-10-11',
             'requires_funds' => 1, 'requested_funds' => 60000, 'funds_alojamiento' => 60000, 'lodging_nights' => 1]);
         $this->actingAs($this->worker)->post(route('route-plannings.store'), $payload)->assertSessionHasNoErrors();
@@ -388,7 +488,7 @@ class TravelSubmissionRulesTest extends TestCase
         $this->actingAs($this->boss)->post(route('route-plannings.authorize-lodging', $plan))->assertSessionHasNoErrors();
         $this->post(route('route-plannings.approve-jefatura', $plan))->assertSessionHasNoErrors();
         $this->assertSame($this->boss->id, $plan->fresh()->lodging_authorized_by);
-        $this->assertSame('pending_controlling', $plan->fresh()->status);
+        $this->assertSame('pending_finances', $plan->fresh()->status);
     }
 
     public function test_lodging_41650_including_tax_and_daily_accumulated_excess(): void
@@ -445,7 +545,8 @@ class TravelSubmissionRulesTest extends TestCase
         }
         $pdf = $this->get(route('renditions.reports.pdf', ['project' => 'Proyecto A']))->assertOk();
         $this->assertStringStartsWith('%PDF', $pdf->getContent());
-        $this->get(route('renditions.reports', ['project' => 'Proyecto A']))->assertOk()->assertSee('Exportar Excel (.xlsx)')->assertSee('Exportar PDF');
+        $this->assertStringStartsWith('inline;', $pdf->headers->get('Content-Disposition'));
+        $this->get(route('renditions.reports', ['project' => 'Proyecto A']))->assertOk()->assertSee('Exportar Excel (.xlsx)')->assertSee('Ver PDF');
         $qa = base_path('../../tmp/alignment-qa');
         if (! is_dir($qa)) {
             mkdir($qa, 0777, true);

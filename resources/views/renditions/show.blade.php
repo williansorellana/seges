@@ -18,8 +18,8 @@
                     $backRoute = route('renditions.finances');
                     $backLabel = 'Volver a Finanzas';
                 } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING) {
-                    $backRoute = route('renditions.controlling');
-                    $backLabel = 'Volver a Controlling';
+                    $backRoute = route('renditions.reports');
+                    $backLabel = 'Volver a reportes';
                 } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_JEFATURA) {
                     $backRoute = route('renditions.approvals');
                     $backLabel = 'Volver a Jefatura';
@@ -98,7 +98,7 @@
             @php
                 $isOwner = $rendition->user_id === auth()->id();
 
-                $isControlling = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING;
+                $isFinanceReviewer = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_FINANCES;
 
                 $canManageExpenses = $isOwner && $rendition->status === 'draft';
                 $boss = $rendition->user->jefatura;
@@ -106,8 +106,8 @@
                     && now()->startOfDay()->gte($rendition->routePlanning->end_date)
                     && $boss && $boss->is_active && $boss->role === 'jefatura' && $boss->id !== $rendition->user_id;
 
-                $canAuditExpenses = $isControlling
-                    && $rendition->status === 'pending_controlling'
+                $canAuditExpenses = $isFinanceReviewer
+                    && $rendition->status === 'pending_finances'
                     && !$isOwner
                     && !($isLocked ?? false);
             @endphp
@@ -318,7 +318,7 @@
                                                                                     Observar Documento
                                                                                 </h3>
                                                                                 <p class="text-[10px] text-rose-400 font-black uppercase tracking-[0.2em] mt-1">
-                                                                                    Revisión Controlling
+                                                                                    Revisión Finanzas
                                                                                 </p>
                                                                             </div>
                                                                         </div>
@@ -1001,6 +1001,9 @@
                                                     'payment_completed_automatically' => 'Cierre financiero automático',
                                                     'expense_validated_by_controlling' => 'Documento validado por Controlling',
                                                     'expense_observed_by_controlling' => 'Documento observado por Controlling',
+                                                    'expense_validated_by_finances' => 'Documento validado por Finanzas',
+                                                    'expense_observed_by_finances' => 'Documento observado por Finanzas',
+                                                    'rerouted_to_finances' => 'Derivada a Finanzas por actualización del flujo',
                                                 ];
 
                                                 $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
