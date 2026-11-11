@@ -506,7 +506,11 @@ class RenditionController extends Controller
     public function controlling()
     {
         if (auth()->user()->role !== WorkflowHelper::ROLE_CONTROLLING) abort(403);
-        return redirect()->route('renditions.reports');
+        $renditions = \App\Models\Rendition::with(['user', 'routePlanning'])
+            ->withCount(['expenses', 'expenses as observed_expenses_count' => fn ($query) => $query->where('is_valid', false)])
+            ->withSum('expenses', 'amount')
+            ->where('status', 'pending_controlling')->orderBy('updated_at')->paginate(10);
+        return view('renditions.controlling-review', compact('renditions'));
     }
 
     public function approveByJefatura(\App\Models\Rendition $rendition)
@@ -530,8 +534,8 @@ class RenditionController extends Controller
             abort(403, 'La rendición no está pendiente de Jefatura.');
         }
 
-        if (!User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->exists()) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['finance' => 'Debe existir una cuenta activa de Finanzas para continuar.']);
+        if (!User::where('role', WorkflowHelper::ROLE_CONTROLLING)->where('is_active', true)->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['controlling' => 'Debe existir una cuenta activa de Controlling para revisar los comprobantes.']);
         }
 
         //Aprobar
@@ -556,7 +560,7 @@ class RenditionController extends Controller
             type: 'rendition_jefatura_signature'
         );
 
-        $rendition->status = 'pending_finances';
+        $rendition->status = 'pending_controlling';
         $rendition->save();
 
         WorkflowHistory::create([
@@ -565,17 +569,17 @@ class RenditionController extends Controller
             'user_id' => $user->id,
             'action' => 'approved_by_jefatura',
             'from_status' => 'pending_jefatura',
-            'to_status' => 'pending_finances',
+            'to_status' => 'pending_controlling',
             'observation' => 'Rendición aprobada por jefatura.',
             'ip_address' => request()->ip(),
         ]);
 
-        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->get();
+        $controllingUsers = User::where('role', WorkflowHelper::ROLE_CONTROLLING)->where('is_active', true)->get();
 
-        Notification::send($financeUsers, new WorkflowNotification(
-            'Rendición pendiente en Finanzas',
-            'Una rendición fue aprobada por jefatura y requiere revisión de Finanzas.',
-            route('renditions.finances')
+        Notification::send($controllingUsers, new WorkflowNotification(
+            'Rendición pendiente en Controlling',
+            'Una rendición fue aprobada por jefatura y requiere revisión de comprobantes por Controlling.',
+            route('renditions.controlling')
         ));
 
         return redirect()->back()->with(
@@ -680,6 +684,10 @@ class RenditionController extends Controller
 
         // aprobar
 
+        if (!User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['finance' => 'Debe existir una cuenta activa de Finanzas para continuar.']);
+        }
+
         $rendition->status = 'pending_finances';
         $rendition->save();
 
@@ -694,7 +702,7 @@ class RenditionController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->get();
+        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->get();
 
         Notification::send($financeUsers, new WorkflowNotification(
             'Rendición pendiente en Finanzas',
@@ -1019,12 +1027,12 @@ class RenditionController extends Controller
             abort(404);
         }
 
-        if ($user->role !== WorkflowHelper::ROLE_FINANCES) {
+        if ($user->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403);
         }
 
-        if ($rendition->status !== 'pending_finances') {
-            abort(403, 'Solo puedes validar documentos cuando la rendición está pendiente de Finanzas.');
+        if ($rendition->status !== 'pending_controlling') {
+            abort(403, 'Solo puedes validar documentos cuando la rendición está pendiente de Controlling.');
         }
 
         if ($rendition->user_id === $user->id && $user->email !== 'test@example.com') {
@@ -1039,10 +1047,10 @@ class RenditionController extends Controller
             'workflowable_type' => \App\Models\Rendition::class,
             'workflowable_id' => $rendition->id,
             'user_id' => $user->id,
-            'action' => 'expense_validated_by_finances',
+            'action' => 'expense_validated_by_controlling',
             'from_status' => $rendition->status,
             'to_status' => $rendition->status,
-            'observation' => 'Documento validado por Finanzas: ' . $expense->provider,
+            'observation' => 'Documento validado por Controlling: ' . $expense->provider,
             'ip_address' => request()->ip(),
         ]);
 
@@ -1061,12 +1069,12 @@ class RenditionController extends Controller
             abort(404);
         }
 
-        if ($user->role !== WorkflowHelper::ROLE_FINANCES) {
+        if ($user->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403);
         }
 
-        if ($rendition->status !== 'pending_finances') {
-            abort(403, 'Solo puedes observar documentos cuando la rendición está pendiente de Finanzas.');
+        if ($rendition->status !== 'pending_controlling') {
+            abort(403, 'Solo puedes observar documentos cuando la rendición está pendiente de Controlling.');
         }
 
         if ($rendition->user_id === $user->id && $user->email !== 'test@example.com') {
@@ -1085,10 +1093,10 @@ class RenditionController extends Controller
             'workflowable_type' => \App\Models\Rendition::class,
             'workflowable_id' => $rendition->id,
             'user_id' => $user->id,
-            'action' => 'expense_observed_by_finances',
+            'action' => 'expense_observed_by_controlling',
             'from_status' => $rendition->status,
             'to_status' => $rendition->status,
-            'observation' => 'Documento observado por Finanzas: ' . $request->rejection_reason,
+            'observation' => 'Documento observado por Controlling: ' . $request->rejection_reason,
             'ip_address' => $request->ip(),
         ]);
 

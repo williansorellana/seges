@@ -113,7 +113,7 @@ class TravelSubmissionRulesTest extends TestCase
             ->assertOk()->assertSee('Faltan comprobantes')->assertSee('Crear nueva rendición del mismo viaje');
     }
 
-    public function test_planning_and_rendition_go_directly_from_boss_to_finances_for_both_trip_types(): void
+    public function test_planning_skips_controlling_but_renditions_require_its_review_for_both_trip_types(): void
     {
         $finance = $this->user('finances');
         $controlling = $this->user('controlling');
@@ -138,29 +138,39 @@ class TravelSubmissionRulesTest extends TestCase
             $this->actingAs($this->worker)->post(route('renditions.submit', $rendition))->assertSessionHasNoErrors();
             $this->assertSame('pending_jefatura', $rendition->fresh()->status);
             $this->actingAs($this->boss)->post(route('renditions.approve-jefatura-rendition', $rendition))->assertSessionHasNoErrors();
+            $this->assertSame('pending_controlling', $rendition->fresh()->status);
+            $this->actingAs($finance)->post(route('renditions.approve-finances-rendition', $rendition))->assertForbidden();
+            $this->actingAs($controlling)->get(route('renditions.controlling'))->assertOk()->assertSee('Revisar comprobantes')->assertDontSee('Auditoría de Requerimientos');
+            $this->get(route('renditions.show', $rendition))->assertOk()->assertSee('Revisión Controlling');
+            $this->post(route('renditions.approve-controlling-rendition', $rendition))->assertSessionHasNoErrors();
             $this->assertSame('pending_finances', $rendition->fresh()->status);
             $this->actingAs($finance)->get(route('renditions.finances', ['tab' => 'rendiciones']))->assertOk();
             $this->post(route('renditions.approve-finances-rendition', $rendition))->assertSessionHasNoErrors();
             $this->assertSame('approved', $rendition->fresh()->status);
         }
-        Notification::assertNotSentTo($controlling, \App\Notifications\WorkflowNotification::class);
-        $this->actingAs($controlling)->get(route('renditions.controlling'))->assertRedirect(route('renditions.reports'));
+        $notices = Notification::sent($controlling, \App\Notifications\WorkflowNotification::class);
+        $this->assertCount(2, $notices);
+        $this->assertTrue($notices->every(fn ($notice) => $notice->title === 'Rendición pendiente en Controlling'));
+        $this->actingAs($controlling)->get(route('renditions.controlling'))->assertOk();
         $this->post('/planificaciones/'.$plan->id.'/approve-controlling')->assertNotFound();
-        $this->post('/rendiciones/'.$rendition->id.'/approve-controlling')->assertNotFound();
     }
 
-    public function test_finances_review_receipts_and_cannot_approve_observed_documents(): void
+    public function test_controlling_reviews_receipts_before_finances_and_blocks_observed_documents(): void
     {
         $finance = $this->user('finances');
-        $rendition = $this->rendition(['status' => 'pending_finances']);
+        $controlling = $this->user('controlling');
+        $rendition = $this->rendition(['status' => 'pending_controlling']);
         $this->receipt($rendition);
         $expense = $rendition->expenses()->firstOrFail();
-        $this->actingAs($this->user('controlling'))->post(route('renditions.expenses.invalidate', $expense), ['rejection_reason' => 'Ilegible'])->assertForbidden();
-        $this->actingAs($finance)->post(route('renditions.expenses.invalidate', $expense), ['rejection_reason' => 'Ilegible'])->assertSessionHasNoErrors();
-        $this->post(route('renditions.approve-finances-rendition', $rendition))->assertSessionHasErrors('expenses');
-        $this->assertSame('pending_finances', $rendition->fresh()->status);
+        $this->actingAs($finance)->post(route('renditions.expenses.invalidate', $expense), ['rejection_reason' => 'Ilegible'])->assertForbidden();
+        $this->actingAs($controlling)->post(route('renditions.expenses.invalidate', $expense), ['rejection_reason' => 'Ilegible'])->assertSessionHasNoErrors();
+        $this->post(route('renditions.approve-controlling-rendition', $rendition))->assertSessionHasErrors('expenses');
+        $this->assertSame('pending_controlling', $rendition->fresh()->status);
         $this->post(route('renditions.expenses.validate', $expense))->assertSessionHasNoErrors();
-        $this->post(route('renditions.approve-finances-rendition', $rendition))->assertSessionHasNoErrors();
+        $this->post(route('renditions.approve-controlling-rendition', $rendition))->assertSessionHasNoErrors();
+        $this->assertSame('pending_finances', $rendition->fresh()->status);
+        $this->post(route('renditions.expenses.invalidate', $expense), ['rejection_reason' => 'Fuera de etapa'])->assertForbidden();
+        $this->actingAs($finance)->post(route('renditions.approve-finances-rendition', $rendition))->assertSessionHasNoErrors();
         $this->assertSame('approved', $rendition->fresh()->status);
     }
 
@@ -187,6 +197,34 @@ class TravelSubmissionRulesTest extends TestCase
         $this->assertSame('pending_finances', $rendition->fresh()->status);
         $this->assertSame(1, $plan->workflowHistories()->where('action', 'rerouted_to_finances')->count());
         $this->assertSame(1, $rendition->workflowHistories()->where('action', 'rerouted_to_finances')->count());
+    }
+
+    public function test_restored_review_migration_preserves_completed_reviews_and_planification_flow(): void
+    {
+        $pending = $this->rendition(['status' => 'pending_finances']);
+        $alreadyReviewed = $this->rendition(['status' => 'pending_finances']);
+        $oldReview = $this->rendition(['status' => 'pending_finances']);
+        $approved = $this->rendition(['status' => 'approved']);
+        $rejected = $this->rendition(['status' => 'rejected']);
+        $pending->routePlanning->update(['status' => 'pending_finances']);
+        foreach ([$alreadyReviewed, $oldReview] as $rendition) {
+            $rendition->workflowHistories()->create([
+                'user_id' => $this->worker->id, 'action' => 'approved_by_controlling',
+                'from_status' => 'pending_controlling', 'to_status' => 'pending_finances',
+            ]);
+        }
+        // An approval from a previous submission cannot replace current review.
+        $oldReview->workflowHistories()->create(['user_id' => $this->boss->id, 'action' => 'approved_by_jefatura', 'to_status' => 'pending_finances']);
+        $migration = require database_path('migrations/2026_11_11_000001_restore_controlling_rendition_review.php');
+        $migration->up();
+        $migration->up();
+        $this->assertSame('pending_controlling', $pending->fresh()->status);
+        $this->assertSame('pending_controlling', $oldReview->fresh()->status);
+        $this->assertSame('pending_finances', $alreadyReviewed->fresh()->status);
+        $this->assertSame('approved', $approved->fresh()->status);
+        $this->assertSame('rejected', $rejected->fresh()->status);
+        $this->assertSame('pending_finances', $pending->routePlanning->fresh()->status);
+        $this->assertSame(1, $pending->workflowHistories()->where('action', 'restored_controlling_review')->count());
     }
 
     public function test_smtp_failure_keeps_submission_and_internal_notification(): void
@@ -463,7 +501,7 @@ class TravelSubmissionRulesTest extends TestCase
 
     public function test_all_review_roles_close_rejections_without_correction_window(): void
     {
-        foreach (['jefatura' => 'pending_jefatura', 'finances' => 'pending_finances'] as $role => $status) {
+        foreach (['jefatura' => 'pending_jefatura', 'controlling' => 'pending_controlling', 'finances' => 'pending_finances'] as $role => $status) {
             $rendition = $this->rendition(['status' => $status]);
             $this->receipt($rendition);
             $reviewer = $role === 'jefatura' ? $this->boss : $this->user($role);

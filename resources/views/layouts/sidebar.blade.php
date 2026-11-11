@@ -301,6 +301,7 @@
                         </a>
                     @endif
                     @if(Auth::user()->role === 'finances')
+                        {{-- Finanzas receives planifications directly and renditions audited by Controlling. --}}
                         <a href="{{ route('renditions.finances') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('renditions.finances') ? "'text-white bg-gray-800'" : "''" }}">
@@ -308,6 +309,9 @@
                         </a>
                     @endif
                     @if(in_array(Auth::user()->role, ['worker', 'jefatura', 'controlling', 'finances']))
+                        @if(Auth::user()->role === 'controlling')
+                            <a href="{{ route('renditions.controlling') }}" wire:navigate class="block pl-11 py-2 text-sm text-gray-400 hover:text-white">Revisión de rendiciones</a>
+                        @endif
                         <a href="{{ route('renditions.history') }}" wire:navigate
                             class="flex items-center pl-11 pr-2 py-2 text-sm text-gray-400 rounded-md hover:text-white hover:bg-gray-800"
                             :class="{{ request()->routeIs('renditions.history') ? "'text-white bg-gray-800'" : "''" }}">

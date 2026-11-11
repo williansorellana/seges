@@ -18,8 +18,8 @@
                     $backRoute = route('renditions.finances');
                     $backLabel = 'Volver a Finanzas';
                 } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING) {
-                    $backRoute = route('renditions.reports');
-                    $backLabel = 'Volver a reportes';
+                    $backRoute = route('renditions.controlling');
+                    $backLabel = 'Volver a Controlling';
                 } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_JEFATURA) {
                     $backRoute = route('renditions.approvals');
                     $backLabel = 'Volver a Jefatura';
@@ -98,7 +98,7 @@
             @php
                 $isOwner = $rendition->user_id === auth()->id();
 
-                $isFinanceReviewer = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_FINANCES;
+                $isControllingReviewer = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING;
 
                 $canManageExpenses = $isOwner && $rendition->status === 'draft';
                 $boss = $rendition->user->jefatura;
@@ -106,8 +106,8 @@
                     && now()->startOfDay()->gte($rendition->routePlanning->end_date)
                     && $boss && $boss->is_active && $boss->role === 'jefatura' && $boss->id !== $rendition->user_id;
 
-                $canAuditExpenses = $isFinanceReviewer
-                    && $rendition->status === 'pending_finances'
+                $canAuditExpenses = $isControllingReviewer
+                    && $rendition->status === 'pending_controlling'
                     && !$isOwner
                     && !($isLocked ?? false);
             @endphp
@@ -318,7 +318,7 @@
                                                                                     Observar Documento
                                                                                 </h3>
                                                                                 <p class="text-[10px] text-rose-400 font-black uppercase tracking-[0.2em] mt-1">
-                                                                                    Revisión Finanzas
+                                                                                    Revisión Controlling
                                                                                 </p>
                                                                             </div>
                                                                         </div>
