@@ -119,6 +119,7 @@
  
                                         <!-- Detalles Viaje -->
                                         <td class="px-6 py-5">
+                                            @include('route-plannings.lodging-budget')
                                             <div class="text-sm font-semibold text-white mb-1 tracking-tight truncate max-w-xs">
                                                 {{ $plan->destination }} 
                                                 <span class="text-xs text-slate-500 font-normal">({{ ucfirst($plan->trip_type) }})</span>
@@ -175,10 +176,17 @@
                                         <td class="px-6 py-5 text-center" x-data="{ showReject: false }">
                                             <div class="flex items-center justify-center gap-3 relative">
                                                 <div x-show="!showReject" class="flex gap-2 transition-all">
+                                                    <button type="button"
+                                                        @click.stop="activePlanning = activePlanning === {{ $plan->id }} ? null : {{ $plan->id }}"
+                                                        :aria-expanded="activePlanning === {{ $plan->id }}"
+                                                        aria-controls="planning-details-{{ $plan->id }}"
+                                                        class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500 cursor-pointer">
+                                                        <span x-text="activePlanning === {{ $plan->id }} ? 'Ocultar solicitud' : 'Ver solicitud'">Ver solicitud</span>
+                                                    </button>
                                                     <a href="{{ route('route-plannings.pdf', $plan->id) }}"
                                                         target="_blank"
                                                         class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5 cursor-pointer"
-                                                        title="Descargar PDF">
+                                                        title="Ver PDF">
                                                         PDF
                                                     </a>
 
@@ -210,7 +218,7 @@
                                     </tr>
 
                                     <!-- Fila Desplegable -->
-                                    <tr x-show="activePlanning === {{ $plan->id }}" x-cloak x-transition class="bg-slate-900/40">
+                                    <tr id="planning-details-{{ $plan->id }}" x-show="activePlanning === {{ $plan->id }}" x-cloak x-transition class="bg-slate-900/40">
                                         <td colspan="4" class="px-8 pt-6 pb-10 border-b border-slate-700/40">
                                             
                                             <!-- Grid 2 Columnas -->

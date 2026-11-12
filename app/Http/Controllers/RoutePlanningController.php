@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
 use App\Services\AmipassCalculatorService;
 use App\Notifications\TravelNotification;
+use App\Models\RutCostCenter;
+use App\Services\RenditionDeadlineService;
+use App\Services\PlanningEligibilityService;
+use App\Models\PlanningException;
 
 class RoutePlanningController extends Controller
 {
@@ -40,21 +44,9 @@ class RoutePlanningController extends Controller
                 });
         }
 
-        // controlling
-
-        elseif (
-            auth()->user()->departamento === WorkflowHelper::DEPARTMENT_CONTROLLING
-            || auth()->user()->role === WorkflowHelper::ROLE_ADMIN
-        ) {
-
-            $query->where('status', WorkflowHelper::STATUS_PENDING_CONTROLLING);
-        }
-
         // finanzas
 
-        elseif (
-            auth()->user()->departamento === WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        elseif (auth()->user()->role === WorkflowHelper::ROLE_FINANCES) {
 
             $query->where('status', WorkflowHelper::STATUS_PENDING_FINANCES);
         }
@@ -63,7 +55,17 @@ class RoutePlanningController extends Controller
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
 
-        return view('route-plannings.index', compact('plannings'));
+        $eligibility = app(PlanningEligibilityService::class);
+        $overdueRenditions = $eligibility->overdue(auth()->user());
+        $dailyCount = $eligibility->dailyCount(auth()->user());
+        $exceptions = PlanningException::with('user', 'decider')->whereDate('valid_on', now()->toDateString())
+            ->where(function ($query) {
+                $query->where('user_id', auth()->id());
+                if (auth()->user()->role === 'jefatura') {
+                    $query->orWhereHas('user', fn ($users) => $users->where('jefatura_id', auth()->id()));
+                }
+            })->get();
+        return view('route-plannings.index', compact('plannings', 'overdueRenditions', 'dailyCount', 'exceptions'));
     }
 
     public function create()
@@ -79,8 +81,14 @@ class RoutePlanningController extends Controller
             'destination' => 'required|string|max:255',
             'region' => 'nullable|string|max:255',
             'companions' => 'nullable|string|max:500',
+            'companions_data' => 'nullable|array|max:20',
+            'companions_data.*.name' => 'required_with:companions_data|string|max:255',
+            'companions_data.*.rut' => 'required_with:companions_data|string|max:20',
+            'companions_data.*.receives_amipass' => 'nullable|boolean',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'project' => 'nullable|string|max:255',
+            'section' => 'nullable|string|max:255',
 
             'requires_funds' => 'nullable|boolean',
             'requested_funds' => 'nullable|numeric|min:0|required_if:requires_funds,1',
@@ -88,6 +96,7 @@ class RoutePlanningController extends Controller
             'funds_peaje' => 'nullable|numeric|min:0',
             'funds_bencina' => 'nullable|numeric|min:0',
             'funds_alojamiento' => 'nullable|numeric|min:0',
+            'lodging_nights' => 'nullable|integer|min:1|max:366',
             'funds_alimentacion' => 'nullable|numeric|min:0',
             'funds_otros' => 'nullable|numeric|min:0',
             'funds_description' => 'nullable|string|max:1000',
@@ -97,153 +106,210 @@ class RoutePlanningController extends Controller
             'requires_amipass' => 'nullable|boolean',
             'amipass_start_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',
             'amipass_end_time' => 'nullable|required_if:requires_amipass,1|date_format:H:i',
-            'amipass_ruts' => 'nullable|required_if:requires_amipass,1|array',
-            'amipass_ruts.*' => 'nullable|required_if:requires_amipass,1|string|max:20',
+            'amipass_ruts' => 'nullable|array',
+            'amipass_ruts.*' => 'nullable|string|max:20',
+            'includes_breakfast' => 'nullable|boolean',
+            'excluded_lunches' => 'nullable|integer|min:0|max:366',
+            'excluded_dinners' => 'nullable|integer|min:0|max:366',
+            'amipass_rate_type' => 'nullable|in:venta,otros',
         ]);
 
-        $planning = new \App\Models\RoutePlanning();
+        $planning = DB::transaction(function () use ($request, $validated) {
+            $worker = User::whereKey(auth()->id())->lockForUpdate()->firstOrFail();
+            $boss = $worker->jefatura;
+            if (!$boss || !$boss->is_active || $boss->role !== WorkflowHelper::ROLE_JEFATURA || $boss->id === $worker->id) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['jefatura' => 'Debes tener una jefatura activa asignada para enviar la planificación.']);
+            }
+            $grants = app(PlanningEligibilityService::class)->assertCanCreate($worker);
+            // Calculate now, not at final approval, so an unconfigured calendar does
+            // not leave an approved request without a usable expense draft.
+            app(RenditionDeadlineService::class)->deadlineFor($validated['end_date']);
+            $planning = new \App\Models\RoutePlanning();
+            $planning->requested_on = now('America/Santiago')->toDateString();
 
-        $planning->user_id = auth()->id();
-        $planning->trip_type = $validated['trip_type'];
-        $planning->motive = $validated['motive'];
-        $planning->destination = $validated['destination'];
-        $planning->region = $validated['region'] ?? null;
-        $planning->companions = $validated['companions'] ?? null;
-        $planning->start_date = $validated['start_date'];
-        $planning->end_date = $validated['end_date'];
+            $planning->user_id = auth()->id();
+            $planning->trip_type = $validated['trip_type'];
+            $planning->motive = $validated['motive'];
+            $planning->destination = $validated['destination'];
+            $planning->region = $validated['region'] ?? null;
+            $companions = collect($validated['companions_data'] ?? [])
+                ->filter(fn ($companion) => !empty($companion['name']) || !empty($companion['rut']))
+                ->values();
+            $planning->companions = $companions->isNotEmpty()
+                ? $companions->pluck('name')->implode(', ')
+                : ($validated['companions'] ?? null);
+            $planning->start_date = $validated['start_date'];
+            $planning->end_date = $validated['end_date'];
+            $planning->project = $validated['project'] ?? null;
+            $planning->section = $validated['section'] ?? auth()->user()->departamento;
 
-        if ($request->filled('destinations')) {
-            $planning->destinations = json_decode($request->input('destinations'), true);
-        } else {
-            $planning->destinations = null;
-        }
+            $normalizedRut = preg_replace('/[^0-9K]/', '', strtoupper((string) auth()->user()->rut));
+            $costCenter = RutCostCenter::with('center')->where('is_active', true)->get()->first(function ($item) use ($normalizedRut) {
+                return $normalizedRut !== '' && ($item->user_id === auth()->id() || preg_replace('/[^0-9K]/', '', strtoupper($item->rut)) === $normalizedRut);
+            });
+            $planning->cost_center = $costCenter?->center?->is_active ? $costCenter->center->code : null;
 
-        $planning->requires_funds = $request->has('requires_funds');
-        if ($planning->requires_funds) {
-            $planning->funds_peaje = $request->input('funds_peaje') ?: 0;
-            $planning->funds_bencina = $request->input('funds_bencina') ?: 0;
-            $planning->funds_alojamiento = $request->input('funds_alojamiento') ?: 0;
-            $planning->funds_alimentacion = $request->input('funds_alimentacion') ?: 0;
-            $planning->funds_otros = $request->input('funds_otros') ?: 0;
-            $planning->funds_description = $request->input('funds_description');
-            $planning->requested_funds = $planning->funds_peaje + $planning->funds_bencina + $planning->funds_alojamiento + $planning->funds_alimentacion + $planning->funds_otros;
-        } else {
-            $planning->funds_peaje = null;
-            $planning->funds_bencina = null;
-            $planning->funds_alojamiento = null;
-            $planning->funds_alimentacion = null;
-            $planning->funds_otros = null;
-            $planning->funds_description = null;
-            $planning->requested_funds = null;
-        }
+            if ($request->filled('destinations')) {
+                $planning->destinations = json_decode($request->input('destinations'), true);
+            } else {
+                $planning->destinations = null;
+            }
 
-        $planning->requires_amipass = $request->has('requires_amipass');
+            $planning->requires_funds = $request->has('requires_funds');
+            if ($planning->requires_funds) {
+                $planning->funds_peaje = $request->input('funds_peaje') ?: 0;
+                $planning->funds_bencina = $request->input('funds_bencina') ?: 0;
+                $planning->funds_alojamiento = $request->input('funds_alojamiento') ?: 0;
+                // La comida se solicita como fondo solamente para reuniones.
+                $planning->funds_alimentacion = $planning->trip_type === 'reunion'
+                    ? ($request->input('funds_alimentacion') ?: 0)
+                    : 0;
+                $planning->funds_otros = $request->input('funds_otros') ?: 0;
+                $planning->funds_description = $request->input('funds_description');
+                $planning->requested_funds = $planning->funds_peaje + $planning->funds_bencina + $planning->funds_alojamiento + $planning->funds_alimentacion + $planning->funds_otros;
+            } else {
+                $planning->funds_peaje = null;
+                $planning->funds_bencina = null;
+                $planning->funds_alojamiento = null;
+                $planning->funds_alimentacion = null;
+                $planning->funds_otros = null;
+                $planning->funds_description = null;
+                $planning->requested_funds = null;
+            }
 
-        if ($request->has('requires_amipass')) {
-            $amipassCalculator = new AmipassCalculatorService();
+            // Una reunión extra puede solicitar fondo de alimentación; una salida a ruta
+            // usa Amipass y nunca permite rendir la categoría comida.
+            $planning->requires_amipass = $planning->trip_type === 'terreno' && $request->has('requires_amipass');
 
-            $amipassResult = $amipassCalculator->calculate(
-                $validated['start_date'],
-                $validated['end_date'],
-                $validated['amipass_start_time'],
-                $validated['amipass_end_time']
+            if ($planning->requires_amipass) {
+                $amipassCalculator = new AmipassCalculatorService();
+                $amipassCompanions = $companions->filter(fn ($companion) => !empty($companion['receives_amipass']));
+
+                $amipassResult = $amipassCalculator->calculate(
+                    $validated['start_date'],
+                    $validated['end_date'],
+                    $validated['amipass_start_time'],
+                    $validated['amipass_end_time'],
+                    $validated['amipass_rate_type'] ?? 'otros',
+                    $request->boolean('includes_breakfast'),
+                    (int) ($validated['excluded_lunches'] ?? 0),
+                    (int) ($validated['excluded_dinners'] ?? 0),
+                    1 + $amipassCompanions->count(),
+                );
+
+                $planning->amipass_days = $amipassResult['business_days'];
+                $planning->amipass_business_days = $amipassResult['business_days'];
+                $planning->amipass_amount = $amipassResult['amount'];
+                $planning->amipass_per_person_amount = $amipassResult['per_person_amount'];
+                $planning->amipass_start_time = $validated['amipass_start_time'];
+                $planning->amipass_end_time = $validated['amipass_end_time'];
+                $planning->includes_breakfast = $request->boolean('includes_breakfast');
+                $planning->excluded_lunches = (int) ($validated['excluded_lunches'] ?? 0);
+                $planning->excluded_dinners = (int) ($validated['excluded_dinners'] ?? 0);
+                $planning->amipass_rate_type = $validated['amipass_rate_type'] ?? 'otros';
+                $planning->usual_zone = null;
+                $planning->extraordinary_zone = $validated['destination'];
+                $planning->amipass_ruts = array_values(array_filter([
+                    auth()->user()->rut,
+                    ...$amipassCompanions->pluck('rut')->all(),
+                ]));
+            } else {
+                $planning->amipass_days = null;
+                $planning->amipass_business_days = 0;
+                $planning->amipass_amount = 0;
+                $planning->amipass_per_person_amount = 0;
+                $planning->amipass_start_time = null;
+                $planning->amipass_end_time = null;
+                $planning->usual_zone = null;
+                $planning->extraordinary_zone = null;
+                $planning->amipass_ruts = null;
+                $planning->includes_breakfast = false;
+                $planning->excluded_lunches = 0;
+                $planning->excluded_dinners = 0;
+                $planning->amipass_rate_type = null;
+            }
+
+            $maxNights = max(1, (int) $planning->start_date->diffInDays($planning->end_date));
+            $planning->lodging_nights = $planning->funds_alojamiento > 0 ? (int) ($validated['lodging_nights'] ?? $maxNights) : null;
+            if ($planning->lodging_nights > $maxNights) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['lodging_nights' => 'Las noches de alojamiento no pueden superar la duración de la ruta.']);
+            }
+            $planning->lodging_excess_amount = max(0, (float) $planning->funds_alojamiento - 41650 * ($planning->lodging_nights ?? 0));
+            $planning->lodging_excess_status = $planning->lodging_excess_amount > 0 ? 'pending' : 'not_required';
+
+            $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
+
+            $planning->save();
+
+            foreach ($companions as $companion) {
+                $planning->companions()->create([
+                    'name' => $companion['name'],
+                    'rut' => $companion['rut'],
+                    'receives_amipass' => !empty($companion['receives_amipass']),
+                ]);
+            }
+
+            $signatureService = new DigitalSignatureService();
+
+            $signatureService->sign(
+                model: $planning,
+                user: auth()->user(),
+                snapshot: [
+                    'planning_id' => $planning->id,
+                    'worker_name' => auth()->user()->name,
+                    'worker_rut' => auth()->user()->rut ?? null,
+                    'trip_type' => $planning->trip_type,
+                    'motive' => $planning->motive,
+                    'destination' => $planning->destination,
+                    'destinations' => $planning->destinations,
+                    'start_date' => $planning->start_date,
+                    'end_date' => $planning->end_date,
+                    'requires_funds' => $planning->requires_funds,
+                    'requested_funds' => $planning->requested_funds,
+                    'funds_peaje' => $planning->funds_peaje,
+                    'funds_bencina' => $planning->funds_bencina,
+                    'funds_alojamiento' => $planning->funds_alojamiento,
+                    'funds_alimentacion' => $planning->funds_alimentacion,
+                    'funds_otros' => $planning->funds_otros,
+                    'funds_description' => $planning->funds_description,
+                    'requires_amipass' => $planning->requires_amipass,
+                    'amipass_days' => $planning->amipass_days,
+                    'amipass_business_days' => $planning->amipass_business_days,
+                    'amipass_amount' => $planning->amipass_amount,
+                    'amipass_start_time' => $planning->amipass_start_time,
+                    'amipass_end_time' => $planning->amipass_end_time,
+                    'amipass_ruts' => $planning->amipass_ruts,
+                    'usual_zone' => $planning->usual_zone,
+                    'extraordinary_zone' => $planning->extraordinary_zone,
+                    'signed_at' => now()->toDateTimeString(),
+                ],
+                type: 'planning_worker_signature'
             );
 
-            $planning->amipass_days = $amipassResult['business_days'];
-            $planning->amipass_business_days = $amipassResult['business_days'];
-            $planning->amipass_amount = $amipassResult['amount'];
-            $planning->amipass_start_time = $validated['amipass_start_time'];
-            $planning->amipass_end_time = $validated['amipass_end_time'];
-            $planning->usual_zone = null;
-            $planning->extraordinary_zone = $validated['destination'];
-            $planning->amipass_ruts = array_values(array_filter($request->input('amipass_ruts', [])));
-        } else {
-            $planning->amipass_days = null;
-            $planning->amipass_business_days = 0;
-            $planning->amipass_amount = 0;
-            $planning->amipass_start_time = null;
-            $planning->amipass_end_time = null;
-            $planning->usual_zone = null;
-            $planning->extraordinary_zone = null;
-            $planning->amipass_ruts = null;
-        }
+            WorkflowHistory::create([
+                'workflowable_type' => \App\Models\RoutePlanning::class, 'workflowable_id' => $planning->id,
+                'user_id' => $worker->id, 'action' => 'submitted_by_worker',
+                'from_status' => 'draft', 'to_status' => $planning->status,
+                'observation' => 'Solicitud enviada a la jefatura asignada.', 'ip_address' => $request->ip(),
+            ]);
 
-        if (auth()->user()->jefatura_id) {
-            $planning->status = WorkflowHelper::STATUS_PENDING_JEFATURA;
-        } else {
-            $planning->status = $planning->trip_type === 'reunion'
-                ? WorkflowHelper::STATUS_PENDING_FINANCES
-                : WorkflowHelper::STATUS_PENDING_CONTROLLING;
-        }
-
-        $planning->save();
-
-        $signatureService = new DigitalSignatureService();
-
-        $signatureService->sign(
-            model: $planning,
-            user: auth()->user(),
-            snapshot: [
-                'planning_id' => $planning->id,
-                'worker_name' => auth()->user()->name,
-                'worker_rut' => auth()->user()->rut ?? null,
-                'trip_type' => $planning->trip_type,
-                'motive' => $planning->motive,
-                'destination' => $planning->destination,
-                'destinations' => $planning->destinations,
-                'start_date' => $planning->start_date,
-                'end_date' => $planning->end_date,
-                'requires_funds' => $planning->requires_funds,
-                'requested_funds' => $planning->requested_funds,
-                'funds_peaje' => $planning->funds_peaje,
-                'funds_bencina' => $planning->funds_bencina,
-                'funds_alojamiento' => $planning->funds_alojamiento,
-                'funds_alimentacion' => $planning->funds_alimentacion,
-                'funds_otros' => $planning->funds_otros,
-                'funds_description' => $planning->funds_description,
-                'requires_amipass' => $planning->requires_amipass,
-                'amipass_days' => $planning->amipass_days,
-                'amipass_business_days' => $planning->amipass_business_days,
-                'amipass_amount' => $planning->amipass_amount,
-                'amipass_start_time' => $planning->amipass_start_time,
-                'amipass_end_time' => $planning->amipass_end_time,
-                'amipass_ruts' => $planning->amipass_ruts,
-                'usual_zone' => $planning->usual_zone,
-                'extraordinary_zone' => $planning->extraordinary_zone,
-                'signed_at' => now()->toDateTimeString(),
-            ],
-            type: 'planning_worker_signature'
-        );
-
-        if ($planning->user->jefatura) {
-            $planning->user->jefatura->notify(new WorkflowNotification(
-                'Nueva planificación pendiente',
-                'El trabajador ' . $planning->user->name . ' creó una planificación de ruta.',
-                route('renditions.approvals')
-            ));
-        } else {
-            $targetDepartment = $planning->trip_type === 'reunion'
-                ? WorkflowHelper::DEPARTMENT_FINANCES
-                : WorkflowHelper::DEPARTMENT_CONTROLLING;
-
-            $users = User::where('departamento', $targetDepartment)->get();
-
-            // Evitamos duplicar notificación a Controlling si ya se le enviará la de Auditoría y Validación
-            if ($targetDepartment !== WorkflowHelper::DEPARTMENT_CONTROLLING) {
-                Notification::send($users, new WorkflowNotification(
-                    'Nueva planificación pendiente',
-                    'El trabajador ' . $planning->user->name . ' creó una planificación sin jefatura asignada.',
-                    route('renditions.finances')
-                ));
+            foreach ($grants as $grant) {
+                $grant->update(['used_at' => now()]);
+                WorkflowHistory::create([
+                    'workflowable_type' => \App\Models\RoutePlanning::class, 'workflowable_id' => $planning->id,
+                    'user_id' => auth()->id(), 'action' => 'planning_exception_used',
+                    'from_status' => $planning->status, 'to_status' => $planning->status,
+                    'observation' => 'Excepción #' . $grant->id . ': ' . $grant->type . '. Autorizada por usuario #' . $grant->decided_by . ': ' . $grant->decision_reason,
+                    'ip_address' => request()->ip(),
+                ]);
             }
-        }
+            return $planning;
+        });
 
-        // Siempre notificar a Controlling de que hay una Auditoría y Validación pendiente
-        $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
-        Notification::send($controllingUsers, new WorkflowNotification(
-            'Auditoría y Validación pendiente',
-            'El trabajador ' . $planning->user->name . ' creó una planificación de ruta. Hay una Auditoría y Validación pendiente por aprobar.',
-            route('renditions.controlling')
+        $planning->user->jefatura->notify(new WorkflowNotification(
+            'Nueva planificación pendiente',
+            'El trabajador ' . $planning->user->name . ' creó una planificación de ruta.',
+            route('renditions.approvals')
         ));
 
         if ($request->has('notification_emails')) {
@@ -269,11 +335,12 @@ class RoutePlanningController extends Controller
 
     public function approveByJefatura(\App\Models\RoutePlanning $planning)
     {
+        app(\App\Services\LodgingBudgetService::class)->assertAuthorized($planning);
         // Validación autorización
 
         if (
             $planning->user->jefatura_id !== auth()->id()
-            && auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            || auth()->user()->role !== WorkflowHelper::ROLE_JEFATURA
         ) {
             abort(403, 'No autorizado.');
         }
@@ -284,6 +351,10 @@ class RoutePlanningController extends Controller
 
         if ($planning->status !== WorkflowHelper::STATUS_PENDING_JEFATURA) {
             abort(403, 'La planificación no está pendiente de Jefatura.');
+        }
+
+        if (!User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['finance' => 'Debe existir una cuenta activa de Finanzas para continuar.']);
         }
 
         // Firma digital jefatura
@@ -314,63 +385,10 @@ class RoutePlanningController extends Controller
             type: 'jefatura_approval'
         );
 
-        // Workflow segun tipo viaje
-
-        if ($planning->trip_type === 'reunion') {
-
-            $financeExists = \App\Models\User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)
-                ->exists();
-
-            if (!$financeExists) {
-
-                return redirect()
-                    ->back()
-                    ->with(
-                        'error',
-                        'No existe ningún usuario perteneciente al departamento Finanzas.'
-                    );
-            }
-
-            $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
-
-        } else {
-
-            $controllingExists = \App\Models\User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)
-                ->exists();
-
-            if (!$controllingExists) {
-
-                return redirect()
-                    ->back()
-                    ->with(
-                        'error',
-                        'No existe ningún usuario perteneciente al departamento Controlling.'
-                    );
-            }
-
-            $planning->status = WorkflowHelper::STATUS_PENDING_CONTROLLING;
-        }
+        // Both trip types pass directly from Jefatura to Finanzas.
+        $planning->status = WorkflowHelper::STATUS_PENDING_FINANCES;
 
         $planning->save();
-
-        if ($planning->trip_type === 'reunion') {
-            $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
-
-            Notification::send($financeUsers, new WorkflowNotification(
-                'Planificación pendiente en Finanzas',
-                'Una planificación por reunión fue aprobada por jefatura.',
-                route('renditions.finances')
-            ));
-        } else {
-            $controllingUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_CONTROLLING)->get();
-
-            Notification::send($controllingUsers, new WorkflowNotification(
-                'Planificación pendiente en Controlling',
-                'Una planificación de terreno fue aprobada por jefatura.',
-                route('renditions.controlling')
-            ));
-        }
-
 
         // Historial workflow
 
@@ -384,6 +402,13 @@ class RoutePlanningController extends Controller
             'observation' => 'Solicitud aprobada por jefatura.',
             'ip_address' => request()->ip(),
         ]);
+
+        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->where('is_active', true)->get();
+        Notification::send($financeUsers, new WorkflowNotification(
+            'Planificación pendiente en Finanzas',
+            'Una planificación fue aprobada por jefatura y requiere revisión de Finanzas.',
+            route('renditions.finances')
+        ));
 
         // respuesta
 
@@ -407,8 +432,8 @@ class RoutePlanningController extends Controller
 
         if (
             $planning->user->jefatura_id !== auth()->id()
-            &&
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
+            ||
+            auth()->user()->role !== WorkflowHelper::ROLE_JEFATURA
         ) {
             abort(403, 'No autorizado.');
         }
@@ -467,11 +492,8 @@ class RoutePlanningController extends Controller
 
     public function approveByControlling(\App\Models\RoutePlanning $planning)
     {
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        app(\App\Services\LodgingBudgetService::class)->assertAuthorized($planning);
+        if (auth()->user()->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403, 'No autorizado.');
         }
 
@@ -497,7 +519,7 @@ class RoutePlanningController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        $financeUsers = User::where('departamento', WorkflowHelper::DEPARTMENT_FINANCES)->get();
+        $financeUsers = User::where('role', WorkflowHelper::ROLE_FINANCES)->get();
 
         Notification::send($financeUsers, new WorkflowNotification(
             'Planificación pendiente en Finanzas',
@@ -517,11 +539,7 @@ class RoutePlanningController extends Controller
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_CONTROLLING
-        ) {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_CONTROLLING) {
             abort(403, 'No autorizado.');
         }
 
@@ -570,11 +588,8 @@ class RoutePlanningController extends Controller
 
     public function approveByFinances(\App\Models\RoutePlanning $planning)
     {
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        app(\App\Services\LodgingBudgetService::class)->assertAuthorized($planning);
+        if (auth()->user()->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403, 'No autorizado.');
         }
 
@@ -641,6 +656,7 @@ class RoutePlanningController extends Controller
                     'route_planning_id' => $planning->id,
                     'user_id' => $planning->user_id,
                     'funds_received' => $fundsReceived,
+                    'deadline_at' => app(RenditionDeadlineService::class)->deadlineFor($planning->end_date),
                     'status' => WorkflowHelper::STATUS_DRAFT,
                 ]);
             } elseif ($rendition->status === WorkflowHelper::STATUS_DRAFT) {
@@ -658,15 +674,25 @@ class RoutePlanningController extends Controller
         return redirect()->back()->with('success', 'Fondos liberados. Solicitud aprobada y firmada digitalmente.');
     }
 
+    public function authorizeLodging(\App\Models\RoutePlanning $planning)
+    {
+        abort_unless(auth()->user()->role === 'jefatura' && $planning->user->jefatura_id === auth()->id()
+            && $planning->user_id !== auth()->id(), 403);
+        abort_unless(in_array($planning->status, ['pending_jefatura', 'pending_controlling', 'pending_finances'])
+            && $planning->lodging_excess_status === 'pending', 422);
+        $planning->update(['lodging_excess_status' => 'approved', 'lodging_authorized_by' => auth()->id(), 'lodging_authorized_at' => now()]);
+        WorkflowHistory::create(['workflowable_type' => \App\Models\RoutePlanning::class, 'workflowable_id' => $planning->id,
+            'user_id' => auth()->id(), 'action' => 'lodging_budget_excess_approved', 'from_status' => $planning->status,
+            'to_status' => $planning->status, 'observation' => 'Jefatura autoriza adicional de alojamiento con IVA por $' . number_format($planning->lodging_excess_amount, 0, ',', '.'),
+            'ip_address' => request()->ip()]);
+        return back()->with('success', 'Adicional de alojamiento autorizado expresamente por jefatura.');
+    }
+
     public function rejectByFinances(Request $request, \App\Models\RoutePlanning $planning)
     {
         $request->validate(['observation' => 'required|string|max:500']);
 
-        if (
-            auth()->user()->role !== WorkflowHelper::ROLE_ADMIN
-            &&
-            auth()->user()->departamento !== WorkflowHelper::DEPARTMENT_FINANCES
-        ) {
+        if (auth()->user()->role !== WorkflowHelper::ROLE_FINANCES) {
             abort(403, 'No autorizado.');
         }
 
@@ -721,9 +747,9 @@ class RoutePlanningController extends Controller
             $user->role !== WorkflowHelper::ROLE_ADMIN
             && $planning->user_id !== $user->id
             && $planning->user->jefatura_id !== $user->id
-            && !in_array($user->departamento, [
-                WorkflowHelper::DEPARTMENT_CONTROLLING,
-                WorkflowHelper::DEPARTMENT_FINANCES,
+            && !in_array($user->role, [
+                WorkflowHelper::ROLE_CONTROLLING,
+                WorkflowHelper::ROLE_FINANCES,
             ])
         ) {
             abort(403, 'No autorizado.');
@@ -764,9 +790,9 @@ class RoutePlanningController extends Controller
             $user->role !== WorkflowHelper::ROLE_ADMIN
             && $planning->user_id !== $user->id
             && $planning->user->jefatura_id !== $user->id
-            && !in_array($user->departamento, [
-                WorkflowHelper::DEPARTMENT_CONTROLLING,
-                WorkflowHelper::DEPARTMENT_FINANCES,
+            && !in_array($user->role, [
+                WorkflowHelper::ROLE_CONTROLLING,
+                WorkflowHelper::ROLE_FINANCES,
             ])
         ) {
             abort(403, 'No authorized.');
@@ -778,7 +804,7 @@ class RoutePlanningController extends Controller
             'planning' => $planning,
         ])->setPaper('letter', 'portrait');
 
-        return $pdf->download('Planificacion_REQ-' . str_pad($planning->id, 4, '0', STR_PAD_LEFT) . '.pdf');
+        return $pdf->stream('Planificacion_REQ-' . str_pad($planning->id, 4, '0', STR_PAD_LEFT) . '.pdf');
     }
 
     public function lock(\App\Models\RoutePlanning $planning)

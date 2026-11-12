@@ -4,6 +4,13 @@ namespace App\Helpers;
 
 class WorkflowHelper
 {
+    public static function statusLabel(string $status): string
+    {
+        return ['draft' => 'Borrador', 'pending_jefatura' => 'Pendiente de Jefatura',
+            'pending_controlling' => 'Pendiente de Controlling', 'pending_finances' => 'Pendiente de Finanzas',
+            'approved' => 'Aprobada', 'rejected' => 'Rechazada y cerrada', 'closed' => 'Cerrada',
+            'sin_rendicion' => 'Sin rendición'][$status] ?? $status;
+    }
     /*
     |--------------------------------------------------------------------------
     | Departamentos
@@ -39,4 +46,8 @@ class WorkflowHelper
     public const ROLE_JEFATURA = 'jefatura';
 
     public const ROLE_SUPERVISOR = 'supervisor';
+
+    public const ROLE_CONTROLLING = 'controlling';
+
+    public const ROLE_FINANCES = 'finances';
 }

@@ -294,7 +294,7 @@
                                                                     <textarea name="observation" rows="2" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-rose-500 focus:ring-0 px-3 py-2" required placeholder="Ej: Faltan especificaciones..."></textarea>
                                                                     <div class="mt-3 flex justify-end gap-2">
                                                                         <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors">Cancelar</button>
-                                                                        <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5">Devolver</button>
+                                                                        <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5">Rechazar</button>
                                                                     </div>
                                                                 </form>
                                                             </div>
@@ -600,7 +600,7 @@
                                                     <textarea name="observation" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:border-rose-500 focus:ring-0 px-3 py-2" required placeholder="Motivo..."></textarea>
                                                     <div class="mt-3 flex justify-end gap-2">
                                                         <button type="button" @click="showReject = false" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer">Cancelar</button>
-                                                        <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">Devolver</button>
+                                                        <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-500 transition-all hover:-translate-y-0.5 cursor-pointer">Rechazar y cerrar intento</button>
                                                     </div>
                                                 </form>
                                             </div>

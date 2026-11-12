@@ -14,7 +14,19 @@
 
     <div class="py-12 bg-[#0f172a] min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Gasto rendido</div><div class="text-2xl font-black text-white">${{ number_format($currentTotal, 0, ',', '.') }}</div></div>
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Período anterior</div><div class="text-2xl font-black text-white">${{ number_format($previousTotal, 0, ',', '.') }}</div></div>
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Variación</div><div class="text-2xl font-black {{ $currentTotal > $previousTotal ? 'text-amber-400' : 'text-emerald-400' }}">${{ number_format($currentTotal - $previousTotal, 0, ',', '.') }}</div></div>
+                <div class="bg-slate-800 p-5 rounded-2xl"><div class="text-xs text-slate-400">Solicitudes</div><div class="text-2xl font-black text-white">{{ $plannings->total() }}</div></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                @foreach(['Gastos por tipo' => $expenseByCategory, 'Gastos por proyecto' => $projectTotals, 'Gastos por sección' => $sectionTotals] as $title => $totals)
+                    <div class="bg-slate-800 p-5 rounded-2xl"><h3 class="text-xs font-black uppercase text-slate-300 mb-3">{{ $title }}</h3>@forelse($totals as $name => $amount)<div class="flex justify-between text-sm text-slate-300 border-b border-slate-700 py-1"><span>{{ ucfirst(str_replace('_', ' ', $name)) }}</span><strong>${{ number_format($amount, 0, ',', '.') }}</strong></div>@empty<p class="text-sm text-slate-500">Sin datos para los filtros aplicados.</p>@endforelse</div>
+                @endforeach
+            </div>
+
             <!-- Filters Card -->
             <div class="bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-slate-700/60 ring-1 ring-black/5 dark:ring-white/5 rounded-[2rem] shadow-2xl p-8 relative overflow-hidden">
                 <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/5 rounded-full blur-[60px] pointer-events-none"></div>
@@ -26,6 +38,10 @@
 
                 <form method="GET" action="{{ route('renditions.reports') }}" class="space-y-6" id="reports-filter-form">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Desde</label><input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs"></div>
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Hasta</label><input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs"></div>
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Proyecto</label><input name="project" value="{{ request('project') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs" placeholder="Proyecto"></div>
+                        <div class="group"><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Sección</label><input name="section" value="{{ request('section') }}" class="w-full bg-slate-950 border-slate-700 rounded-xl text-white text-xs" placeholder="Sección"></div>
                         
                         <!-- Colaborador -->
                         <div class="group">
@@ -87,7 +103,7 @@
                                     <option value="">Todos los estados</option>
                                     <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Borrador</option>
                                     <option value="pending_jefatura" {{ request('status') === 'pending_jefatura' ? 'selected' : '' }}>Pendiente Jefatura</option>
-                                    <option value="pending_controlling" {{ request('status') === 'pending_controlling' ? 'selected' : '' }}>Pendiente Controlling</option>
+                                    <option value="pending_controlling" {{ request('status') === 'pending_controlling' ? 'selected' : '' }}>Controlling (flujo anterior)</option>
                                     <option value="pending_finances" {{ request('status') === 'pending_finances' ? 'selected' : '' }}>Pendiente Finanzas</option>
                                     <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Aprobado / Cerrado</option>
                                     <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rechazado</option>
@@ -109,6 +125,9 @@
 
                     </div>
 
+                    <label class="block text-sm text-slate-300 mb-4">Centro de costo
+                        <input name="cost_center" value="{{ request('cost_center') }}" maxlength="30" placeholder="Ej.: C113000001" class="block bg-slate-900 text-white border border-slate-700 rounded-lg mt-1">
+                    </label>
                     <div class="flex justify-end gap-3 pt-6 border-t border-slate-800/60">
                         <a href="{{ route('renditions.reports') }}" class="px-6 py-3 bg-slate-800/80 border border-slate-700/80 text-slate-300 hover:text-white hover:border-rose-500/60 hover:bg-rose-500/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,8 +144,9 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
-                            Exportar a Excel
+                            Exportar Excel (.xlsx)
                         </a>
+                        <a href="{{ route('renditions.reports.pdf', request()->all()) }}" target="_blank" rel="noopener" class="px-7 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold">Ver PDF</a>
                     </div>
                 </form>
             </div>

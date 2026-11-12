@@ -13,3 +13,33 @@
 
 /* Prevent Alpine.js flash of unstyled content (FOUC) during wire:navigate transitions */
 [x-cloak] { display: none !important; }
+
+/* Keep catalog and assignment fields legible against the dark page background. */
+.cost-center-manager label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    max-width: 100%;
+}
+
+.cost-center-manager input:not([type="hidden"]),
+.cost-center-manager select {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #64748b;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    min-height: 2.75rem;
+    max-width: 100%;
+    color-scheme: dark;
+}
+
+.cost-center-manager input[name="area"] {
+    width: 22rem;
+}
+
+.cost-center-manager input:focus,
+.cost-center-manager select:focus {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+}

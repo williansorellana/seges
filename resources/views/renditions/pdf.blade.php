@@ -203,7 +203,9 @@
         </tr>
     </table>
 
+    <p>Viaje #{{ $rendition->route_planning_id }} / intento {{ $rendition->attempt_number }} / centro de costo: {{ $rendition->routePlanning->cost_center ?: 'Sin asignar' }}. Importes expresados con IVA incluido cuando corresponde.</p>
     @if($rendition->status === 'rejected')
+        <p>Intento {{ $rendition->attempt_number }} / RND-{{ $rendition->id }}. Cerrado: {{ $rendition->closed_at?->format('d/m/Y H:i') }}.<br>Motivo de rechazo: {{ $rendition->rejection_reason }}</p>
         <table>
             <tr>
                 <td class="badge-red" style="text-align: center; font-weight: bold;">

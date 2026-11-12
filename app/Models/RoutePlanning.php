@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\Lockable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Lockable;
 
 class RoutePlanning extends Model
 {
@@ -15,6 +15,7 @@ class RoutePlanning extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'requested_on' => 'date',
 
         'requires_funds' => 'boolean',
         'requested_funds' => 'decimal:2',
@@ -31,6 +32,9 @@ class RoutePlanning extends Model
         'amipass_days' => 'integer',
         'amipass_business_days' => 'integer',
         'amipass_amount' => 'decimal:2',
+        'amipass_per_person_amount' => 'decimal:2',
+        'includes_breakfast' => 'boolean',
+        'lodging_authorized_at' => 'datetime',
 
         'signed_at' => 'datetime',
         'submitted_at' => 'datetime',
@@ -66,7 +70,17 @@ class RoutePlanning extends Model
 
     public function rendition()
     {
-        return $this->hasOne(\App\Models\Rendition::class);
+        return $this->hasOne(\App\Models\Rendition::class)->ofMany('attempt_number', 'max');
+    }
+
+    public function renditions()
+    {
+        return $this->hasMany(Rendition::class);
+    }
+
+    public function companions()
+    {
+        return $this->hasMany(RoutePlanningCompanion::class);
     }
 
     /**
@@ -81,7 +95,7 @@ class RoutePlanning extends Model
                 'approved_by_controlling',
                 'rejected_by_controlling',
                 'approved_by_jefatura',
-                'rejected_by_jefatura'
+                'rejected_by_jefatura',
             ])
             ->orderBy('id', 'desc')
             ->first();

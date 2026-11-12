@@ -14,10 +14,10 @@
             @php
                 $currentUser = auth()->user();
 
-                if ($currentUser->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_FINANCES) {
+                if ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_FINANCES) {
                     $backRoute = route('renditions.finances');
                     $backLabel = 'Volver a Finanzas';
-                } elseif ($currentUser->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING) {
+                } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING) {
                     $backRoute = route('renditions.controlling');
                     $backLabel = 'Volver a Controlling';
                 } elseif ($currentUser->role === \App\Helpers\WorkflowHelper::ROLE_JEFATURA) {
@@ -98,16 +98,25 @@
             @php
                 $isOwner = $rendition->user_id === auth()->id();
 
-                $isControlling = auth()->user()->departamento === \App\Helpers\WorkflowHelper::DEPARTMENT_CONTROLLING;
+                $isControllingReviewer = auth()->user()->role === \App\Helpers\WorkflowHelper::ROLE_CONTROLLING;
 
-                $canManageExpenses = $isOwner && in_array($rendition->status, ['draft', 'rejected']);
+                $canManageExpenses = $isOwner && $rendition->status === 'draft';
+                $boss = $rendition->user->jefatura;
+                $canSubmitNow = $canManageExpenses && $rendition->routePlanning
+                    && now()->startOfDay()->gte($rendition->routePlanning->end_date)
+                    && $boss && $boss->is_active && $boss->role === 'jefatura' && $boss->id !== $rendition->user_id;
 
-                $canAuditExpenses = $isControlling
+                $canAuditExpenses = $isControllingReviewer
                     && $rendition->status === 'pending_controlling'
                     && !$isOwner
                     && !($isLocked ?? false);
             @endphp
 
+            @include('renditions.deadline-notice', ['item' => $rendition])
+            @include('renditions.attempts')
+            @if($canManageExpenses && !$canSubmitNow)
+                <p class="mb-5 text-amber-300">Puedes continuar guardando gastos. Para enviar, debe haber terminado la ruta y debes tener una jefatura activa asignada.</p>
+            @endif
             @if($rendition->status === 'rejected' && $rendition->observations->count() > 0)
                 <div class="mb-8 bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                     <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/5 rounded-full blur-[60px] pointer-events-none"></div>
@@ -242,6 +251,12 @@
                                                                 Observado
                                                             </span>
 
+                                                            @if($expense->expense_category === 'alojamiento' && $expense->lodging_excess_amount > 0)
+                                                                <div class="mt-2 text-xs {{ $expense->lodging_excess_status === 'approved' ? 'text-emerald-400' : 'text-amber-400' }}">Autorizado: ${{ number_format($expense->authorized_amount, 0, ',', '.') }} · Excedente: ${{ number_format($expense->lodging_excess_amount, 0, ',', '.') }} ({{ $expense->lodging_excess_status }})</div>
+                                                                @if($rendition->status !== 'rejected' && $expense->lodging_excess_status === 'pending' && auth()->user()->role === 'jefatura' && auth()->id() === $rendition->user->jefatura_id && auth()->id() !== $rendition->user_id)
+                                                                    <form method="POST" action="{{ route('renditions.expenses.approve-lodging-excess', [$rendition, $expense]) }}" class="mt-2">@csrf<button class="text-xs bg-emerald-600 px-2 py-1 rounded">Autorizar excedente</button></form>
+                                                                @endif
+                                                            @endif
                                                             @if($expense->rejection_reason)
                                                                 <span class="text-[10px] text-rose-300 font-medium text-right leading-snug">
                                                                     {{ $expense->rejection_reason }}
@@ -380,7 +395,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="group">
-                                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Monto ($)</label>
+                                                                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Monto con IVA incluido ($)</label>
                                                                 <div class="flex items-center border border-slate-800 rounded-2xl bg-slate-950/50 px-4 py-3.5 focus-within:border-blue-500 transition-all">
                                                                     <input type="number" name="amount" value="{{ $expense->amount }}" min="1" class="w-full bg-transparent border-none outline-none text-white text-sm font-bold" required>
                                                                 </div>
@@ -574,7 +589,7 @@
                                     </div>
 
                                     <div class="group">
-                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Monto Total ($)</label>
+                                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Monto Total con IVA incluido ($)</label>
                                         <div class="flex items-center border border-slate-700 rounded-lg bg-slate-900 px-4 py-2.5 focus-within:border-blue-500 transition-all relative">
                                             <span class="text-blue-400 font-bold mr-2">$</span>
                                             <input type="number" name="amount" min="1" class="w-full bg-transparent border-none outline-none text-white placeholder-slate-600 text-sm font-bold" placeholder="0" required>
@@ -809,7 +824,7 @@
                             </div>
 
                             <!-- Botón Enviar -->
-                            @if($canManageExpenses)
+                            @if($canSubmitNow)
                             <div class="mt-10 pt-8 border-t border-slate-800" x-data="{ showSubmitModal: false }">
                                 <button type="button" @click="showSubmitModal = true" class="w-full py-4 px-6 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-emerald-600/40 transition-all flex items-center justify-center gap-3 cursor-pointer group">
                                     <svg class="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -986,6 +1001,9 @@
                                                     'payment_completed_automatically' => 'Cierre financiero automático',
                                                     'expense_validated_by_controlling' => 'Documento validado por Controlling',
                                                     'expense_observed_by_controlling' => 'Documento observado por Controlling',
+                                                    'expense_validated_by_finances' => 'Documento validado por Finanzas',
+                                                    'expense_observed_by_finances' => 'Documento observado por Finanzas',
+                                                    'rerouted_to_finances' => 'Derivada a Finanzas por actualización del flujo',
                                                 ];
 
                                                 $actionLabel = $actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action));
@@ -1418,4 +1436,3 @@
         });
     </script>
 </x-app-layout>
-

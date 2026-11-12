@@ -24,21 +24,42 @@ class AmipassCalculatorService
         '2026-12-25',
     ];
 
-    public function calculate(string $startDate, string $endDate, ?string $startTime, ?string $endTime): array
+    public function calculate(
+        string $startDate,
+        string $endDate,
+        ?string $startTime,
+        ?string $endTime,
+        string $rateType = 'otros',
+        bool $includesBreakfast = false,
+        int $excludedLunches = 0,
+        int $excludedDinners = 0,
+        int $recipients = 1,
+    ): array
     {
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
 
         $businessDays = $this->businessDays($start, $end);
 
-        $amount = 0;
-        $amount += $this->firstDayAmount($start, $startTime, $endTime);
-        $amount += $this->middleDaysAmount($start, $end, $businessDays);
-        $amount += $this->lastDayAmount($end, $endTime);
+        $rates = $rateType === 'venta'
+            ? ['breakfast' => 2000, 'lunch' => 6000, 'dinner' => 7000]
+            : ['breakfast' => 2000, 'lunch' => 5000, 'dinner' => 5000];
+
+        // La recarga corresponde a cada día hábil de la ruta. Las exclusiones se
+        // limitan a las comidas realmente disponibles para no producir montos negativos.
+        $breakfastCount = $includesBreakfast ? 0 : $businessDays;
+        $lunchCount = max(0, $businessDays - min($businessDays, $excludedLunches));
+        $dinnerCount = max(0, $businessDays - min($businessDays, $excludedDinners));
+        $perPersonAmount = ($breakfastCount * $rates['breakfast'])
+            + ($lunchCount * $rates['lunch'])
+            + ($dinnerCount * $rates['dinner']);
+
+        $amount = $perPersonAmount * max(1, $recipients);
 
         return [
             'business_days' => $businessDays,
             'amount' => max(0, $amount),
+            'per_person_amount' => max(0, $perPersonAmount),
         ];
     }
 
@@ -51,7 +72,7 @@ class AmipassCalculatorService
         $count = 0;
 
         foreach (CarbonPeriod::create($start, $end) as $date) {
-            if (!$this->isSunday($date) && !$this->isHoliday($date)) {
+            if ($date->isWeekday() && !$this->isHoliday($date)) {
                 $count++;
             }
         }

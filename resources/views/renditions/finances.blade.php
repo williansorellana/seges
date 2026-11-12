@@ -147,7 +147,7 @@
                                                         <div class="text-sm font-semibold text-white">{{ $plan->user->name }} {{ $plan->user->last_name }}</div>
                                                         @php
                                                             if ($plan->status === 'pending_finances') {
-                                                                $approvalLabel = $plan->trip_type === 'reunion' ? 'Visado por Jefatura' : 'Visado por Controlling';
+                                                                $approvalLabel = 'Visado por Jefatura';
                                                             } elseif ($plan->status === 'pending_controlling') {
                                                                 $approvalLabel = 'Visado por Jefatura';
                                                             } elseif ($plan->status === 'approved') {
